@@ -29,6 +29,7 @@ model Interview {
   jobDescription String
   questions      String[]
   answers        String[]
+  analysis       String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }

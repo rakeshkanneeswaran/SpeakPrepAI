@@ -1,22 +1,28 @@
 "use server";
 import { PdfReader } from "pdfreader";
 
-
 export async function getPdfContent(base64: string): Promise<string> {
     const fileBuffer = Buffer.from(base64, "base64");
-    let content = "";
+    let raw = "";
 
     await new Promise((resolve, reject) => {
         new PdfReader().parseBuffer(fileBuffer, (err, item) => {
             if (err) reject(err);
             else if (!item) resolve(true);
-            else if (item.text) content += item.text + "\n";
-
+            else if (item.text) raw += item.text + " ";
         });
     });
-    console.log("Extracted PDF Content:", content);
 
-    return content;
+    // 🧹 Deep clean + normalize PDF artifacts
+    const cleaned = raw
+        .replace(/\s+/g, " ") // collapse multiple spaces
+        .replace(/([A-Za-z])\s(?=[A-Za-z])/g, "$1") // remove spaces between letters of the same word
+        .replace(/\s{2,}/g, " ") // collapse again just in case
+        .replace(/\s*([.,:;!?])\s*/g, "$1 ") // tidy punctuation spacing
+        .replace(/\s*\n\s*/g, "\n") // normalize newlines
+        .trim();
+
+    console.log("🧠 Extracted & Cleaned PDF Content (first 500 chars):\n", cleaned.slice(0, 500));
+
+    return cleaned;
 }
-
-

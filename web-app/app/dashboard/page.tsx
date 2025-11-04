@@ -9,6 +9,7 @@ import {
   Download,
   Briefcase,
   Rocket,
+  Layers,
 } from "lucide-react";
 import { getPdfContent } from "./action";
 import { useInterviewStore } from "../store/useInterviewStore";
@@ -21,12 +22,13 @@ export default function Dashboard() {
   const [showModal, setShowModal] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [jobDesc, setJobDesc] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [companyWebsite, setCompanyWebsite] = useState("");
   const [uploading, setUploading] = useState(false);
   const [loadingStage, setLoadingStage] = useState<string | null>(null);
   const { setInterviewData } = useInterviewStore();
   const router = useRouter();
 
-  // 🧩 Past interviews state
   const [interviews, setInterviews] = useState<
     { sessionId: string; createdAt: string }[]
   >([]);
@@ -48,6 +50,21 @@ export default function Dashboard() {
   }, []);
 
   const handleLaunch = async () => {
+    // For Company Insights
+    if (selectedType === "Company Insights") {
+      if (!companyName) {
+        alert("Please enter a company name.");
+        return;
+      }
+      router.push(
+        `/dashboard/company-insight?name=${encodeURIComponent(
+          companyName
+        )}&website=${encodeURIComponent(companyWebsite)}`
+      );
+      return;
+    }
+
+    // For Interview Types
     if (!resumeFile || !jobDesc) {
       alert("Please upload a resume and enter the job description.");
       return;
@@ -57,12 +74,9 @@ export default function Dashboard() {
     setLoadingStage("Scanning your resume...");
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise((r) => setTimeout(r, 1000));
 
       const arrayBuffer = await resumeFile.arrayBuffer();
-      setLoadingStage("Analyzing job description...");
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
       const base64 = btoa(
         new Uint8Array(arrayBuffer).reduce(
           (data, byte) => data + String.fromCharCode(byte),
@@ -70,12 +84,13 @@ export default function Dashboard() {
         )
       );
 
-      setLoadingStage("Accessing the web for company insights...");
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      setLoadingStage("Extracting resume details...");
+      await new Promise((r) => setTimeout(r, 1000));
       const resumeData = await getPdfContent(base64);
+      console.log("Resume Data:", resumeData);
 
-      setLoadingStage("Generating final AI analysis...");
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      setLoadingStage("Generating AI interview questions...");
+      await new Promise((r) => setTimeout(r, 1000));
 
       const response = await fetch("/api/interview", {
         method: "POST",
@@ -83,17 +98,27 @@ export default function Dashboard() {
         body: JSON.stringify({
           resumeData,
           jobDescription: jobDesc,
+          interviewType:
+            selectedType === "Technical Interview"
+              ? "technical"
+              : selectedType === "HR Interview"
+              ? "hr"
+              : "mixed",
         }),
       }).then((res) => res.json());
 
       setInterviewData(response.questions);
       const sessionId = response.interviewSessionId;
+
       setUploading(false);
       setLoadingStage(null);
-      router.push(`/dashboard/interview/${sessionId}/introduction`);
+      setShowModal(false);
+
+      // ✅ Redirect to session page
+      router.push(`/dashboard/interview/${sessionId}/session`);
     } catch (err) {
       console.error(err);
-      alert("Failed to upload resume or generate questions.");
+      alert("Failed to generate interview session. Please try again.");
       setUploading(false);
     }
   };
@@ -114,8 +139,8 @@ export default function Dashboard() {
         <div className="flex flex-col">
           <h1 className="text-2xl font-bold">SpeakPrep AI</h1>
           <p className="text-gray-500 text-sm mb-1">
-            Get real interview experience, practice with mock sessions, and get
-            AI help with company research.
+            Get real interview experience, practice mock sessions, and explore
+            AI-powered insights.
           </p>
         </div>
         <button
@@ -126,7 +151,7 @@ export default function Dashboard() {
         </button>
       </header>
 
-      {/* Body (Sidebar + Main Content) */}
+      {/* Body */}
       <div className="flex flex-1">
         {/* Sidebar */}
         <aside
@@ -164,12 +189,10 @@ export default function Dashboard() {
                 label="Job Hunter"
                 open={sidebarOpen}
               />
-
               <div
                 className="border-t my-3"
                 style={{ borderColor: platformColors.borderColor }}
               />
-
               <SidebarItem
                 icon={<Download />}
                 label="Download for Mac/PC"
@@ -195,39 +218,43 @@ export default function Dashboard() {
 
         {/* Main Section */}
         <main className="flex-1 flex flex-col">
-          {/* Central Section */}
           <div className="flex-1 p-8 space-y-8 flex flex-col items-center">
-            {/* Top prompt like Zapier */}
             <div className="text-center mb-6 w-full max-w-3xl">
               <h2 className="text-4xl font-semibold text-gray-800 mb-2">
                 What would you like to do today?
               </h2>
               <p className="text-gray-500 text-sm">
-                Choose an option below to start preparing, researching, or
-                practicing with AI.
+                Choose how you want to prepare or research with SpeakPrep AI.
               </p>
             </div>
 
             {/* Option Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 w-full max-w-5xl">
               {[
                 {
                   title: "Technical Interview",
-                  desc: "Sharpen your problem-solving and technical communication with tailored AI-guided practice.",
+                  desc: "Sharpen technical skills with AI-guided mock sessions.",
                 },
                 {
                   title: "HR Interview",
-                  desc: "Practice behavioral and situational questions to improve clarity, confidence, and storytelling.",
+                  desc: "Improve clarity, confidence, and behavioral responses.",
+                },
+                {
+                  title: "Technical + HR (Mixed)",
+                  desc: "Practice both technical and HR-style questions together.",
                 },
                 {
                   title: "Company Insights",
-                  desc: "Get AI-researched summaries about the company, role, and potential interview focus areas.",
+                  desc: "Get AI-researched summaries about your target company.",
                 },
               ].map((card) => (
                 <div
                   key={card.title}
-                  onClick={() => setSelectedType(card.title)}
-                  className={`border rounded-xl p-6 shadow-sm hover:shadow-md transition cursor-pointer text-left ${
+                  onClick={() => {
+                    setSelectedType(card.title);
+                    setShowModal(true);
+                  }}
+                  className={`border rounded-xl p-6 shadow-sm hover:shadow-md transition cursor-pointer ${
                     selectedType === card.title
                       ? "bg-orange-50 border-orange-400"
                       : "bg-white"
@@ -235,9 +262,7 @@ export default function Dashboard() {
                   style={{ borderColor: platformColors.borderColor }}
                 >
                   <h3 className="font-semibold text-lg mb-2">{card.title}</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    {card.desc}
-                  </p>
+                  <p className="text-sm text-gray-600">{card.desc}</p>
                 </div>
               ))}
             </div>
@@ -254,7 +279,6 @@ export default function Dashboard() {
             <h3 className="text-lg font-semibold mb-4">
               Your Past Interview Sessions
             </h3>
-
             {loadingInterviews ? (
               <p className="text-gray-500 text-sm">Loading interviews...</p>
             ) : interviews.length === 0 ? (
@@ -292,6 +316,73 @@ export default function Dashboard() {
         </main>
       </div>
 
+      {/* Launch Modal */}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
+          <div
+            className="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg"
+            style={{ borderColor: platformColors.borderColor }}
+          >
+            <h2 className="text-xl font-semibold mb-4">
+              {selectedType === "Company Insights"
+                ? "Enter Company Details"
+                : `Start ${selectedType}`}
+            </h2>
+
+            {selectedType === "Company Insights" ? (
+              <>
+                <input
+                  type="text"
+                  placeholder="Company Name"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  className="w-full border rounded-md p-2 mb-3"
+                />
+                <input
+                  type="text"
+                  placeholder="Company Website (optional)"
+                  value={companyWebsite}
+                  onChange={(e) => setCompanyWebsite(e.target.value)}
+                  className="w-full border rounded-md p-2 mb-4"
+                />
+              </>
+            ) : (
+              <>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                  className="w-full border rounded-md p-2 mb-3"
+                />
+                <textarea
+                  placeholder="Paste job description here..."
+                  value={jobDesc}
+                  onChange={(e) => setJobDesc(e.target.value)}
+                  className="w-full border rounded-md p-2 mb-4 h-24"
+                ></textarea>
+              </>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded-md border text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLaunch}
+                className="px-5 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 shadow-sm"
+              >
+                {selectedType === "Company Insights"
+                  ? "View Insights"
+                  : "Launch Interview"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Loading Overlay */}
       {uploading && loadingStage && (
         <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-[999] transition-all duration-500">
@@ -308,7 +399,6 @@ export default function Dashboard() {
   );
 }
 
-// Sidebar item helper
 function SidebarItem({
   icon,
   label,

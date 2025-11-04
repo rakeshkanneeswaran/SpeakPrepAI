@@ -40,6 +40,33 @@ export default function InterviewSession() {
   const wait = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
+  const saveInterviewAnalysis = async () => {
+    if (!sessionId || !analysisResult) return;
+
+    try {
+      const response = await fetch("/api/interview/save-analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          interviewSessionId: sessionId,
+          analysis: analysisResult,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        console.error("Failed to save analysis:", data.message);
+        alert("Error: Unable to save analysis. Please try again.");
+        return;
+      }
+
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Save analysis error:", error);
+      alert("Something went wrong while saving analysis.");
+    }
+  };
+
   const analyzeConversation = async () => {
     try {
       setIsAnalyzing(true);
@@ -521,90 +548,71 @@ export default function InterviewSession() {
               </button>
             </div>
           ) : currentQuestionIndex < questions.length ? (
-            <div className="text-center">
-              <h3
-                className="text-xl font-semibold tracking-wide mb-1 transition-colors duration-300"
-                style={{ color: "#000" }}
-              >
-                Question {currentQuestionIndex + 1} of {questions.length}
-              </h3>
-              <p
-                className="text-lg italic font-medium leading-relaxed text-center max-w-2xl transition-all duration-300"
-                style={{
-                  color: "#111",
-                  lineHeight: "1.6",
-                }}
-              >
-                {questions[currentQuestionIndex]}
-              </p>
-              {isAudioRecording ? (
-                <div className="flex flex-col items-center gap-4 scale-110">
-                  {/* 🎙️ Animated pulsing ring for recording */}
-                  <div className="relative flex items-center justify-center">
-                    <div
-                      className="absolute h-12 w-12 rounded-full animate-ping"
-                      style={{
-                        backgroundColor: getAccentColor("error"),
-                        opacity: 0.3,
-                      }}
-                    ></div>
-                    <div
-                      className="h-5 w-5 rounded-full shadow-lg"
-                      style={{ backgroundColor: getAccentColor("error") }}
-                    ></div>
-                  </div>
+            <div className="flex flex-col items-center justify-center text-center space-y-3">
+              {/* Question Header */}
+              <div className="flex flex-col items-center justify-center">
+                <h3 className="text-xl font-semibold text-black mb-1">
+                  Question {currentQuestionIndex + 1} of {questions.length}
+                </h3>
+                <p className="italic text-lg text-gray-900 leading-relaxed">
+                  {questions[currentQuestionIndex]}
+                </p>
+              </div>
 
-                  <p
-                    className="text-base font-semibold tracking-wide animate-pulse"
-                    style={{ color: "#000" }}
-                  >
-                    Recording in progress...
-                  </p>
-
-                  <p className="text-sm italic" style={{ color: "#222" }}>
-                    Auto-stops in a few seconds
-                  </p>
-                </div>
-              ) : isAudioPlaying ? (
-                <div className="flex flex-col items-center gap-4 pt-6 scale-110">
-                  {/* 🔊 Equalizer animation for question playback */}
-                  <div className="flex items-end gap-1 h-5">
-                    {[1, 2, 3, 4, 5].map((bar) => (
+              {/* State Block (Playback / Recording / Preparing) */}
+              <div className="flex flex-col items-center justify-center space-y-4 min-h-[150px]">
+                {isAudioRecording ? (
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    {/* 🔴 Red recording dot */}
+                    <div className="relative flex items-center justify-center">
                       <div
-                        key={bar}
-                        className="w-1.5 bg-orange-500 rounded-sm animate-bounce"
+                        className="absolute h-10 w-10 rounded-full animate-ping"
                         style={{
-                          height: `${6 + bar * 3}px`,
-                          animationDelay: `${bar * 0.1}s`,
+                          backgroundColor: getAccentColor("error"),
+                          opacity: 0.3,
                         }}
                       ></div>
-                    ))}
+                      <div
+                        className="h-5 w-5 rounded-full shadow-md"
+                        style={{ backgroundColor: getAccentColor("error") }}
+                      ></div>
+                    </div>
+                    <p className="text-lg font-semibold text-black">
+                      Recording in progress...
+                    </p>
+                    <p className="text-sm italic text-gray-700">
+                      Auto-stops in a few seconds
+                    </p>
                   </div>
-                  <p
-                    className="text-base font-semibold tracking-wide"
-                    style={{ color: "#000" }}
-                  >
-                    Playing question...
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-3 scale-110">
-                  {/* ⏳ Subtle spinner for idle state */}
-                  <div
-                    className="h-7 w-7 border-2 rounded-full animate-spin"
-                    style={{
-                      borderColor: "#d1d5db",
-                      borderTopColor: "#f97316",
-                    }}
-                  ></div>
-                  <p
-                    className="text-base font-semibold tracking-wide"
-                    style={{ color: "#000" }}
-                  >
-                    Preparing next step...
-                  </p>
-                </div>
-              )}
+                ) : isAudioPlaying ? (
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    {/* 🔊 Equalizer animation */}
+                    <div className="flex items-end justify-center gap-1 h-5">
+                      {[1, 2, 3, 4, 5].map((bar) => (
+                        <div
+                          key={bar}
+                          className="w-1.5 bg-orange-500 rounded-sm animate-bounce"
+                          style={{
+                            height: `${6 + bar * 3}px`,
+                            animationDelay: `${bar * 0.1}s`,
+                          }}
+                        ></div>
+                      ))}
+                    </div>
+                    <p className="text-lg font-semibold text-black">
+                      Playing question...
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    {/* ⏳ Subtle spinner */}
+                    <div className="h-6 w-6 border-2 border-gray-300 border-t-orange-500 rounded-full animate-spin"></div>
+                    <p className="text-lg font-semibold text-black">
+                      Preparing next step...
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div className="text-center w-full max-w-4xl">
@@ -651,7 +659,17 @@ export default function InterviewSession() {
                   </button>
                 </div>
               ) : analysisResult ? (
-                <AnalysisResult text={analysisResult} />
+                <div className="flex flex-col items-center space-y-6">
+                  <AnalysisResult text={analysisResult} />
+
+                  {/* ✅ Save & Return Button */}
+                  <button
+                    onClick={saveInterviewAnalysis}
+                    className="mt-6 flex items-center gap-2 px-6 py-2 rounded-md text-white font-medium bg-orange-500 hover:bg-orange-600 shadow-md transition-all"
+                  >
+                    Save & Return to Dashboard
+                  </button>
+                </div>
               ) : null}
             </div>
           )}
