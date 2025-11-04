@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Menu,
   X,
@@ -10,8 +10,10 @@ import {
   Briefcase,
   Rocket,
 } from "lucide-react";
-
 import { getPdfContent } from "./action";
+import { useInterviewStore } from "../store/useInterviewStore";
+import { useRouter } from "next/navigation";
+import platformColors from "../utils/colors";
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -20,6 +22,30 @@ export default function Dashboard() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [jobDesc, setJobDesc] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState<string | null>(null);
+  const { setInterviewData } = useInterviewStore();
+  const router = useRouter();
+
+  // 🧩 Past interviews state
+  const [interviews, setInterviews] = useState<
+    { sessionId: string; createdAt: string }[]
+  >([]);
+  const [loadingInterviews, setLoadingInterviews] = useState(true);
+
+  useEffect(() => {
+    async function fetchInterviews() {
+      try {
+        const res = await fetch("/api/dashboard/interviews", { method: "GET" });
+        const data = await res.json();
+        if (data.interviews) setInterviews(data.interviews);
+      } catch (err) {
+        console.error("Failed to load interviews:", err);
+      } finally {
+        setLoadingInterviews(false);
+      }
+    }
+    fetchInterviews();
+  }, []);
 
   const handleLaunch = async () => {
     if (!resumeFile || !jobDesc) {
@@ -28,13 +54,15 @@ export default function Dashboard() {
     }
 
     setUploading(true);
+    setLoadingStage("Scanning your resume...");
+
     try {
-      const formData = new FormData();
-      formData.append("resume", resumeFile);
-      formData.append("jobDesc", jobDesc);
-      formData.append("type", selectedType || "");
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       const arrayBuffer = await resumeFile.arrayBuffer();
+      setLoadingStage("Analyzing job description...");
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
       const base64 = btoa(
         new Uint8Array(arrayBuffer).reduce(
           (data, byte) => data + String.fromCharCode(byte),
@@ -42,202 +70,258 @@ export default function Dashboard() {
         )
       );
 
-      const response = await getPdfContent(base64);
-      alert(`Upload success! Extracted text length: ${response.length}`);
+      setLoadingStage("Accessing the web for company insights...");
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const resumeData = await getPdfContent(base64);
+
+      setLoadingStage("Generating final AI analysis...");
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      const response = await fetch("/api/interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resumeData,
+          jobDescription: jobDesc,
+        }),
+      }).then((res) => res.json());
+
+      setInterviewData(response.questions);
+      const sessionId = response.interviewSessionId;
+      setUploading(false);
+      setLoadingStage(null);
+      router.push(`/dashboard/interview/${sessionId}/introduction`);
     } catch (err) {
       console.error(err);
-      alert("Failed to upload resume.");
-    } finally {
+      alert("Failed to upload resume or generate questions.");
       setUploading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 text-gray-800">
-      {/* Sidebar */}
-      <div
-        className={`${
-          sidebarOpen ? "w-64" : "w-20"
-        } bg-white shadow-md transition-all duration-300 flex flex-col justify-between`}
+    <div
+      className="flex flex-col min-h-screen text-gray-800"
+      style={{ backgroundColor: platformColors.mainBackground }}
+    >
+      {/* Header */}
+      <header
+        className="w-full flex justify-between items-center px-8 py-3 shadow-sm"
+        style={{
+          backgroundColor: platformColors.outerMainBackground,
+          borderBottom: `1px solid ${platformColors.borderColor}`,
+        }}
       >
-        <div>
-          <div className="flex items-center justify-between p-4 border-b">
-            <h1
-              className={`text-xl font-bold transition-opacity duration-200 ${
-                sidebarOpen ? "opacity-100" : "opacity-0 w-0"
-              }`}
-            >
-              Final Round AI
-            </h1>
-            <button onClick={() => setSidebarOpen(!sidebarOpen)}>
-              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-          </div>
-
-          <nav className="p-4 space-y-3">
-            <div className="flex items-center gap-3 cursor-pointer p-2 rounded-md hover:bg-gray-100">
-              <Briefcase className="w-5 h-5" />
-              {sidebarOpen && <span>Interview Copilot</span>}
-            </div>
-            <div className="flex items-center gap-3 cursor-pointer p-2 rounded-md hover:bg-gray-100">
-              <User className="w-5 h-5" />
-              {sidebarOpen && <span>Mock Interview</span>}
-            </div>
-            <div className="flex items-center gap-3 cursor-pointer p-2 rounded-md hover:bg-gray-100">
-              <Rocket className="w-5 h-5" />
-              {sidebarOpen && <span>Job Hunter</span>}
-            </div>
-
-            <div className="border-t my-3" />
-
-            <div className="flex items-center gap-3 cursor-pointer p-2 rounded-md hover:bg-gray-100">
-              <Download className="w-5 h-5" />
-              {sidebarOpen && <span>Download for Mac/PC</span>}
-            </div>
-
-            <div className="flex items-center gap-3 cursor-pointer p-2 rounded-md hover:bg-gray-100">
-              <Settings className="w-5 h-5" />
-              {sidebarOpen && <span>Settings</span>}
-            </div>
-          </nav>
-        </div>
-
-        <div className="p-4 border-t">
-          <p className={`text-sm ${!sidebarOpen && "hidden"}`}>
-            Rakesh Kanneeswaran
+        <div className="flex flex-col">
+          <h1 className="text-2xl font-bold">SpeakPrep AI</h1>
+          <p className="text-gray-500 text-sm mb-1">
+            Get real interview experience, practice with mock sessions, and get
+            AI help with company research.
           </p>
         </div>
-      </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="px-4 py-2 bg-orange-500 text-white rounded-md font-semibold hover:bg-orange-600 transition"
+        >
+          Start Interview
+        </button>
+      </header>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        <header className="flex justify-between items-center p-6 bg-white shadow-sm">
+      {/* Body (Sidebar + Main Content) */}
+      <div className="flex flex-1">
+        {/* Sidebar */}
+        <aside
+          className={`${
+            sidebarOpen ? "w-64" : "w-20"
+          } shadow-md transition-all duration-300 flex flex-col justify-between`}
+          style={{
+            backgroundColor: platformColors.outerMainBackground,
+            borderRight: `1px solid ${platformColors.borderColor}`,
+          }}
+        >
           <div>
-            <h2 className="text-2xl font-semibold">Interview Copilot</h2>
-            <p className="text-gray-500 text-sm mt-1">
-              Get real-time AI help during your interviews, completely invisible
-              to interviewers.
+            <div
+              className="flex items-center justify-between p-4 border-b"
+              style={{ borderColor: platformColors.borderColor }}
+            >
+              <button onClick={() => setSidebarOpen(!sidebarOpen)}>
+                {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </div>
+
+            <nav className="p-4 space-y-3">
+              <SidebarItem
+                icon={<Briefcase />}
+                label="Interview Copilot"
+                open={sidebarOpen}
+              />
+              <SidebarItem
+                icon={<User />}
+                label="Mock Interview"
+                open={sidebarOpen}
+              />
+              <SidebarItem
+                icon={<Rocket />}
+                label="Job Hunter"
+                open={sidebarOpen}
+              />
+
+              <div
+                className="border-t my-3"
+                style={{ borderColor: platformColors.borderColor }}
+              />
+
+              <SidebarItem
+                icon={<Download />}
+                label="Download for Mac/PC"
+                open={sidebarOpen}
+              />
+              <SidebarItem
+                icon={<Settings />}
+                label="Settings"
+                open={sidebarOpen}
+              />
+            </nav>
+          </div>
+
+          <div
+            className="p-4 border-t"
+            style={{ borderColor: platformColors.borderColor }}
+          >
+            <p className={`text-sm ${!sidebarOpen && "hidden"}`}>
+              Rakesh Kanneeswaran
             </p>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="px-4 py-2 bg-orange-500 text-white rounded-md font-semibold hover:bg-orange-600 transition"
-          >
-            Start Interview with Copilot
-          </button>
-        </header>
+        </aside>
 
-        <main className="flex-1 p-8 space-y-8">
-          <div className="flex items-center gap-3">
-            <p className="text-gray-700 font-medium">My Role is</p>
-            <select className="border p-2 rounded-md">
-              <option>Software Engineer</option>
-              <option>Data Scientist</option>
-              <option>Product Manager</option>
-            </select>
-          </div>
+        {/* Main Section */}
+        <main className="flex-1 flex flex-col">
+          {/* Central Section */}
+          <div className="flex-1 p-8 space-y-8 flex flex-col items-center">
+            {/* Top prompt like Zapier */}
+            <div className="text-center mb-6 w-full max-w-3xl">
+              <h2 className="text-4xl font-semibold text-gray-800 mb-2">
+                What would you like to do today?
+              </h2>
+              <p className="text-gray-500 text-sm">
+                Choose an option below to start preparing, researching, or
+                practicing with AI.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {["General Interview", "Coding Copilot", "Phone Interview"].map(
-              (type) => (
+            {/* Option Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
+              {[
+                {
+                  title: "Technical Interview",
+                  desc: "Sharpen your problem-solving and technical communication with tailored AI-guided practice.",
+                },
+                {
+                  title: "HR Interview",
+                  desc: "Practice behavioral and situational questions to improve clarity, confidence, and storytelling.",
+                },
+                {
+                  title: "Company Insights",
+                  desc: "Get AI-researched summaries about the company, role, and potential interview focus areas.",
+                },
+              ].map((card) => (
                 <div
-                  key={type}
-                  onClick={() => setSelectedType(type)}
-                  className={`border rounded-xl p-5 shadow-sm hover:shadow-md transition cursor-pointer ${
-                    selectedType === type
+                  key={card.title}
+                  onClick={() => setSelectedType(card.title)}
+                  className={`border rounded-xl p-6 shadow-sm hover:shadow-md transition cursor-pointer text-left ${
+                    selectedType === card.title
                       ? "bg-orange-50 border-orange-400"
                       : "bg-white"
                   }`}
+                  style={{ borderColor: platformColors.borderColor }}
                 >
-                  <h3 className="font-semibold text-lg mb-2">{type}</h3>
-                  <p className="text-sm text-gray-600">
-                    {type === "General Interview"
-                      ? "A reliable choice that works well in nearly all scenarios."
-                      : type === "Coding Copilot"
-                      ? "Reads your screen code and helps during live coding rounds."
-                      : "Listens to your audio and suggests live answers on the fly."}
+                  <h3 className="font-semibold text-lg mb-2">{card.title}</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {card.desc}
                   </p>
                 </div>
-              )
+              ))}
+            </div>
+          </div>
+
+          {/* Past Interviews */}
+          <div
+            className="p-8 border-t"
+            style={{
+              backgroundColor: platformColors.outerMainBackground,
+              borderColor: platformColors.borderColor,
+            }}
+          >
+            <h3 className="text-lg font-semibold mb-4">
+              Your Past Interview Sessions
+            </h3>
+
+            {loadingInterviews ? (
+              <p className="text-gray-500 text-sm">Loading interviews...</p>
+            ) : interviews.length === 0 ? (
+              <p className="text-gray-500 text-sm">
+                No interviews found. Start one to see it listed here.
+              </p>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-4">
+                {interviews.map((interview) => (
+                  <div
+                    key={interview.sessionId}
+                    className="rounded-lg p-4 hover:shadow-sm transition cursor-pointer"
+                    style={{
+                      backgroundColor: platformColors.mainBackground,
+                      border: `1px solid ${platformColors.borderColor}`,
+                    }}
+                    onClick={() =>
+                      router.push(
+                        `/dashboard/interview/${interview.sessionId}/introduction`
+                      )
+                    }
+                  >
+                    <h4 className="font-medium text-gray-800">Session ID:</h4>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {interview.sessionId}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {new Date(interview.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </main>
       </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-lg p-6 relative">
-            <button
-              onClick={() => setShowModal(false)}
-              className="absolute right-4 top-4 text-gray-500 hover:text-black"
-            >
-              <X size={20} />
-            </button>
-
-            <h2 className="text-xl font-semibold mb-4">
-              Start Your Next Interview
-            </h2>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Resume <span className="text-gray-400">(Upload PDF)</span>
-                </label>
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  className="w-full border rounded-md p-2 text-sm"
-                  onChange={(e) =>
-                    setResumeFile(e.target.files ? e.target.files[0] : null)
-                  }
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Job Description
-                </label>
-                <textarea
-                  className="w-full border rounded-md p-2 text-sm"
-                  rows={4}
-                  placeholder="Paste job description here..."
-                  value={jobDesc}
-                  onChange={(e) => setJobDesc(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Interview Type
-                </label>
-                <input
-                  type="text"
-                  readOnly
-                  value={selectedType || "Select interview type above"}
-                  className="w-full border rounded-md p-2 text-sm bg-gray-100"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleLaunch}
-                  disabled={uploading}
-                  className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:opacity-50"
-                >
-                  {uploading ? "Uploading..." : "Launch"}
-                </button>
-              </div>
-            </div>
+      {/* Loading Overlay */}
+      {uploading && loadingStage && (
+        <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-[999] transition-all duration-500">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent"></div>
+            <p className="text-lg font-medium text-gray-800">{loadingStage}</p>
+            <p className="text-sm text-gray-500 animate-pulse">
+              Please wait while SpeakPrep AI prepares your interview data...
+            </p>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// Sidebar item helper
+function SidebarItem({
+  icon,
+  label,
+  open,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  open: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-3 cursor-pointer p-2 rounded-md hover:bg-gray-100">
+      <div className="w-5 h-5">{icon}</div>
+      {open && <span>{label}</span>}
     </div>
   );
 }

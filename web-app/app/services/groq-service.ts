@@ -16,21 +16,22 @@ const groq = new Groq({
 
 export default class GroqService {
 
-    static async transcribeAudio(filePath: string): Promise<ServiceResponse> {
+    static async transcribeAudio(file: File): Promise<ServiceResponse> {
         console.log("[Transcription] Start...");
 
         try {
-            if (!fs.existsSync(filePath)) {
+            if (!file) {
                 return {
                     success: false,
-                    message: "Audio file not found",
+                    message: "No audio file received",
                     error: "FILE_NOT_FOUND",
                     data: "",
                 };
             }
 
+            // Directly send the File (Blob) to Groq
             const transcription = await groq.audio.transcriptions.create({
-                file: fs.createReadStream(filePath),
+                file, // 👈 No need for fs.createReadStream anymore
                 model: "whisper-large-v3-turbo",
                 response_format: "verbose_json",
                 language: "en",
@@ -45,7 +46,6 @@ export default class GroqService {
                 error: "",
                 data: transcription.text || "",
             };
-
         } catch (err: any) {
             console.error("[Transcription ❌]", err.message);
 
@@ -58,56 +58,32 @@ export default class GroqService {
         }
     }
 
-    static async createAudioFromText(text: string, outputFilePath: string): Promise<ServiceResponse> {
+    static async createAudioBufferFromText(text: string): Promise<Buffer<ArrayBuffer>> {
         console.log("[TTS] Start...");
 
         try {
             if (!text.trim()) {
-                return {
-                    success: false,
-                    message: "Text input empty",
-                    error: "EMPTY_TEXT",
-                    data: "",
-                };
+                throw new Error("Input text is empty");
             }
+
+            console.log('converting', { text });
 
             const response = await groq.audio.speech.create({
                 model: "playai-tts",
-                voice: "Fritz-PlayAI",
+                voice: "Mitch-PlayAI",
                 input: text,
                 response_format: "wav",
             });
 
             const buffer = Buffer.from(await response.arrayBuffer());
-            await fs.promises.writeFile(outputFilePath, buffer);
 
-            console.log("[TTS ✅] Saved:", outputFilePath);
-
-            return {
-                success: true,
-                message: "Audio created successfully",
-                error: "",
-                data: outputFilePath,
-            };
+            return buffer
 
         } catch (err: any) {
             console.error("[TTS ❌]", err.message);
 
-            return {
-                success: false,
-                message: "Failed to convert text to audio",
-                error: err.message,
-                data: "",
-            };
+            throw new Error(`TTS failed: ${err.message}`);
         }
     }
 }
 
-// ✅ Example local test
-(async () => {
-    const result = await GroqService.createAudioFromText(
-        "Hello there",
-        "./output.wav"
-    );
-    console.log(result);
-})();

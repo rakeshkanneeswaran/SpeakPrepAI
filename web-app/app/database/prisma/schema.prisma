@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String        @id @default(cuid())
+  email      String        @unique
+  name       String?
+  password   String
+  onboarded  Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  interviews Interview[]
+  settings   UserSettings?
+}
+
+model Interview {
+  id             String   @id @default(cuid())
+  userId         String
+  sessionId      String   @default(cuid())
+  user           User     @relation(fields: [userId], references: [id])
+  resumeData     String
+  jobDescription String
+  questions      String[]
+  answers        String[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model UserSettings {
+  id                      String  @id @default(cuid())
+  userId                  String  @unique
+  platformedManagedAPIKey Boolean
+  apiChoice               String
+  apiKey                  String?
+  role                    String?
+  user                    User    @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

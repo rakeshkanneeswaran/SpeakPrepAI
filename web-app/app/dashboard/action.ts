@@ -1,6 +1,7 @@
 "use server";
 import { PdfReader } from "pdfreader";
 
+
 export async function getPdfContent(base64: string): Promise<string> {
     const fileBuffer = Buffer.from(base64, "base64");
     let content = "";
@@ -17,3 +18,5 @@ export async function getPdfContent(base64: string): Promise<string> {
 
     return content;
 }
+
+
