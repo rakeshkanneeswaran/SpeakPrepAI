@@ -1,109 +1,187 @@
 "use client";
-import { useState } from "react";
-import axios from "axios";
 
-// ---------- Type Definitions ----------
-interface GenerateResponse {
-  questions: string[];
-}
+import { motion } from "framer-motion";
+import Link from "next/link";
+import Navbar from "./components/Navbar";
 
-export default function Home() {
-  const [resume, setResume] = useState<string>("");
-  const [jobDesc, setJobDesc] = useState<string>("");
-  const [questions, setQuestions] = useState<string[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+export default function HomePage() {
+  const year = new Date().getFullYear();
 
-  // ---------- Submit to Backend ----------
-  const handleSubmit = async (): Promise<void> => {
-    if (!resume || !jobDesc) {
-      setError("Please paste your resume and job description.");
-      return;
-    }
-
-    setError("");
-    setLoading(true);
-    setQuestions([]);
-
-    try {
-      const response = await axios.post<GenerateResponse>(
-        "http://127.0.0.1:8000/generate-questions",
-        { resume, job_description: jobDesc }
-      );
-      setQuestions(response.data.questions);
-    } catch {
-      setError("Failed to generate questions. Check your backend connection.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ---------- UI ----------
   return (
-    <main className="min-h-screen bg-gray-50 p-10">
-      <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-8 space-y-6">
-        <h1 className="text-2xl font-bold text-gray-800 text-center">
-          AI Interview Question Generator 🎯
-        </h1>
-
-        {/* Resume Text */}
-        <div>
-          <label className="font-semibold text-gray-700">
-            Paste Your Resume
-          </label>
-          <textarea
-            className="w-full mt-2 border rounded-md p-3 text-sm"
-            rows={6}
-            placeholder="Paste your resume text here..."
-            value={resume}
-            onChange={(e) => setResume(e.target.value)}
-          />
-        </div>
-
-        {/* Job Description */}
-        <div>
-          <label className="font-semibold text-gray-700">
-            Paste Job Description
-          </label>
-          <textarea
-            className="w-full mt-2 border rounded-md p-3 text-sm"
-            rows={5}
-            placeholder="Paste job description here..."
-            value={jobDesc}
-            onChange={(e) => setJobDesc(e.target.value)}
-          />
-        </div>
-
-        {/* Generate Button */}
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="w-full bg-blue-600 text-white rounded-md py-3 font-semibold hover:bg-blue-700 transition"
-        >
-          {loading ? "Generating..." : "Generate Questions"}
-        </button>
-
-        {/* Error Message */}
-        {error && (
-          <p className="text-red-600 text-center font-medium">{error}</p>
-        )}
-
-        {/* Generated Questions */}
-        {questions.length > 0 && (
-          <div className="mt-6 space-y-3">
-            <h2 className="text-lg font-semibold text-gray-800">
-              Generated Questions:
-            </h2>
-            {questions.map((q, index) => (
-              <div key={index} className="bg-gray-100 p-3 rounded-md">
-                <p className="font-medium text-gray-800">
-                  {index + 1}. {q}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
+    <main className="min-h-screen flex flex-col bg-[#fafafa] text-black">
+      {/* Sticky Navbar */}
+      <div className="fixed top-0 left-0 w-full z-50 bg-[#f3f3ef]/90 backdrop-blur-md border-b border-black/10">
+        <Navbar />
       </div>
+
+      {/* Hero Section */}
+      <section className="flex flex-col items-center justify-center px-6 md:px-20 py-40 bg-[#f3f3ef] text-center">
+        <div className="max-w-2xl space-y-6">
+          <h1 className="text-5xl md:text-6xl font-bold leading-tight">
+            Master Every Interview <br />
+            <span style={{ color: "#f43e02" }}>With Real-Time AI Coaching</span>
+          </h1>
+          <p className="text-lg text-gray-600">
+            SpeakPrep AI simulates real interviews, evaluates your responses,
+            and helps you grow faster — all powered by advanced AI.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+            <Link href="/dashboard">
+              <button
+                style={{ backgroundColor: "#f43e02" }}
+                className="hover:opacity-90 text-white text-lg px-6 py-3 rounded-md shadow-md transition-transform transform hover:scale-105"
+              >
+                Start Free Mock Interview
+              </button>
+            </Link>
+
+            <button
+              style={{
+                borderColor: "#f43e02",
+                color: "#f43e02",
+              }}
+              className="border hover:bg-orange-50 text-lg px-6 py-3 rounded-md transition-transform transform hover:scale-105"
+            >
+              Watch Demo
+            </button>
+          </div>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+          className="mt-12"
+        >
+          <img
+            src="/hero-illustration.svg"
+            alt="AI Interview Illustration"
+            className="w-[380px] md:w-[500px] rounded-lg drop-shadow-xl mx-auto"
+          />
+        </motion.div>
+      </section>
+
+      {/* Copilot Section */}
+      <section className="py-24 px-6 md:px-20 bg-black text-[#E6DCAF]">
+        <h2 className="text-4xl font-semibold text-center mb-12 text-[#E6DCAF]">
+          Your AI Interview Copilot
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {[
+            {
+              title: "Adaptive AI Interviews",
+              desc: "Personalized sessions crafted from your resume and job goals, ensuring every question feels relevant.",
+            },
+            {
+              title: "Actionable Feedback",
+              desc: "Instant analysis on tone, structure, and confidence — learn exactly what to improve after each session.",
+            },
+            {
+              title: "Voice-Powered Practice",
+              desc: "Realistic, hands-free mock interviews — speak naturally, and let AI handle evaluation and coaching.",
+            },
+          ].map((card) => (
+            <div
+              key={card.title}
+              className="p-6 rounded-xl border border-[#E6DCAF]/30 bg-[#111] hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(230,220,175,0.3)] transition text-center"
+            >
+              <h3 className="text-xl font-semibold mb-2 text-[#E6DCAF]">
+                {card.title}
+              </h3>
+              <p className="text-[#E6DCAF]/80 text-sm leading-relaxed">
+                {card.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section
+        className="py-24 px-6 md:px-20"
+        style={{ backgroundColor: "#fff7f0" }}
+      >
+        <h2 className="text-4xl font-semibold text-center mb-12">
+          How It Works
+        </h2>
+        <div className="flex flex-col md:flex-row justify-center gap-12 max-w-5xl mx-auto">
+          {[
+            {
+              step: "1",
+              title: "Upload Resume & Job Description",
+              desc: "Our AI learns about your background and the job you’re aiming for.",
+            },
+            {
+              step: "2",
+              title: "Practice in Real-Time",
+              desc: "Experience interactive interviews tailored to your field.",
+            },
+            {
+              step: "3",
+              title: "Get Detailed Analysis",
+              desc: "Receive instant feedback on communication, skills, and improvement areas.",
+            },
+          ].map((item) => (
+            <div
+              key={item.step}
+              className="flex flex-col items-center text-center max-w-xs mx-auto"
+            >
+              <div
+                style={{ backgroundColor: "#f43e02" }}
+                className="text-white rounded-full w-14 h-14 flex items-center justify-center text-2xl font-bold mb-4"
+              >
+                {item.step}
+              </div>
+              <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+              <p className="text-gray-600 text-sm">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Black Section */}
+      <section className="py-24 px-6 md:px-20 bg-black text-[#E6DCAF]">
+        <div className="max-w-6xl mx-auto text-center space-y-8">
+          <h2 className="text-4xl font-semibold">
+            Fast, Accurate, and Affordable
+          </h2>
+          <p className="text-[#E6DCAF] max-w-2xl mx-auto">
+            SpeakPrep AI leverages cutting-edge LLMs and optimized inference
+            systems to deliver instant, realistic feedback — just like a real
+            interviewer.
+          </p>
+          <button
+            style={{ backgroundColor: "#f43e02" }}
+            className="hover:opacity-90 text-lg px-6 py-3 rounded-md transition-transform transform hover:scale-105 text-white"
+          >
+            Learn How It Works
+          </button>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer
+        className="py-16 px-6 md:px-20 text-center"
+        style={{ backgroundColor: "#f43e02", color: "#fff" }}
+      >
+        <h2 className="text-3xl font-semibold mb-4">
+          Ready to Ace Your Next Interview?
+        </h2>
+        <p className="text-white/80 mb-8">
+          SpeakPrep AI is currently invite-only. Early access is open for a
+          limited group of professionals and students.
+        </p>
+        <Link href="/early-access">
+          <button className="bg-white text-[#f43e02] font-semibold hover:bg-gray-100 text-lg px-8 py-3 rounded-md transition-transform transform hover:scale-105">
+            Request Early Access
+          </button>
+        </Link>
+        <div className="mt-10 text-white/60 text-sm">
+          © {year} SpeakPrep AI · Invite-Only Early Access
+        </div>
+      </footer>
     </main>
   );
 }
