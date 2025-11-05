@@ -60,7 +60,7 @@ export default function Navbar() {
       {/* Right Section */}
       <div className="flex items-center justify-end gap-6">
         <Link
-          href="/login"
+          href="/auth"
           className="text-[15px] font-medium hover:text-[#f43e02] transition-colors"
         >
           Login

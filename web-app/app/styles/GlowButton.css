@@ -1,0 +1,73 @@
+.glow-btn {
+  position: relative;
+  font-size: 1.1rem;
+  padding: 0.9em 1.8em;
+  border-radius: 9999px;
+  background: #f43e02; /* 🔸 orange body */
+  color: white;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 0.05em 0.5em -0.02em rgba(0, 0, 0, 0.3),
+    0 0.1em 0 0 rgba(0, 0, 0, 0.25) inset,
+    0 -0.05em 0 0 rgba(255, 255, 255, 0.1) inset;
+}
+
+.glow-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 1em rgba(244, 62, 2, 0.5);
+}
+
+.front-layer {
+  position: absolute;
+  inset: 0.125rem;
+  border-radius: 9999px;
+  background: radial-gradient(
+      40% 50% at center 100%,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    ),
+    rgba(244, 62, 2, 1);
+}
+
+.spinner-container {
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+  transition: opacity 300ms;
+  container-type: inline-size;
+  z-index: 1;
+}
+
+.spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100cqw;
+  height: 100cqw;
+  transform: translate(-50%, -50%);
+  background-image: linear-gradient(
+    transparent,
+    transparent 30%,
+    rgba(0, 0, 0, 0.9),
+    transparent 70%,
+    transparent
+  );
+  animation: spinner 2s linear infinite;
+}
+
+@keyframes spinner {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.text {
+  position: relative;
+  z-index: 2;
+}

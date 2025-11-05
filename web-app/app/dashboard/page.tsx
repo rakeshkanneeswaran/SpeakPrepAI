@@ -1,17 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Navbar from "../components/Navbar";
-import {
-  Menu,
-  X,
-  User,
-  Settings,
-  Download,
-  Briefcase,
-  Rocket,
-  Layers,
-} from "lucide-react";
+import DashboardSidebar from "../components/DashboardSidebar";
 import { getPdfContent } from "./action";
 import { useInterviewStore } from "../store/useInterviewStore";
 import { useRouter } from "next/navigation";
@@ -155,67 +145,10 @@ export default function Dashboard() {
       {/* Body */}
       <div className="flex flex-1">
         {/* Sidebar */}
-        <aside
-          className={`${
-            sidebarOpen ? "w-64" : "w-20"
-          } shadow-md transition-all duration-300 flex flex-col justify-between`}
-          style={{
-            backgroundColor: platformColors.outerMainBackground,
-            borderRight: `1px solid ${platformColors.borderColor}`,
-          }}
-        >
-          <div>
-            <div
-              className="flex items-center justify-between p-4 border-b"
-              style={{ borderColor: platformColors.borderColor }}
-            >
-              <button onClick={() => setSidebarOpen(!sidebarOpen)}>
-                {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-            </div>
-
-            <nav className="p-4 space-y-3">
-              <SidebarItem
-                icon={<Briefcase />}
-                label="Interview Copilot"
-                open={sidebarOpen}
-              />
-              <SidebarItem
-                icon={<User />}
-                label="Mock Interview"
-                open={sidebarOpen}
-              />
-              <SidebarItem
-                icon={<Rocket />}
-                label="Job Hunter"
-                open={sidebarOpen}
-              />
-              <div
-                className="border-t my-3"
-                style={{ borderColor: platformColors.borderColor }}
-              />
-              <SidebarItem
-                icon={<Download />}
-                label="Download for Mac/PC"
-                open={sidebarOpen}
-              />
-              <SidebarItem
-                icon={<Settings />}
-                label="Settings"
-                open={sidebarOpen}
-              />
-            </nav>
-          </div>
-
-          <div
-            className="p-4 border-t"
-            style={{ borderColor: platformColors.borderColor }}
-          >
-            <p className={`text-sm ${!sidebarOpen && "hidden"}`}>
-              Rakesh Kanneeswaran
-            </p>
-          </div>
-        </aside>
+        <DashboardSidebar
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+        />
 
         {/* Main Section */}
         <main className="flex-1 flex flex-col">

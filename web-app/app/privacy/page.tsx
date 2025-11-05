@@ -15,7 +15,7 @@ export default function PrivacyPage() {
       </div>
 
       {/* Hero Section */}
-      <section className="pt-40 pb-24 text-center px-6 md:px-20">
+      <section className="pt-40 pb-24  bg-black text-center px-6 md:px-20">
         <h1 className="text-6xl font-bold text-[#E6DCAF] mb-6">
           Privacy. Security. Trust.
         </h1>
@@ -44,7 +44,7 @@ export default function PrivacyPage() {
       </section>
 
       {/* Core Security Pillars */}
-      <section className="py-24 px-6 md:px-20 bg-[#0c0c0c]">
+      <section className="py-24 px-6 md:px-20 bg-black">
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-10">
           {[
             {

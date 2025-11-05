@@ -9,13 +9,11 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen flex flex-col bg-[#fafafa] text-black">
-      {/* Sticky Navbar */}
-      <div className="fixed top-0 left-0 w-full z-50 bg-[#f3f3ef]/90 backdrop-blur-md border-b border-black/10">
-        <Navbar />
-      </div>
+      {/* Navbar */}
+      <Navbar />
 
       {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center px-6 md:px-20 py-40 bg-[#f3f3ef] text-center">
+      <section className="flex flex-col items-center justify-center px-6 md:px-20 py-24 bg-[#f3f3ef] text-center">
         <div className="max-w-2xl space-y-6">
           <h1 className="text-5xl md:text-6xl font-bold leading-tight">
             Master Every Interview <br />
@@ -62,6 +60,7 @@ export default function HomePage() {
         </motion.div>
       </section>
 
+      {/* Copilot Section */}
       {/* Copilot Section */}
       <section className="py-24 px-6 md:px-20 bg-black text-[#E6DCAF]">
         <h2 className="text-4xl font-semibold text-center mb-12 text-[#E6DCAF]">
@@ -142,30 +141,9 @@ export default function HomePage() {
       </section>
 
       {/* Black Section */}
-      <section className="py-24 px-6 md:px-20 bg-black text-[#E6DCAF]">
-        <div className="max-w-6xl mx-auto text-center space-y-8">
-          <h2 className="text-4xl font-semibold">
-            Fast, Accurate, and Affordable
-          </h2>
-          <p className="text-[#E6DCAF] max-w-2xl mx-auto">
-            SpeakPrep AI leverages cutting-edge LLMs and optimized inference
-            systems to deliver instant, realistic feedback — just like a real
-            interviewer.
-          </p>
-          <button
-            style={{ backgroundColor: "#f43e02" }}
-            className="hover:opacity-90 text-lg px-6 py-3 rounded-md transition-transform transform hover:scale-105 text-white"
-          >
-            Learn How It Works
-          </button>
-        </div>
-      </section>
 
       {/* Footer */}
-      <footer
-        className="py-16 px-6 md:px-20 text-center"
-        style={{ backgroundColor: "#f43e02", color: "#fff" }}
-      >
+      <footer className="py-16 px-6 md:px-20 text-center bg-black text-[#E6DCAF]">
         <h2 className="text-3xl font-semibold mb-4">
           Ready to Ace Your Next Interview?
         </h2>
@@ -174,7 +152,10 @@ export default function HomePage() {
           limited group of professionals and students.
         </p>
         <Link href="/early-access">
-          <button className="bg-white text-[#f43e02] font-semibold hover:bg-gray-100 text-lg px-8 py-3 rounded-md transition-transform transform hover:scale-105">
+          <button
+            style={{ backgroundColor: "#f43e02" }}
+            className="hover:opacity-90 text-white text-lg px-6 py-3 rounded-md shadow-md transition-transform transform hover:scale-105"
+          >
             Request Early Access
           </button>
         </Link>

@@ -84,23 +84,6 @@ export default function TeamPage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="bg-[#f43e02] py-20 text-center px-6 md:px-20">
-        <h2 className="text-4xl font-semibold mb-4 text-white">
-          Want to join the journey?
-        </h2>
-        <p className="text-white/90 mb-8 max-w-2xl mx-auto text-[15px]">
-          SpeakPrep AI started as a one-person vision, but we’re always open to
-          new minds who share the same passion — helping others grow through
-          honest feedback and real practice.
-        </p>
-        <Link href="/early-access">
-          <button className="bg-white text-[#f43e02] font-semibold text-lg px-8 py-4 rounded-full hover:scale-105 transition-transform">
-            Join Early Access
-          </button>
-        </Link>
-      </section>
-
       {/* Footer */}
       <footer className="text-center text-sm text-white/60 py-10 bg-[#0c0c0c] border-t border-white/10">
         © {year} SpeakPrep AI · Built with purpose by Rakesh Kanneeswaran.
