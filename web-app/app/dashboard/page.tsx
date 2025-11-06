@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import DashboardSidebar from "../components/DashboardSidebar";
 import { getPdfContent } from "./action";
-import { useInterviewStore } from "../store/useInterviewStore";
 import { useRouter } from "next/navigation";
 import platformColors from "../utils/colors";
 
@@ -17,29 +16,7 @@ export default function Dashboard() {
   const [companyWebsite, setCompanyWebsite] = useState("");
   const [uploading, setUploading] = useState(false);
   const [loadingStage, setLoadingStage] = useState<string | null>(null);
-  const { setInterviewData } = useInterviewStore();
   const router = useRouter();
-
-  const [interviews, setInterviews] = useState<
-    { sessionId: string; createdAt: string }[]
-  >([]);
-  const [loadingInterviews, setLoadingInterviews] = useState(true);
-
-  useEffect(() => {
-    async function fetchInterviews() {
-      try {
-        const res = await fetch("/api/dashboard/interviews", { method: "GET" });
-        const data = await res.json();
-        if (data.interviews) setInterviews(data.interviews);
-      } catch (err) {
-        console.error("Failed to load interviews:", err);
-      } finally {
-        setLoadingInterviews(false);
-      }
-    }
-    fetchInterviews();
-  }, []);
-
   const handleLaunch = async () => {
     // For Company Insights
     if (selectedType === "Company Insights") {
@@ -97,8 +74,6 @@ export default function Dashboard() {
               : "mixed",
         }),
       }).then((res) => res.json());
-
-      setInterviewData(response.questions);
       const sessionId = response.interviewSessionId;
 
       setUploading(false);
@@ -200,52 +175,6 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Past Interviews */}
-          <div
-            className="p-8 border-t"
-            style={{
-              backgroundColor: platformColors.outerMainBackground,
-              borderColor: platformColors.borderColor,
-            }}
-          >
-            <h3 className="text-lg font-semibold mb-4">
-              Your Past Interview Sessions
-            </h3>
-            {loadingInterviews ? (
-              <p className="text-gray-500 text-sm">Loading interviews...</p>
-            ) : interviews.length === 0 ? (
-              <p className="text-gray-500 text-sm">
-                No interviews found. Start one to see it listed here.
-              </p>
-            ) : (
-              <div className="grid md:grid-cols-3 gap-4">
-                {interviews.map((interview) => (
-                  <div
-                    key={interview.sessionId}
-                    className="rounded-lg p-4 hover:shadow-sm transition cursor-pointer"
-                    style={{
-                      backgroundColor: platformColors.mainBackground,
-                      border: `1px solid ${platformColors.borderColor}`,
-                    }}
-                    onClick={() =>
-                      router.push(
-                        `/dashboard/interview/${interview.sessionId}/introduction`
-                      )
-                    }
-                  >
-                    <h4 className="font-medium text-gray-800">Session ID:</h4>
-                    <p className="text-sm text-gray-600 mb-2">
-                      {interview.sessionId}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {new Date(interview.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </main>
       </div>

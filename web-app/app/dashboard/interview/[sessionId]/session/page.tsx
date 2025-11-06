@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import platformColors from "@/app/utils/colors";
 import AnalysisResult from "./components/AnalysisResult";
@@ -10,16 +10,8 @@ export default function InterviewSession() {
   const router = useRouter();
   const { sessionId } = useParams();
 
-  const questions = useMemo(
-    () => [
-      "Tell me about yourself.",
-      "What are your strengths and weaknesses?",
-    ],
-    []
-  );
-
   const [isInterviewStarted, setIsInterviewStarted] = useState(false);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [currentQuestion, setCurrentQuestion] = useState("");
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [isAudioRecording, setIsAudioRecording] = useState(false);
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
@@ -29,6 +21,8 @@ export default function InterviewSession() {
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [interviewEnded, setInterviewEnded] = useState(false);
+  const [sessionInitialized, setSessionInitialized] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<BlobPart[]>([]);
@@ -39,6 +33,69 @@ export default function InterviewSession() {
 
   const wait = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
+
+  const initializeInterview = async () => {
+    try {
+      const response = await fetch(
+        `/api/interview/question/generate-first-question`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }, // Add this header
+          body: JSON.stringify({ interviewSessionId: sessionId }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to initialize interview");
+
+      const data = await response.json();
+
+      console.log("First question data:", data);
+
+      if (data.status === "success") {
+        setCurrentQuestion(data.question); // ⭐️ ADD THIS LINE
+        setSessionInitialized(true);
+        setShouldPlayQuestion(true);
+      }
+    } catch (error) {
+      console.error("Failed to initialize interview:", error);
+      setAnalysisError("Failed to start interview. Please try again.");
+    }
+  };
+
+  // Get next question after user answers
+  const getNextQuestion = async (userAnswer: string) => {
+    try {
+      const response = await fetch(
+        `/api/interview/question/generate-continued-question`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_answer: userAnswer,
+            interviewSessionId: sessionId,
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to get next question");
+
+      const data = await response.json();
+
+      if (data.status === "success") {
+        if (data.interview_end) {
+          setInterviewEnded(true);
+          setCurrentQuestion(data.question); // This will be the conclusion message
+          setShouldPlayQuestion(true);
+        } else {
+          setCurrentQuestion(data.question);
+          setShouldPlayQuestion(true);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to get next question:", error);
+      setAnalysisError("Failed to get next question. Please try again.");
+    }
+  };
 
   const saveInterviewAnalysis = async () => {
     if (!sessionId || !analysisResult) return;
@@ -72,10 +129,11 @@ export default function InterviewSession() {
       setIsAnalyzing(true);
       setAnalysisError(null);
 
+      // Create conversation history from questions and answers
       const conversationData = {
-        conversation: questions.map((question, index) => [
-          question,
-          userAnswers[index] || "No answer recorded",
+        conversation: userAnswers.map((answer, index) => [
+          `Question ${index + 1}`, // We don't store the actual questions, but we can reference them
+          answer || "No answer recorded",
         ]),
       };
 
@@ -88,7 +146,6 @@ export default function InterviewSession() {
       if (!response.ok)
         throw new Error(`Analysis failed: ${response.statusText}`);
 
-      // ✨ Expect plain text
       const text = await response.text();
       setAnalysisResult(text);
     } catch (err) {
@@ -102,19 +159,10 @@ export default function InterviewSession() {
   };
 
   useEffect(() => {
-    if (
-      isInterviewStarted &&
-      currentQuestionIndex >= questions.length &&
-      userAnswers.length > 0
-    ) {
+    if (interviewEnded && userAnswers.length > 0) {
       analyzeConversation();
     }
-  }, [
-    isInterviewStarted,
-    currentQuestionIndex,
-    questions.length,
-    userAnswers.length,
-  ]);
+  }, [interviewEnded, userAnswers.length]);
 
   const startCamera = async () => {
     try {
@@ -223,18 +271,14 @@ export default function InterviewSession() {
       mediaRecorderRef.current = recorder;
       audioChunksRef.current = [];
 
-      const indexSnapshot = currentQuestionIndex;
-
       recorder.ondataavailable = (e) => audioChunksRef.current.push(e.data);
       recorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
         const audioBlob = new Blob(audioChunksRef.current, {
           type: "audio/webm",
         });
-        await processAudio(audioBlob, indexSnapshot);
+        await processAudio(audioBlob);
         setShouldRecordAnswer(false);
-        setCurrentQuestionIndex((prev) => prev + 1);
-        setShouldPlayQuestion(true);
       };
 
       recorder.start();
@@ -243,7 +287,7 @@ export default function InterviewSession() {
     } catch (err) {
       console.error("Mic access error:", err);
     }
-  }, [currentQuestionIndex]);
+  }, []);
 
   const stopRecording = useCallback(() => {
     if (
@@ -259,7 +303,7 @@ export default function InterviewSession() {
     }
   }, []);
 
-  const processAudio = async (blob: Blob, index: number) => {
+  const processAudio = async (blob: Blob) => {
     try {
       const formData = new FormData();
       formData.append("file", blob, "answer.webm");
@@ -269,33 +313,38 @@ export default function InterviewSession() {
         body: formData,
       });
       const data = await res.json();
-      const text = data.data;
-      setUserAnswers((prev) => {
-        const updated = [...prev];
-        updated[index] = text;
-        return updated;
-      });
+      const answerText = data.data;
+
+      // Save answer and get next question
+      setUserAnswers((prev) => [...prev, answerText]);
+      await getNextQuestion(answerText);
     } catch (err) {
       console.error("[Transcription Error]", err);
     }
   };
 
+  // Handle question playback when shouldPlayQuestion changes
   useEffect(() => {
-    const active =
-      isInterviewStarted && currentQuestionIndex < questions.length;
-    if (active && shouldPlayQuestion)
-      playQuestion(questions[currentQuestionIndex]);
-    else if (active && shouldRecordAnswer) startRecording();
-  }, [
-    isInterviewStarted,
-    currentQuestionIndex,
-    shouldPlayQuestion,
-    shouldRecordAnswer,
-    playQuestion,
-    startRecording,
-    questions,
-  ]);
+    if (shouldPlayQuestion && currentQuestion && !interviewEnded) {
+      playQuestion(currentQuestion);
+    }
+  }, [shouldPlayQuestion, currentQuestion, interviewEnded, playQuestion]);
 
+  // Handle recording when shouldRecordAnswer changes
+  useEffect(() => {
+    if (shouldRecordAnswer && !interviewEnded) {
+      startRecording();
+    }
+  }, [shouldRecordAnswer, interviewEnded, startRecording]);
+
+  // Initialize interview when started
+  useEffect(() => {
+    if (isInterviewStarted && !sessionInitialized) {
+      initializeInterview();
+    }
+  }, [isInterviewStarted, sessionInitialized]);
+
+  // Camera setup
   useEffect(() => {
     startCamera();
     return () => {
@@ -304,23 +353,19 @@ export default function InterviewSession() {
     };
   }, [stopRecording]);
 
-  // Create accent colors using the available palette
   const getAccentColor = (
     type: "primary" | "success" | "warning" | "error" = "primary"
   ) => {
-    // Using the border color as our primary accent since it's the darkest
     const baseColor = platformColors.borderColor;
-
-    // For different states, we'll use different opacities or create variations
     switch (type) {
       case "success":
-        return "#10b981"; // green - keeping for success states
+        return "#10b981";
       case "warning":
-        return "#f59e0b"; // amber - keeping for warning states
+        return "#f59e0b";
       case "error":
-        return "#ef4444"; // red - keeping for error states
+        return "#ef4444";
       default:
-        return baseColor; // Use border color as primary
+        return baseColor;
     }
   };
 
@@ -337,7 +382,6 @@ export default function InterviewSession() {
           borderColor: platformColors.borderColor,
         }}
       >
-        {/* Left section: title and session info */}
         <div className="flex flex-col">
           <h1 className="text-2xl font-bold text-black tracking-tight">
             SpeakPrep AI
@@ -352,7 +396,6 @@ export default function InterviewSession() {
           </p>
         </div>
 
-        {/* Right section: leave button */}
         <button
           onClick={() => router.push("/dashboard")}
           className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium border bg-red-500 text-white hover:bg-red-600 transition-all shadow-sm hover:shadow-md"
@@ -447,7 +490,6 @@ export default function InterviewSession() {
 
           {/* Camera Controls */}
           <div className="flex gap-3 mt-4">
-            {/* 🎥 Start Camera Button */}
             <button
               onClick={startCamera}
               className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-300"
@@ -480,7 +522,6 @@ export default function InterviewSession() {
               Start Camera
             </button>
 
-            {/* 🛑 Stop Camera Button */}
             <button
               onClick={stopCamera}
               className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-300"
@@ -533,7 +574,6 @@ export default function InterviewSession() {
               <button
                 onClick={() => {
                   setIsInterviewStarted(true);
-                  setShouldPlayQuestion(true);
                 }}
                 className="relative px-6 py-2 rounded-md font-medium border transition-all bg-orange-500 text-white hover:bg-orange-600 shadow-md"
                 style={{
@@ -542,20 +582,18 @@ export default function InterviewSession() {
                 }}
               >
                 <span className="relative z-10">Start Interview</span>
-
-                {/* 🔸 Smooth glowing pulse animation */}
                 <span className="absolute inset-0 rounded-md bg-orange-500 opacity-50 blur-md animate-pulse"></span>
               </button>
             </div>
-          ) : currentQuestionIndex < questions.length ? (
+          ) : !interviewEnded ? (
             <div className="flex flex-col items-center justify-center text-center space-y-3">
               {/* Question Header */}
               <div className="flex flex-col items-center justify-center">
                 <h3 className="text-xl font-semibold text-black mb-1">
-                  Question {currentQuestionIndex + 1} of {questions.length}
+                  Question {userAnswers.length + 1}
                 </h3>
                 <p className="italic text-lg text-gray-900 leading-relaxed">
-                  {questions[currentQuestionIndex]}
+                  {currentQuestion}
                 </p>
               </div>
 
@@ -563,7 +601,6 @@ export default function InterviewSession() {
               <div className="flex flex-col items-center justify-center space-y-4 min-h-[150px]">
                 {isAudioRecording ? (
                   <div className="flex flex-col items-center justify-center space-y-3">
-                    {/* 🔴 Red recording dot */}
                     <div className="relative flex items-center justify-center">
                       <div
                         className="absolute h-10 w-10 rounded-full animate-ping"
@@ -586,7 +623,6 @@ export default function InterviewSession() {
                   </div>
                 ) : isAudioPlaying ? (
                   <div className="flex flex-col items-center justify-center space-y-3">
-                    {/* 🔊 Equalizer animation */}
                     <div className="flex items-end justify-center gap-1 h-5">
                       {[1, 2, 3, 4, 5].map((bar) => (
                         <div
@@ -605,7 +641,6 @@ export default function InterviewSession() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center space-y-3">
-                    {/* ⏳ Subtle spinner */}
                     <div className="h-6 w-6 border-2 border-gray-300 border-t-orange-500 rounded-full animate-spin"></div>
                     <p className="text-lg font-semibold text-black">
                       Preparing next step...
@@ -662,7 +697,6 @@ export default function InterviewSession() {
                 <div className="flex flex-col items-center space-y-6">
                   <AnalysisResult text={analysisResult} />
 
-                  {/* ✅ Save & Return Button */}
                   <button
                     onClick={saveInterviewAnalysis}
                     className="mt-6 flex items-center gap-2 px-6 py-2 rounded-md text-white font-medium bg-orange-500 hover:bg-orange-600 shadow-md transition-all"
@@ -670,7 +704,17 @@ export default function InterviewSession() {
                     Save & Return to Dashboard
                   </button>
                 </div>
-              ) : null}
+              ) : (
+                <div className="text-center p-8">
+                  <h3 className="text-xl font-semibold text-black mb-4">
+                    Interview Completed
+                  </h3>
+                  <p className="text-gray-700 mb-6">{currentQuestion}</p>
+                  <p className="text-sm text-gray-500">
+                    Thank you for completing the interview!
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>

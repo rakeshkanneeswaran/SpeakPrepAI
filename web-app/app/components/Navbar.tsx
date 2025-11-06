@@ -41,6 +41,9 @@ export default function Navbar() {
         >
           Privacy & Security
         </Link>
+        <Link href="/faqs" className="hover:text-[#f43e02] transition-colors">
+          FAQs
+        </Link>
       </div>
 
       {/* Center Logo */}

@@ -1,6 +1,10 @@
 import { prisma } from "../database/index";
 import AIService from "./ai-service";
 
+
+
+
+
 export class InterviewService {
     // Create a new interview session for a user
     static async createInterviewSession(
@@ -8,20 +12,23 @@ export class InterviewService {
         resumeData: string,
         jobDescription: string
     ) {
-        const response = await AIService.getInterviewQuestions({ jobDescription, resumeData });
 
         const interviewSession = await prisma.interview.create({
             data: {
                 userId,
                 resumeData,
                 jobDescription,
-                questions: response.questions,
+                questions: [],
             },
+        });
+        const response = await AIService.createInterviewSession({
+            jobDescription,
+            resumeData,
+            session_id: interviewSession.sessionId,
         });
 
         return {
-            interviewSessionId: interviewSession.sessionId,
-            questions: interviewSession.questions,
+            interviewSessionId: response.sessionId,
         };
     }
 
@@ -50,4 +57,13 @@ export class InterviewService {
             data: { analysis: analysisData },
         });
     }
+
+    static async getFirstQuestionFromAI(sessionId: string): Promise<{ status: string; question: string; interview_end: boolean }> {
+        return AIService.getFirstQuestion(sessionId);
+    }
+
+    static async getContinuedQuestionFromAI({ sessionId, userAnswer }: { sessionId: string, userAnswer: string }): Promise<{ status: string; question: string; interview_end: boolean }> {
+        return AIService.getContinuedQuestion(sessionId, userAnswer);
+    }
+
 }

@@ -22,11 +22,10 @@ export async function POST(req: Request) {
                 { status: 401 }
             );
         }
-        const { jobDescription, resumeData } = await req.json();
-        const createInterviewSession = await InterviewService.createInterviewSession(userId, resumeData, jobDescription);
-        const InterviewSessionId = createInterviewSession.interviewSessionId;
+        const { interviewSessionId } = await req.json();
+        const firstQuestionResponse = await InterviewService.getFirstQuestionFromAI(interviewSessionId);
         return new Response(
-            JSON.stringify({ interviewSessionId: InterviewSessionId }),
+            JSON.stringify(firstQuestionResponse),
             { status: 200 }
         );
 
