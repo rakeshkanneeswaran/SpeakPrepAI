@@ -96,7 +96,7 @@ export default function DashboardSidebar({
                   key={interview.sessionId}
                   onClick={() =>
                     router.push(
-                      `/dashboard/interview/${interview.sessionId}/introduction`
+                      `/dashboard/interview/${interview.sessionId}/analysis`
                     )
                   }
                   className="w-full text-left px-2 py-1 rounded-md hover:bg-gray-100 transition text-sm text-gray-700 truncate"
@@ -128,12 +128,6 @@ export default function DashboardSidebar({
               FAQs
             </button>
 
-            {/* Download and Settings */}
-            <SidebarItem
-              icon={<Download />}
-              label="Download for Mac/PC"
-              open={sidebarOpen}
-            />
             <SidebarItem
               icon={<Settings />}
               label="Settings"

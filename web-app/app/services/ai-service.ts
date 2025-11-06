@@ -4,14 +4,7 @@ interface InterviewQuestionsResponse {
     questions: string[];
 }
 
-interface AIAnalysisResponse {
-    technical_skills: { rating: string; explanation: string };
-    communication: { rating: string; explanation: string };
-    relevance: { rating: string; explanation: string };
-    score_out_of_10: number;
-    hiring_recommendation: string;
-    summary_feedback: string;
-}
+
 
 interface RegisterSessionResponse {
     status: "success" | "error";
@@ -35,7 +28,7 @@ export default class AIService {
         }
     }
 
-    static async analyzeConversation({ conversation }: { conversation: string[][] }): Promise<AIAnalysisResponse> {
+    static async analyzeConversation({ conversation }: { conversation: string[][] }): Promise<string> {
 
 
         const AI_BASE_URL = process.env.AI_BASE_URL

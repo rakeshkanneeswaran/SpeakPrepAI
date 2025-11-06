@@ -5,6 +5,7 @@ import DashboardSidebar from "../components/DashboardSidebar";
 import { getPdfContent } from "./action";
 import { useRouter } from "next/navigation";
 import platformColors from "../utils/colors";
+import Link from "next/link";
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -74,14 +75,14 @@ export default function Dashboard() {
               : "mixed",
         }),
       }).then((res) => res.json());
-      const sessionId = response.interviewSessionId;
+      const interviewSessionId = response.interviewSessionId;
 
       setUploading(false);
       setLoadingStage(null);
       setShowModal(false);
 
       // ✅ Redirect to session page
-      router.push(`/dashboard/interview/${sessionId}/session`);
+      router.push(`/dashboard/interview/${interviewSessionId}/session`);
     } catch (err) {
       console.error(err);
       alert("Failed to generate interview session. Please try again.");
@@ -103,7 +104,16 @@ export default function Dashboard() {
         }}
       >
         <div className="flex flex-col">
-          <h1 className="text-2xl font-bold">SpeakPrep AI</h1>
+          <Link
+            href="/"
+            className="text-2xl font-bold"
+            style={{
+              color: "#000",
+              fontFamily: "Montserrat, sans-serif",
+            }}
+          >
+            SpeakPrep<span style={{ color: "#f43e02" }}>AI</span>
+          </Link>
           <p className="text-gray-500 text-sm mb-1">
             Get real interview experience, practice mock sessions, and explore
             AI-powered insights.

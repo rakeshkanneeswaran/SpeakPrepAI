@@ -137,10 +137,15 @@ export default function InterviewSession() {
         ]),
       };
 
+      const data = {
+        conversation: conversationData.conversation,
+        sessionId,
+      };
+
       const response = await fetch("/api/analyse-conversation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(conversationData),
+        body: JSON.stringify(data),
       });
 
       if (!response.ok)
@@ -192,6 +197,7 @@ export default function InterviewSession() {
         });
       }
       setCameraActive(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Camera access denied:", err);
       setCameraError(
@@ -701,7 +707,7 @@ export default function InterviewSession() {
                     onClick={saveInterviewAnalysis}
                     className="mt-6 flex items-center gap-2 px-6 py-2 rounded-md text-white font-medium bg-orange-500 hover:bg-orange-600 shadow-md transition-all"
                   >
-                    Save & Return to Dashboard
+                    Return to Dashboard
                   </button>
                 </div>
               ) : (

@@ -66,4 +66,17 @@ export class InterviewService {
         return AIService.getContinuedQuestion(sessionId, userAnswer);
     }
 
+    static async getInterviewAnalysis(interviewSessionId: string) {
+        const interview = await prisma.interview.findFirst({
+            where: { sessionId: interviewSessionId },
+        });
+        if (!interview) {
+            throw new Error("Interview session not found");
+        }
+        return {
+            analysis: interview.analysis,
+            createdAt: interview.createdAt
+        }
+    }
+
 }
