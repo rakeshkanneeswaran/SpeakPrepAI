@@ -70,11 +70,11 @@ export default class AIService {
             // Check if the request was successful (status code 200)
             if (response.status == 200) {
 
-                if (!response.data.sessionId || response.data.sessionId === "") {
-                    throw new Error("AI service returned invalid response - no sessionId");
+                if (!response.data.session_id || response.data.session_id === "") {
+                    throw new Error("AI service returned invalid response - no session_id");
                 }
                 else {
-                    return { sessionId: session_id };
+                    return { sessionId: response.data.session_id };
                 }
 
 

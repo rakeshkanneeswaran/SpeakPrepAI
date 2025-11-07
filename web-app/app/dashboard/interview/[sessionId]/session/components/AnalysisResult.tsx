@@ -142,7 +142,7 @@ export default function AnalysisResult({
     >
       {/* Title - Left Aligned */}
       <h3 className="text-3xl font-semibold text-black mb-6 text-left cursor-default select-none">
-        Interview Analysis Report
+        Your Interview Analysis
       </h3>
 
       {/* Typing effect editor - Completely non-interactive */}

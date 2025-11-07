@@ -23,6 +23,7 @@ export default function InterviewSession() {
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [interviewEnded, setInterviewEnded] = useState(false);
   const [sessionInitialized, setSessionInitialized] = useState(false);
+  const [concludingMessagePlayed, setConcludingMessagePlayed] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<BlobPart[]>([]);
@@ -40,7 +41,7 @@ export default function InterviewSession() {
         `/api/interview/question/generate-first-question`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" }, // Add this header
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ interviewSessionId: sessionId }),
         }
       );
@@ -52,7 +53,7 @@ export default function InterviewSession() {
       console.log("First question data:", data);
 
       if (data.status === "success") {
-        setCurrentQuestion(data.question); // ⭐️ ADD THIS LINE
+        setCurrentQuestion(data.question);
         setSessionInitialized(true);
         setShouldPlayQuestion(true);
       }
@@ -83,9 +84,10 @@ export default function InterviewSession() {
 
       if (data.status === "success") {
         if (data.interview_end) {
+          // Set interview as ended but don't trigger analysis yet
           setInterviewEnded(true);
-          setCurrentQuestion(data.question); // This will be the conclusion message
-          setShouldPlayQuestion(true);
+          setCurrentQuestion(data.question); // This is the concluding message
+          setShouldPlayQuestion(true); // Play the concluding message
         } else {
           setCurrentQuestion(data.question);
           setShouldPlayQuestion(true);
@@ -132,7 +134,7 @@ export default function InterviewSession() {
       // Create conversation history from questions and answers
       const conversationData = {
         conversation: userAnswers.map((answer, index) => [
-          `Question ${index + 1}`, // We don't store the actual questions, but we can reference them
+          `Question ${index + 1}`,
           answer || "No answer recorded",
         ]),
       };
@@ -163,11 +165,12 @@ export default function InterviewSession() {
     }
   };
 
+  // Handle analysis only after concluding message is played
   useEffect(() => {
-    if (interviewEnded && userAnswers.length > 0) {
+    if (concludingMessagePlayed && userAnswers.length > 0) {
       analyzeConversation();
     }
-  }, [interviewEnded, userAnswers.length]);
+  }, [concludingMessagePlayed, userAnswers.length]);
 
   const startCamera = async () => {
     try {
@@ -219,56 +222,77 @@ export default function InterviewSession() {
     setCameraError(null);
   };
 
-  const playQuestion = useCallback(async (questionText: string) => {
-    try {
-      setIsAudioPlaying(true);
-      const response = await fetch("/api/generate-audio", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text: questionText }),
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch audio");
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-
-      if (audioElementRef.current) {
-        audioElementRef.current.pause();
-        URL.revokeObjectURL(audioElementRef.current.src);
-      }
-
-      const audio = new Audio(url);
-      audioElementRef.current = audio;
-
-      return new Promise<void>((resolve) => {
-        audio.onended = async () => {
-          URL.revokeObjectURL(url);
-          setIsAudioPlaying(false);
-          setShouldPlayQuestion(false);
-          await wait(1000);
-          setShouldRecordAnswer(true);
-          resolve();
-        };
-        audio.onerror = () => {
-          URL.revokeObjectURL(url);
-          setIsAudioPlaying(false);
-          resolve();
-        };
-        audio.play().catch((e) => {
-          console.error("Play error:", e);
-          setIsAudioPlaying(false);
-          resolve();
+  const playQuestion = useCallback(
+    async (questionText: string) => {
+      try {
+        setIsAudioPlaying(true);
+        const response = await fetch("/api/generate-audio", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: questionText }),
         });
-      });
-    } catch (err) {
-      console.error("[Audio Error]", err);
-      setIsAudioPlaying(false);
-      setShouldRecordAnswer(false);
-    }
-  }, []);
+
+        if (!response.ok) throw new Error("Failed to fetch audio");
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        if (audioElementRef.current) {
+          audioElementRef.current.pause();
+          URL.revokeObjectURL(audioElementRef.current.src);
+        }
+
+        const audio = new Audio(url);
+        audioElementRef.current = audio;
+
+        return new Promise<void>((resolve) => {
+          audio.onended = async () => {
+            URL.revokeObjectURL(url);
+            setIsAudioPlaying(false);
+            setShouldPlayQuestion(false);
+
+            // If this was a concluding message, mark it as played
+            if (interviewEnded) {
+              setConcludingMessagePlayed(true);
+            } else {
+              await wait(1000);
+              setShouldRecordAnswer(true);
+            }
+            resolve();
+          };
+          audio.onerror = () => {
+            URL.revokeObjectURL(url);
+            setIsAudioPlaying(false);
+            // Even if audio fails, if it's a concluding message, mark it as played
+            if (interviewEnded) {
+              setConcludingMessagePlayed(true);
+            }
+            resolve();
+          };
+          audio.play().catch((e) => {
+            console.error("Play error:", e);
+            setIsAudioPlaying(false);
+            // Even if audio fails, if it's a concluding message, mark it as played
+            if (interviewEnded) {
+              setConcludingMessagePlayed(true);
+            }
+            resolve();
+          });
+        });
+      } catch (err) {
+        console.error("[Audio Error]", err);
+        setIsAudioPlaying(false);
+        setShouldRecordAnswer(false);
+        // Even if audio fails, if it's a concluding message, mark it as played
+        if (interviewEnded) {
+          setConcludingMessagePlayed(true);
+        }
+      }
+    },
+    [interviewEnded]
+  );
 
   const startRecording = useCallback(async () => {
     try {
@@ -331,10 +355,10 @@ export default function InterviewSession() {
 
   // Handle question playback when shouldPlayQuestion changes
   useEffect(() => {
-    if (shouldPlayQuestion && currentQuestion && !interviewEnded) {
+    if (shouldPlayQuestion && currentQuestion) {
       playQuestion(currentQuestion);
     }
-  }, [shouldPlayQuestion, currentQuestion, interviewEnded, playQuestion]);
+  }, [shouldPlayQuestion, currentQuestion, playQuestion]);
 
   // Handle recording when shouldRecordAnswer changes
   useEffect(() => {
@@ -591,12 +615,14 @@ export default function InterviewSession() {
                 <span className="absolute inset-0 rounded-md bg-orange-500 opacity-50 blur-md animate-pulse"></span>
               </button>
             </div>
-          ) : !interviewEnded ? (
+          ) : !concludingMessagePlayed ? (
             <div className="flex flex-col items-center justify-center text-center space-y-3">
               {/* Question Header */}
               <div className="flex flex-col items-center justify-center">
                 <h3 className="text-xl font-semibold text-black mb-1">
-                  Question {userAnswers.length + 1}
+                  {interviewEnded
+                    ? "Interview Complete"
+                    : `Question ${userAnswers.length + 1}`}
                 </h3>
                 <p className="italic text-lg text-gray-900 leading-relaxed">
                   {currentQuestion}
@@ -642,14 +668,18 @@ export default function InterviewSession() {
                       ))}
                     </div>
                     <p className="text-lg font-semibold text-black">
-                      Playing question...
+                      {interviewEnded
+                        ? "Playing concluding message..."
+                        : "Playing question..."}
                     </p>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center space-y-3">
                     <div className="h-6 w-6 border-2 border-gray-300 border-t-orange-500 rounded-full animate-spin"></div>
                     <p className="text-lg font-semibold text-black">
-                      Preparing next step...
+                      {interviewEnded
+                        ? "Preparing final message..."
+                        : "Preparing next step..."}
                     </p>
                   </div>
                 )}
@@ -715,9 +745,11 @@ export default function InterviewSession() {
                   <h3 className="text-xl font-semibold text-black mb-4">
                     Interview Completed
                   </h3>
-                  <p className="text-gray-700 mb-6">{currentQuestion}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-gray-700 mb-6">
                     Thank you for completing the interview!
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Your analysis is being prepared...
                   </p>
                 </div>
               )}
