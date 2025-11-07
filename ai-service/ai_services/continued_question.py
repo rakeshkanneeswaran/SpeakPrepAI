@@ -1,8 +1,8 @@
 from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
 from dotenv import load_dotenv
-from agents.context_store import get_session, store_session
-from agents.graph import generate_followup_question
+from ai_services.context_store import get_session, store_session
+from ai_services.graph import generate_followup_question
 
 
 load_dotenv()
@@ -17,7 +17,12 @@ llm = ChatGroq(
 
 
 def generate_normal_question(session_data: dict) -> str:
-    """Generates a new, topic-shifting interview question (non-follow-up)."""
+    """
+    Generates a new, topic-shifting interview question (non-follow-up).
+    The question should sound conversational, professional, and answerable in about 40 words or less.
+    It should shift topics naturally while staying relevant to the candidate’s background and the job role.
+    """
+
     candidate = session_data.get("candidate_name", "the candidate")
     candidate_details = session_data.get("candidate_details", {})
     job_description = session_data.get(
@@ -28,16 +33,20 @@ def generate_normal_question(session_data: dict) -> str:
     experience = candidate_details.get("experience", "relevant experience")
     education = candidate_details.get("education", "technical education")
 
+    # 1️⃣ System instruction with clear tone control
     system_prompt = SystemMessage(
         content=(
-            "You are an expert interviewer. "
-            "Your task is to write *only* the next question — concise, clear, and phrased naturally as if spoken by an interviewer. "
-            "Do not include explanations, introductions, or context before or after the question. "
-            "Each question must start directly, e.g., 'Can you explain...', 'How would you...', or 'Tell me about...'. "
-            "Focus on a different topic from earlier questions but stay relevant to the candidate’s skills and the job description."
+            "You are a professional interviewer conducting a real conversation. "
+            "Generate one short, natural interview question that shifts to a different relevant topic "
+            "based on the candidate’s background or the job description. "
+            "The question must be conversational and answerable in under 40 words. "
+            "Avoid complex phrasing, heavy vocabulary, or multi-part questions. "
+            "Do not add explanations, introductions, or context. "
+            "Start directly with the question — examples include: 'Can you explain...', 'How would you...', or 'Tell me about...'."
         )
     )
 
+    # 2️⃣ Candidate context
     user_prompt = HumanMessage(
         content=f"""
 Candidate Summary:
@@ -49,18 +58,22 @@ Candidate Summary:
 Job Description Summary:
 {job_description}
 
-Now generate **only one** new question that shifts the topic.
-Output strictly the question sentence, with no extra text or explanation.
+Generate **one** new short question that changes the topic naturally.
+Avoid repeating earlier technical areas.
+Keep it simple, clear, and answerable in 40 words or fewer.
+Only output the question.
 """
     )
 
+    # 3️⃣ Generate question
     response = llm.invoke([system_prompt, user_prompt])
     question = response.content.strip()
 
-    # 🧹 Optional: Remove model's "Here's" prefix if it still appears
-    if question.lower().startswith("here's"):
+    # 4️⃣ Clean up (for safety against model intros)
+    if question.lower().startswith(("here's", "question:", "q:", "the question is")):
         question = question.split("\n", 1)[-1].strip().strip('"')
 
+    print(f"🧭 New topic-shifting question: {question}")
     return question
 
 
@@ -85,11 +98,11 @@ def generate_concluding_message(session_data: dict) -> str:
     return response.content.strip()
 
 
-def generate_continued_question(session_id: str, user_answer: str) -> str:
+def generate_continued_question(session_id: str, user_answer: str) -> dict:
     """
     Orchestrates the interview flow:
       - Every 2 normal questions → ask a follow-up.
-      - After 8 total questions → send a conclusion.
+      - After 4 total questions → send a conclusion.
       - Otherwise → continue normally.
     """
 
@@ -104,24 +117,20 @@ def generate_continued_question(session_id: str, user_answer: str) -> str:
     session_data["answer_history"] = answer_history
 
     num_questions = len(question_history)
-
     interview_end = False
 
     # 🎯 Logic branching
-    if num_questions >= 8:
-        # End the interview
+    if num_questions >= 4:
+        # End the interview early after 4 questions
         conclusion = generate_concluding_message(session_data)
         session_data["status"] = "completed"
         store_session(session_id, session_data)
-        print("🟢 Interview concluded.")
-        interview_end = True
-        next_question = conclusion
-        return {"question": next_question, "interview_end": interview_end}
+        print("🟢 Interview concluded after 4 questions.")
+        return {"question": conclusion, "interview_end": True}
 
-    elif num_questions % 3 == 0 and num_questions > 0:
-        # Every 3rd turn → follow-up question
+    elif num_questions % 2 == 0 and num_questions > 0:
+        # Every 2nd question → follow-up
         print("🔁 Generating follow-up question...")
-        interview_end = False
         next_question = generate_followup_question(session_id, user_answer)
 
     else:
@@ -130,8 +139,6 @@ def generate_continued_question(session_id: str, user_answer: str) -> str:
         next_question = generate_normal_question(session_data)
         question_history.append(next_question)
         session_data["question_history"] = question_history
-        interview_end = False
-
         store_session(session_id, session_data)
 
     print(f"✅ Next question generated: {next_question}")

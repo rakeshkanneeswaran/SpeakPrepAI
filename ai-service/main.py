@@ -7,12 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Tuple
 from services.analysis_service import AnalysisService
-from services.question_service import QuestionService
-from agents.context_store import create_session, get_session
-from agents.parse_job_description import summarize_job_description
-from agents.parse_resume_details import extract_candidate_details
-from agents.graph import generate_first_question
-from agents.continued_question import generate_continued_question
+from ai_services.context_store import create_session, get_session
+from ai_services.parse_job_description import summarize_job_description
+from ai_services.parse_resume_details import extract_candidate_details
+from ai_services.graph import generate_first_question
+from ai_services.continued_question import generate_continued_question
 from fastapi import Request
 
 app = FastAPI(
@@ -46,18 +45,6 @@ class RegisterSessionRequest(BaseModel):
     candidate_name: str
     candidate_details: str
     job_description: str
-
-
-# ----------- Endpoints -----------
-@app.post("/generate-questions")
-async def generate_questions(request: GenerateQuestionsRequest):
-    print("Received generate questions request:")
-    # print(request.resume, request.job_description)
-    result = QuestionService.generate_interview_questions(
-        request.resume, request.job_description
-    )
-    print("Generated questions:", result)
-    return {"questions": result}
 
 
 @app.post("/analyze-responses")

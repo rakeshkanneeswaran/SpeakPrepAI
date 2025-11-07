@@ -2,7 +2,7 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from dotenv import load_dotenv
 import os
-from agents.context_store import get_session, store_session
+from ai_services.context_store import get_session, store_session
 
 load_dotenv()
 
@@ -17,8 +17,9 @@ llm = ChatGroq(
 
 def generate_followup_question(session_id: str, user_answer: str) -> str:
     """
-    Fetches session data from Redis, uses context + user answer
-    to generate a relevant follow-up interview question.
+    Fetches session data from Redis and generates a short, natural follow-up question
+    that digs deeper into the candidate's reasoning or experience.
+    The follow-up should be conversational, specific, and answerable in 40 words or less.
     """
 
     # 1️⃣ Fetch session context
@@ -29,21 +30,23 @@ def generate_followup_question(session_id: str, user_answer: str) -> str:
     question_history = session_data.get("question_history", [])
     answer_history = session_data.get("answer_history", [])
 
-    # 2️⃣ Append the new answer to history
+    # 2️⃣ Append the latest answer
     answer_history.append(user_answer)
     session_data["answer_history"] = answer_history
 
-    # 3️⃣ Prepare system + user prompt for the LLM
+    # 3️⃣ System instruction (improved tone)
     system_prompt = SystemMessage(
         content=(
-            "You are an experienced technical interviewer. "
-            "Based on the candidate’s previous answers, "
-            "generate one thoughtful follow-up question that digs deeper into their experience or reasoning. "
-            "Be concise and professional. Avoid repeating past questions."
+            "You are a professional interviewer conducting a live interview. "
+            "Your task is to ask one short, natural follow-up question based on the candidate’s previous answer. "
+            "Keep the tone conversational and focused. Avoid technical jargon unless it’s contextually required. "
+            "The question must be specific to the candidate’s answer, not generic. "
+            "Avoid repeating any previous questions. "
+            "Keep it clear, human, and answerable within 40 words."
         )
     )
 
-    # 4️⃣ Create full context for the model
+    # 4️⃣ Create conversational context
     context_summary = "\n".join(
         [
             f"Q{i + 1}: {q}\nA{i + 1}: {a}"
@@ -57,18 +60,20 @@ Here is the interview so far:
 
 {context_summary}
 
-Candidate's latest answer:
+Candidate’s latest answer:
 {user_answer}
 
-Generate the next follow-up question (1 sentence only).
+Generate one short, natural follow-up question (1–2 sentences max).
+Do not ask the candidate to 'explain more' or 'describe in detail' directly.
+Keep it realistic for an interview flow.
 """
     )
 
-    # 5️⃣ Call the LLM
+    # 5️⃣ Generate question from LLM
     response = llm.invoke([system_prompt, user_prompt])
     followup_question = response.content.strip()
 
-    # 6️⃣ Store back into Redis
+    # 6️⃣ Store updated history
     question_history.append(followup_question)
     session_data["question_history"] = question_history
     store_session(session_id, session_data)
@@ -77,10 +82,10 @@ Generate the next follow-up question (1 sentence only).
     return followup_question
 
 
-def generate_first_question(session_id: str) -> str:
+def generate_first_question(session_id: str) -> dict:
     """
     Generates the first interview question using session context (skills, experience, job description).
-    Stores it in Redis for continuity.
+    The question should be simple, natural, and answerable in under 40 words.
     """
 
     # 1️⃣ Fetch session context
@@ -100,13 +105,15 @@ def generate_first_question(session_id: str) -> str:
     )
     education = candidate_details.get("education", "relevant academic background")
 
-    # 2️⃣ System instruction
+    # 2️⃣ System instruction (tightened tone)
     system_prompt = SystemMessage(
         content=(
             "You are a professional technical interviewer. "
-            "Your job is to start the interview with one strong, open-ended question "
-            "based on the candidate’s background and the job description. "
-            "The tone should be conversational but professional."
+            "Your task is to start the interview with one clear, open-ended question "
+            "that feels natural and professional. "
+            "Avoid jargon-heavy or essay-style phrasing. "
+            "The question should be answerable in 40 words or less. "
+            "Keep it focused on the candidate’s background or the job description."
         )
     )
 
@@ -122,8 +129,9 @@ Candidate Summary:
 Job Description Summary:
 {job_description}
 
-Generate the first interview question (1–2 sentences max).
-Do not include introductions like 'Hi' or 'Let's start the interview.'
+Generate one short, realistic first interview question that sets the tone for a conversational interview.
+Avoid greetings or introductions.
+Limit the question so it can be answered within about 40 words.
 """
     )
 
@@ -131,7 +139,7 @@ Do not include introductions like 'Hi' or 'Let's start the interview.'
     response = llm.invoke([system_prompt, user_prompt])
     first_question = response.content.strip()
 
-    # 5️⃣ Save in Redis for continuity
+    # 5️⃣ Store in Redis
     session_data["question_history"] = [first_question]
     session_data["answer_history"] = []
     store_session(session_id, session_data)
