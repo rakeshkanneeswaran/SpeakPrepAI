@@ -6,11 +6,31 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# 🔐 Redis connection setup
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+# 🔐 Redis connection setup using individual components
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+REDIS_USERNAME = os.getenv("REDIS_USERNAME", "default")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+REDIS_DB = int(os.getenv("REDIS_DB", 0))
 
-# ✅ Create a single global Redis client (connection pool managed internally)
-redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
+print(f"Connecting to Redis: {REDIS_HOST}:{REDIS_PORT}")  # Debug log
+
+# ✅ Create a single global Redis client with individual parameters
+try:
+    redis_client = redis.Redis(
+        host=REDIS_HOST,
+        port=REDIS_PORT,
+        username=REDIS_USERNAME,
+        password=REDIS_PASSWORD,
+        db=REDIS_DB,
+        decode_responses=True,
+    )
+    # Test connection
+    redis_client.ping()
+    print("✅ Redis connection successful")
+except Exception as e:
+    print(f"❌ Redis connection failed: {e}")
+    raise
 
 
 # ---------- SESSION STORE MANAGER ---------- #
