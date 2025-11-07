@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import DashboardSidebar from "../components/DashboardSidebar";
+import ErrorModal from "../components/ErrorModal";
+import ResumeUploadModal from "../components/ResumeUploadModal";
+import CompanyInsightsModal from "../components/CompanyInsightsModal";
 import { getPdfContent } from "./action";
 import { useRouter } from "next/navigation";
 import platformColors from "../utils/colors";
@@ -10,35 +13,18 @@ import Link from "next/link";
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [jobDesc, setJobDesc] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [companyWebsite, setCompanyWebsite] = useState("");
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [loadingStage, setLoadingStage] = useState<string | null>(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
-  const handleLaunch = async () => {
-    // For Company Insights
-    if (selectedType === "Company Insights") {
-      if (!companyName) {
-        alert("Please enter a company name.");
-        return;
-      }
-      router.push(
-        `/dashboard/company-insight?name=${encodeURIComponent(
-          companyName
-        )}&website=${encodeURIComponent(companyWebsite)}`
-      );
-      return;
-    }
 
-    // For Interview Types
-    if (!resumeFile || !jobDesc) {
-      alert("Please upload a resume and enter the job description.");
-      return;
-    }
-
+  const handleLaunchInterview = async (
+    resumeFile: File,
+    jobDescription: string
+  ) => {
     setUploading(true);
     setLoadingStage("Scanning your resume...");
 
@@ -66,7 +52,7 @@ export default function Dashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           resumeData,
-          jobDescription: jobDesc,
+          jobDescription,
           interviewType:
             selectedType === "Technical Interview"
               ? "technical"
@@ -74,20 +60,68 @@ export default function Dashboard() {
               ? "hr"
               : "mixed",
         }),
-      }).then((res) => res.json());
-      const interviewSessionId = response.interviewSessionId;
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.detail || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      const responseData = await response.json();
+
+      if (!responseData.interviewSessionId) {
+        throw new Error("No interview session ID returned from server");
+      }
+
+      const interviewSessionId = responseData.interviewSessionId;
 
       setUploading(false);
       setLoadingStage(null);
-      setShowModal(false);
+      setShowResumeModal(false);
 
-      // ✅ Redirect to session page
       router.push(`/dashboard/interview/${interviewSessionId}/session`);
     } catch (err) {
-      console.error(err);
-      alert("Failed to generate interview session. Please try again.");
+      console.error("Interview generation error:", err);
       setUploading(false);
+      setLoadingStage(null);
+
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Failed to generate interview session. Please try again."
+      );
+      setShowErrorModal(true);
     }
+  };
+
+  const handleViewInsights = (companyName: string, companyWebsite: string) => {
+    setShowCompanyModal(false);
+    router.push(
+      `/dashboard/company-insight?name=${encodeURIComponent(
+        companyName
+      )}&website=${encodeURIComponent(companyWebsite)}`
+    );
+  };
+
+  const handleCardClick = (cardTitle: string) => {
+    setSelectedType(cardTitle);
+    if (cardTitle === "Company Insights") {
+      setShowCompanyModal(true);
+    } else {
+      setShowResumeModal(true);
+    }
+  };
+
+  const handleRetry = () => {
+    setShowErrorModal(false);
+    setErrorMessage("");
+  };
+
+  const handleCloseErrorModal = () => {
+    setShowErrorModal(false);
+    setErrorMessage("");
   };
 
   return (
@@ -120,7 +154,7 @@ export default function Dashboard() {
           </p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => setShowResumeModal(true)}
           className="px-4 py-2 bg-orange-500 text-white rounded-md font-semibold hover:bg-orange-600 transition"
         >
           Start Interview
@@ -129,13 +163,11 @@ export default function Dashboard() {
 
       {/* Body */}
       <div className="flex flex-1">
-        {/* Sidebar */}
         <DashboardSidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
         />
 
-        {/* Main Section */}
         <main className="flex-1 flex flex-col">
           <div className="flex-1 p-8 space-y-8 flex flex-col items-center">
             <div className="text-center mb-6 w-full max-w-3xl">
@@ -169,10 +201,7 @@ export default function Dashboard() {
               ].map((card) => (
                 <div
                   key={card.title}
-                  onClick={() => {
-                    setSelectedType(card.title);
-                    setShowModal(true);
-                  }}
+                  onClick={() => handleCardClick(card.title)}
                   className={`border rounded-xl p-6 shadow-sm hover:shadow-md transition cursor-pointer ${
                     selectedType === card.title
                       ? "bg-orange-50 border-orange-400"
@@ -189,102 +218,28 @@ export default function Dashboard() {
         </main>
       </div>
 
-      {/* Launch Modal */}
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
-          <div
-            className="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg"
-            style={{ borderColor: platformColors.borderColor }}
-          >
-            <h2 className="text-xl font-semibold mb-4">
-              {selectedType === "Company Insights"
-                ? "Enter Company Details"
-                : `Start ${selectedType}`}
-            </h2>
+      {/* Modals */}
+      <ResumeUploadModal
+        isOpen={showResumeModal}
+        onClose={() => setShowResumeModal(false)}
+        onLaunch={handleLaunchInterview}
+        selectedType={selectedType}
+        uploading={uploading}
+        loadingStage={loadingStage}
+      />
 
-            {selectedType === "Company Insights" ? (
-              <>
-                <input
-                  type="text"
-                  placeholder="Company Name"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  className="w-full border rounded-md p-2 mb-3"
-                />
-                <input
-                  type="text"
-                  placeholder="Company Website (optional)"
-                  value={companyWebsite}
-                  onChange={(e) => setCompanyWebsite(e.target.value)}
-                  className="w-full border rounded-md p-2 mb-4"
-                />
-              </>
-            ) : (
-              <>
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-                  className="w-full border rounded-md p-2 mb-3"
-                />
-                <textarea
-                  placeholder="Paste job description here..."
-                  value={jobDesc}
-                  onChange={(e) => setJobDesc(e.target.value)}
-                  className="w-full border rounded-md p-2 mb-4 h-24"
-                ></textarea>
-              </>
-            )}
+      <CompanyInsightsModal
+        isOpen={showCompanyModal}
+        onClose={() => setShowCompanyModal(false)}
+        onViewInsights={handleViewInsights}
+      />
 
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 rounded-md border text-gray-700 hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleLaunch}
-                className="px-5 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 shadow-sm"
-              >
-                {selectedType === "Company Insights"
-                  ? "View Insights"
-                  : "Launch Interview"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Loading Overlay */}
-      {uploading && loadingStage && (
-        <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-[999] transition-all duration-500">
-          <div className="flex flex-col items-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent"></div>
-            <p className="text-lg font-medium text-gray-800">{loadingStage}</p>
-            <p className="text-sm text-gray-500 animate-pulse">
-              Please wait while SpeakPrep AI prepares your interview data...
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SidebarItem({
-  icon,
-  label,
-  open,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  open: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-3 cursor-pointer p-2 rounded-md hover:bg-gray-100">
-      <div className="w-5 h-5">{icon}</div>
-      {open && <span>{label}</span>}
+      <ErrorModal
+        isOpen={showErrorModal}
+        onClose={handleCloseErrorModal}
+        onRetry={handleRetry}
+        message={errorMessage}
+      />
     </div>
   );
 }

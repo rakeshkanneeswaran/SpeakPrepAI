@@ -1,5 +1,4 @@
 import { AuthenticationService } from "@/app/services/authentication-service";
-import { UserService } from "@/app/services/user-service";
 import { cookies } from "next/headers";
 import { InterviewService } from "@/app/services/interview-service";
 
@@ -19,30 +18,23 @@ export async function POST(req: Request) {
                 { status: 401 }
             );
         }
-        const { jobDescription, resumeData } = await req.json();
 
-        if (!jobDescription || !resumeData) {
-            return new Response(
-                JSON.stringify({ message: "Job description and resume data are required" }),
-                { status: 400 }
-            );
-        }
+        const { interviewSessionId } = await req.json();
 
-        const createInterviewSession = await InterviewService.createInterviewSession(userId, resumeData, jobDescription);
-        const interviewSessionId = createInterviewSession.interviewSessionId;
-
+        await InterviewService.deleteInterviewSession(interviewSessionId, userId);
         return new Response(
-            JSON.stringify({ interviewSessionId: interviewSessionId }),
+            JSON.stringify({ message: "Interview session deleted successfully" }),
             { status: 200 }
         );
 
+
     } catch (err) {
-        console.error("Error in interview creation API:", err);
+        console.error("Error in interview deletion API:", err);
 
         if (err instanceof Error) {
             return new Response(
                 JSON.stringify({
-                    message: "Failed to create interview session",
+                    message: "Failed to delete interview session",
                     error: err.message
                 }),
                 { status: 500 }

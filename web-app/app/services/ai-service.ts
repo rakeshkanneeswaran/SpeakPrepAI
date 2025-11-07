@@ -51,26 +51,40 @@ export default class AIService {
         resumeData: string,
         session_id: string
     }): Promise<{ sessionId: string }> {
-        const AI_BASE_URL = process.env.AI_BASE_URL;
+        try {
+            const AI_BASE_URL = process.env.AI_BASE_URL;
 
-        const response = await axios.post(`${AI_BASE_URL}/register-session`, {
-            session_id: session_id,
-            candidate_name: "Candidate", // You need to provide a candidate name
-            candidate_details: resumeData, // Use resumeData as candidate_details
-            job_description: jobDescription
-        });
+            if (!AI_BASE_URL) {
+                throw new Error("AI_BASE_URL environment variable is not set");
+            }
 
-        // Fix the response check - axios uses status codes, not status property
-        if (response.status !== 200) {
-            throw new Error(`Failed to register session: ${response.statusText}`);
+            const response = await axios.post(`${AI_BASE_URL}/register-session`, {
+                session_id: session_id,
+                candidate_name: "Candidate",
+                candidate_details: resumeData,
+                job_description: jobDescription
+            });
+
+            console.log("Create interview session response:", response.data);
+
+            // Check if the request was successful (status code 200)
+            if (response.status == 200) {
+
+                if (!response.data.sessionId || response.data.sessionId === "") {
+                    throw new Error("AI service returned invalid response - no sessionId");
+                }
+                else {
+                    return { sessionId: session_id };
+                }
+
+
+            } else {
+                throw new Error(`AI service returned status ${response.status}: ${response.statusText}`);
+            }
+        } catch (error) {
+            console.error("Error in createInterviewSession AI call:", error);
+            throw error;
         }
-
-        // Also check the response data structure
-        if (response.data.status !== "success") {
-            throw new Error(response.data.message || "Unknown error");
-        }
-
-        return { sessionId: session_id };
     }
 
     static async getFirstQuestion(sessionId: string): Promise<{ status: string; question: string; interview_end: boolean }> {

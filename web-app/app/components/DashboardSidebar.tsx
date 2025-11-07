@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Menu, X, Settings, Download, LogOut, HelpCircle } from "lucide-react";
+import {
+  Menu,
+  X,
+  Settings,
+  Download,
+  LogOut,
+  HelpCircle,
+  Trash2,
+  MoreVertical,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import platformColors from "../utils/colors";
 
@@ -18,6 +27,10 @@ export default function DashboardSidebar({
     { sessionId: string; createdAt: string }[]
   >([]);
   const [loadingInterviews, setLoadingInterviews] = useState(true);
+  const [deletingSession, setDeletingSession] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(
+    null
+  );
 
   // ✅ Handle Logout
   async function handleLogout() {
@@ -51,6 +64,43 @@ export default function DashboardSidebar({
     }
     fetchInterviews();
   }, []);
+
+  // ✅ Handle interview deletion
+  const handleDeleteInterview = async (sessionId: string) => {
+    try {
+      setDeletingSession(sessionId);
+      const response = await fetch("/api/interview/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ interviewSessionId: sessionId }),
+      });
+
+      if (response.ok) {
+        // Remove from local state
+        setInterviews((prev) =>
+          prev.filter((interview) => interview.sessionId !== sessionId)
+        );
+        setShowDeleteConfirm(null);
+      } else {
+        const errorData = await response.json();
+        alert(
+          `Failed to delete session: ${errorData.message || "Unknown error"}`
+        );
+      }
+    } catch (error) {
+      console.error("Error deleting interview:", error);
+      alert("Failed to delete interview session. Please try again.");
+    } finally {
+      setDeletingSession(null);
+    }
+  };
+
+  // ✅ Navigate to analysis page
+  const handleViewAnalysis = (sessionId: string) => {
+    router.push(`/dashboard/interview/${sessionId}/analysis`);
+  };
 
   return (
     <aside
@@ -92,24 +142,76 @@ export default function DashboardSidebar({
           ) : (
             <div className="space-y-1">
               {interviews.slice(0, 8).map((interview) => (
-                <button
+                <div
                   key={interview.sessionId}
-                  onClick={() =>
-                    router.push(
-                      `/dashboard/interview/${interview.sessionId}/analysis`
-                    )
-                  }
-                  className="w-full text-left px-2 py-1 rounded-md hover:bg-gray-100 transition text-sm text-gray-700 truncate"
-                  title={interview.sessionId}
+                  className="group flex items-center justify-between hover:bg-gray-100 rounded-md transition"
                 >
-                  {sidebarOpen
-                    ? `Session ${interview.sessionId.slice(-5)}`
-                    : "•"}
-                </button>
+                  <button
+                    onClick={() => handleViewAnalysis(interview.sessionId)}
+                    className="flex-1 text-left px-2 py-1 rounded-md text-sm text-gray-700 truncate"
+                    title={interview.sessionId}
+                  >
+                    {sidebarOpen
+                      ? `Session ${interview.sessionId.slice(-5)}`
+                      : "•"}
+                  </button>
+
+                  {sidebarOpen && (
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowDeleteConfirm(interview.sessionId);
+                        }}
+                        disabled={deletingSession === interview.sessionId}
+                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        title="Delete session"
+                      >
+                        {deletingSession === interview.sessionId ? (
+                          <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 size={14} />
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           )}
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
+              <h3 className="font-semibold text-gray-800 mb-2">
+                Delete Interview Session?
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                This action cannot be undone. The interview analysis will be
+                permanently deleted.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowDeleteConfirm(null)}
+                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteInterview(showDeleteConfirm)}
+                  disabled={deletingSession === showDeleteConfirm}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 transition"
+                >
+                  {deletingSession === showDeleteConfirm
+                    ? "Deleting..."
+                    : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Footer */}
