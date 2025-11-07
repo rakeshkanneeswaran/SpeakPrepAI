@@ -1,5 +1,5 @@
 import dotenv
-from services.config import llm
+from services.core.llm_client import llm
 
 dotenv.load_dotenv()
 

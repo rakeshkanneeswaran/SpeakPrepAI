@@ -2,17 +2,27 @@ import dotenv
 
 dotenv.load_dotenv()
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Tuple
 from services.analysis_service import AnalysisService
-from ai_services.context_store import create_session, get_session
-from ai_services.parse_job_description import summarize_job_description
-from ai_services.parse_resume_details import extract_candidate_details
-from ai_services.graph import generate_first_question
-from ai_services.continued_question import generate_continued_question
+from services.context_store.redis_context_store import redis_context_store_manager
+from services.parsers.parse_job_description import summarize_job_description
+from services.parsers.parse_resume_details import extract_candidate_details
+from services.question_generator.technical_question_generator.question_models import (
+    generate_first_question,
+)
+from services.question_generator.technical_question_generator.continued_question import (
+    generate_continued_question,
+)
 from fastapi import Request
+import traceback
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.ERROR)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Interview AI API",
@@ -49,75 +59,134 @@ class RegisterSessionRequest(BaseModel):
 
 @app.post("/analyze-responses")
 async def analyze_responses(request: AnalysisRequest):
-    print("Received analyze responses request:")
-    print(request.conversation)
-    result = AnalysisService.analyze_conversation_history(request.conversation)
-    return result
+    try:
+        print("Received analyze responses request:")
+        print(request.conversation)
+        result = AnalysisService.analyze_conversation_history(request.conversation)
+        return result
+    except Exception as e:
+        logger.error(f"Error in analyze-responses: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error while analyzing responses: {str(e)}",
+        )
 
 
 @app.post("/register-session")
 async def register_session(request: RegisterSessionRequest):
-    print("Received register session request:")
-    print(request.session_id, request.candidate_name)
+    try:
+        print("Received register session request:")
+        print(request.session_id, request.candidate_name)
 
-    # Parse and structure the inputs
-    job_description = summarize_job_description(request.job_description)
-    candidate_details = extract_candidate_details(request.candidate_details)
+        # Parse and structure the inputs
+        job_description = summarize_job_description(request.job_description)
+        candidate_details = extract_candidate_details(request.candidate_details)
 
-    # Convert Pydantic models to dict before storing
-    job_description = job_description
-    candidate_details_dict = candidate_details.model_dump()
+        # Convert Pydantic models to dict before storing
+        job_description = job_description
+        candidate_details_dict = candidate_details.model_dump()
 
-    create_session(
-        request.session_id,
-        request.candidate_name,
-        candidate_details_dict,
-        job_description,
-    )
+        redis_context_store_manager.create_session(
+            request.session_id,
+            request.candidate_name,
+            candidate_details_dict,
+            job_description,
+        )
 
-    return {"status": "success", "message": f"Session {request.session_id} registered."}
+        return {
+            "status": "success",
+            "message": f"Session {request.session_id} registered.",
+            "session_id": request.session_id,
+        }
+
+    except Exception as e:
+        logger.error(f"Error in register-session: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error while registering session: {str(e)}",
+        )
 
 
 @app.post("/get-session/{session_id}")
 async def get_session_data(session_id: str):
-    print("Received get session request:")
-    print(session_id)
-    session_data = get_session(session_id)
-    if not session_data:
-        return {"status": "error", "message": f"No session found for ID: {session_id}"}
-    return {"status": "success", "data": session_data}
+    try:
+        print("Received get session request:")
+        print(session_id)
+        session_data = redis_context_store_manager.get_session(session_id)
+        if not session_data:
+            return {
+                "status": "error",
+                "message": f"No session found for ID: {session_id}",
+            }
+        return {"status": "success", "data": session_data}
+
+    except Exception as e:
+        logger.error(f"Error in get-session: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error while retrieving session: {str(e)}",
+        )
 
 
 @app.post("/generate-first-question/{session_id}")
 async def generate_first_question_endpoint(session_id: str):
-    print("Received generate first question request:")
-    print(session_id)
-    response = generate_first_question(session_id)
-    return response
+    try:
+        print("Received generate first question request:")
+        print(session_id)
+        response = generate_first_question(session_id)
+        return response
+
+    except Exception as e:
+        logger.error(f"Error in generate-first-question: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error while generating first question: {str(e)}",
+        )
 
 
 @app.post("/generate-continued-question/{session_id}")
 async def generate_continued_question_endpoint(session_id: str, request: Request):
-    body = await request.json()
-    user_answer = body.get("user_answer", "")
+    try:
+        body = await request.json()
+        user_answer = body.get("user_answer", "")
 
-    print("Received generate continued question request:")
-    print(session_id, user_answer)
+        print("Received generate continued question request:")
+        print(session_id, user_answer)
 
-    result = generate_continued_question(session_id, user_answer)
+        result = generate_continued_question(session_id, user_answer)
 
-    return {
-        "status": "success",
-        "question": result["question"],
-        "interview_end": result["interview_end"],
-    }
+        return {
+            "status": "success",
+            "question": result["question"],
+            "interview_end": result["interview_end"],
+        }
+
+    except Exception as e:
+        logger.error(f"Error in generate-continued-question: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error while generating continued question: {str(e)}",
+        )
 
 
 @app.post("/health")
 async def health_check():
-    return {"status": "healthy"}
+    try:
+        return {"status": "healthy"}
+    except Exception as e:
+        logger.error(f"Error in health-check: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Health check failed: {str(e)}")
 
 
 @app.get("/")
 async def root():
-    return {"message": "Interview AI API is running ✅"}
+    try:
+        return {"message": "Interview AI API is running ✅"}
+    except Exception as e:
+        logger.error(f"Error in root endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Root endpoint failed: {str(e)}")
