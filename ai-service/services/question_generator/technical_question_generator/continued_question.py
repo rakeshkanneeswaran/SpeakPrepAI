@@ -6,7 +6,9 @@ from services.question_generator.technical_question_generator.question_models im
 )
 
 
-def generate_continued_question(session_id: str, user_answer: str) -> dict:
+def generate_continued_question(
+    session_id: str, user_answer: str, api_key: str
+) -> dict:
     """
     Orchestrates the interview flow:
       - Every 2 normal questions → ask a follow-up.
@@ -30,7 +32,7 @@ def generate_continued_question(session_id: str, user_answer: str) -> dict:
     # 🎯 Logic branching
     if num_questions >= 4:
         # End the interview early after 4 questions
-        conclusion = generate_concluding_message(session_data)
+        conclusion = generate_concluding_message(session_data, api_key=api_key)
         session_data["status"] = "completed"
         redis_context_store_manager.store_session(session_id, session_data)
         print("🟢 Interview concluded after 4 questions.")
@@ -39,12 +41,14 @@ def generate_continued_question(session_id: str, user_answer: str) -> dict:
     elif num_questions % 2 == 0 and num_questions > 0:
         # Every 2nd question → follow-up
         print("🔁 Generating follow-up question...")
-        next_question = generate_followup_question(session_id, user_answer)
+        next_question = generate_followup_question(
+            session_id, user_answer, api_key=api_key
+        )
 
     else:
         # Otherwise → normal topic-changing question
         print("🧠 Generating new normal question...")
-        next_question = generate_normal_question(session_data)
+        next_question = generate_normal_question(session_data, api_key=api_key)
         question_history.append(next_question)
         session_data["question_history"] = question_history
         redis_context_store_manager.store_session(session_id, session_data)

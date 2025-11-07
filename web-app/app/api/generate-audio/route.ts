@@ -22,7 +22,7 @@ export async function POST(req: Request) {
         const { text } = await req.json();
 
         // Generate audio buffer from text (TTS)
-        const audioBuffer = await GroqService.createAudioBufferFromText(text);
+        const audioBuffer = await GroqService.createAudioBufferFromText(text, userId);
 
         // Send audio stream to the frontend
         return new Response(audioBuffer, {

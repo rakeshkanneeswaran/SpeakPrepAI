@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import platformColors from "@/app/utils/colors";
 import AnalysisResult from "./components/AnalysisResult";
 import { PhoneOff } from "lucide-react";
@@ -9,6 +9,10 @@ import { useParams } from "next/navigation";
 export default function InterviewSession() {
   const router = useRouter();
   const { sessionId } = useParams();
+  const searchParams = useSearchParams();
+
+  // Get interview type from URL parameters
+  const interviewType = searchParams.get("type") || "technical";
 
   const [isInterviewStarted, setIsInterviewStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState("");
@@ -24,6 +28,8 @@ export default function InterviewSession() {
   const [interviewEnded, setInterviewEnded] = useState(false);
   const [sessionInitialized, setSessionInitialized] = useState(false);
   const [concludingMessagePlayed, setConcludingMessagePlayed] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+  const [interviewCompleted, setInterviewCompleted] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<BlobPart[]>([]);
@@ -32,19 +38,113 @@ export default function InterviewSession() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
 
+  // Check interview status on component mount
+  const checkInterviewStatus = useCallback(async () => {
+    if (!sessionId) return;
+
+    try {
+      setIsCheckingStatus(true);
+      const response = await fetch("/api/interview/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interviewSessionId: sessionId }),
+      });
+
+      console.log("Interview status response:", response);
+
+      if (!response.ok) throw new Error("Failed to check interview status");
+
+      const data = await response.json();
+
+      console.log("Interview status data:", data);
+
+      if (data.interviewActive.interviewOpen === false) {
+        setInterviewCompleted(true);
+        // If interview is already completed, we can fetch the analysis directly
+        await fetchExistingAnalysis();
+      }
+    } catch (error) {
+      console.error("Failed to check interview status:", error);
+      // If there's an error checking status, we'll still allow the interview to proceed
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  }, [sessionId]);
+
+  const fetchExistingAnalysis = async () => {
+    try {
+      setIsAnalyzing(true);
+      const response = await fetch("/api/interview/get-analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interviewSessionId: sessionId }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.analysis) {
+          setAnalysisResult(data.analysis);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch existing analysis:", error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Get interview type display info
+  const getInterviewTypeInfo = () => {
+    switch (interviewType) {
+      case "technical":
+        return {
+          name: "Technical Interview",
+          icon: "🧠",
+          color: "#3b82f6", // Blue
+          description: "Technical Skills Assessment",
+        };
+      case "hr":
+        return {
+          name: "HR Interview",
+          icon: "💼",
+          color: "#10b981", // Green
+          description: "Behavioral & Soft Skills",
+        };
+      case "mixed":
+        return {
+          name: "Mixed Interview",
+          icon: "🎯",
+          color: "#f59e0b", // Amber
+          description: "Technical + HR Combined",
+        };
+      default:
+        return {
+          name: "Technical Interview",
+          icon: "🧠",
+          color: "#3b82f6",
+          description: "Technical Skills Assessment",
+        };
+    }
+  };
+
+  const interviewTypeInfo = getInterviewTypeInfo();
+
   const wait = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
   const initializeInterview = async () => {
     try {
-      const response = await fetch(
-        `/api/interview/question/generate-first-question`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ interviewSessionId: sessionId }),
-        }
-      );
+      // Choose the correct endpoint based on interview type
+      const endpoint =
+        interviewType === "hr"
+          ? "/api/interview/question/generate-first-hr-question"
+          : "/api/interview/question/generate-first-question";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interviewSessionId: sessionId }),
+      });
 
       if (!response.ok) throw new Error("Failed to initialize interview");
 
@@ -66,17 +166,20 @@ export default function InterviewSession() {
   // Get next question after user answers
   const getNextQuestion = async (userAnswer: string) => {
     try {
-      const response = await fetch(
-        `/api/interview/question/generate-continued-question`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_answer: userAnswer,
-            interviewSessionId: sessionId,
-          }),
-        }
-      );
+      // Choose the correct endpoint based on interview type
+      const endpoint =
+        interviewType === "hr"
+          ? "/api/interview/question/generate-continued-hr-question"
+          : "/api/interview/question/generate-continued-question";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_answer: userAnswer,
+          interviewSessionId: sessionId,
+        }),
+      });
 
       if (!response.ok) throw new Error("Failed to get next question");
 
@@ -142,6 +245,7 @@ export default function InterviewSession() {
       const data = {
         conversation: conversationData.conversation,
         sessionId,
+        interviewType, // Pass interview type for context-aware analysis
       };
 
       const response = await fetch("/api/analyse-conversation", {
@@ -369,19 +473,31 @@ export default function InterviewSession() {
 
   // Initialize interview when started
   useEffect(() => {
-    if (isInterviewStarted && !sessionInitialized) {
+    if (isInterviewStarted && !sessionInitialized && !interviewCompleted) {
       initializeInterview();
     }
-  }, [isInterviewStarted, sessionInitialized]);
+  }, [
+    isInterviewStarted,
+    sessionInitialized,
+    interviewType,
+    interviewCompleted,
+  ]);
+
+  // Check interview status on component mount
+  useEffect(() => {
+    checkInterviewStatus();
+  }, [checkInterviewStatus]);
 
   // Camera setup
   useEffect(() => {
-    startCamera();
+    if (!interviewCompleted) {
+      startCamera();
+    }
     return () => {
       stopRecording();
       stopCamera();
     };
-  }, [stopRecording]);
+  }, [stopRecording, interviewCompleted]);
 
   const getAccentColor = (
     type: "primary" | "success" | "warning" | "error" = "primary"
@@ -399,6 +515,80 @@ export default function InterviewSession() {
     }
   };
 
+  // Show loading while checking status
+  if (isCheckingStatus) {
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center"
+        style={{ backgroundColor: platformColors.mainBackground }}
+      >
+        <div className="text-center">
+          <div
+            className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4"
+            style={{ borderColor: platformColors.borderColor }}
+          ></div>
+          <h2 className="text-xl font-semibold text-black mb-2">
+            Checking Interview Status...
+          </h2>
+          <p className="text-gray-600">
+            Please wait while we verify your interview session.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show completed interview message if interview is already completed
+  if (interviewCompleted && !isInterviewStarted) {
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center"
+        style={{ backgroundColor: platformColors.mainBackground }}
+      >
+        <div className="text-center max-w-md p-8 rounded-lg border shadow-sm">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-8 h-8 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-black mb-4">
+            Interview Already Completed
+          </h2>
+          <p className="text-gray-600 mb-6">
+            This interview session has already been completed. You can view the
+            analysis results on your dashboard.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
+            >
+              Go to Dashboard
+            </button>
+            {analysisResult && (
+              <button
+                onClick={() => setIsInterviewStarted(true)}
+                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                View Analysis
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="min-h-screen flex flex-col"
@@ -412,18 +602,46 @@ export default function InterviewSession() {
           borderColor: platformColors.borderColor,
         }}
       >
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-bold text-black tracking-tight">
-            SpeakPrep AI
-            <span className="text-orange-500 font-semibold">
-              {" "}
-              Mock Interview
+        <div className="flex items-center gap-4">
+          {/* Interview Type Badge */}
+          <div
+            className="flex items-center gap-2 px-3 py-1 rounded-full border font-medium"
+            style={{
+              backgroundColor: `${interviewTypeInfo.color}15`,
+              borderColor: interviewTypeInfo.color,
+              color: interviewTypeInfo.color,
+            }}
+          >
+            <span className="text-lg">{interviewTypeInfo.icon}</span>
+            <span className="text-sm font-semibold">
+              {interviewTypeInfo.name}
             </span>
-          </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Session ID:{" "}
-            <span className="font-mono text-gray-600">{sessionId || "—"}</span>
-          </p>
+          </div>
+
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-bold text-black tracking-tight">
+              SpeakPrep AI
+              <span className="text-orange-500 font-semibold">
+                {" "}
+                Mock Interview
+              </span>
+            </h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Session ID:{" "}
+              <span className="font-mono text-gray-600">
+                {sessionId || "—"}
+              </span>
+              {" • "}
+              <span className="text-gray-600">
+                {interviewTypeInfo.description}
+              </span>
+              {interviewCompleted && (
+                <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full">
+                  Completed
+                </span>
+              )}
+            </p>
+          </div>
         </div>
 
         <button
@@ -438,6 +656,7 @@ export default function InterviewSession() {
         </button>
       </header>
 
+      {/* Rest of your component remains the same */}
       {/* Main Layout */}
       <div className="flex flex-1">
         {/* Left panel: camera */}
@@ -595,11 +814,12 @@ export default function InterviewSession() {
                 className="text-2xl font-semibold mb-4"
                 style={{ color: "black" }}
               >
-                Interview Session
+                {interviewTypeInfo.name}
               </h2>
               <p className="mb-4" style={{ color: "black" }}>
-                Click below to start your interview. Each question will play
-                automatically, and your answers will be recorded.
+                Click below to start your {interviewTypeInfo.name.toLowerCase()}
+                . Each question will play automatically, and your answers will
+                be recorded.
               </p>
               <button
                 onClick={() => {
@@ -700,7 +920,13 @@ export default function InterviewSession() {
                     Analyzing Your Interview...
                   </h3>
                   <p style={{ color: platformColors.borderColor }}>
-                    The AI evaluator is reviewing your answers.
+                    The AI evaluator is reviewing your{" "}
+                    {interviewType === "technical"
+                      ? "technical"
+                      : interviewType === "hr"
+                      ? "behavioral"
+                      : "technical and behavioral"}{" "}
+                    answers.
                   </p>
                 </div>
               ) : analysisError ? (
@@ -746,7 +972,8 @@ export default function InterviewSession() {
                     Interview Completed
                   </h3>
                   <p className="text-gray-700 mb-6">
-                    Thank you for completing the interview!
+                    Thank you for completing the{" "}
+                    {interviewTypeInfo.name.toLowerCase()}!
                   </p>
                   <p className="text-sm text-gray-500">
                     Your analysis is being prepared...

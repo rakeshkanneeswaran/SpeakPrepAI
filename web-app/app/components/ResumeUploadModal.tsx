@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import platformColors from "../utils/colors";
 
 interface ResumeUploadModalProps {
   isOpen: boolean;

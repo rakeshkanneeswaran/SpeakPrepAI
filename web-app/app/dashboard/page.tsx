@@ -21,6 +21,20 @@ export default function Dashboard() {
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
 
+  // Map card titles to interview types
+  const getInterviewType = (cardTitle: string): string => {
+    switch (cardTitle) {
+      case "Technical Interview":
+        return "technical";
+      case "HR Interview":
+        return "hr";
+      case "Technical + HR (Mixed)":
+        return "mixed";
+      default:
+        return "technical";
+    }
+  };
+
   const handleLaunchInterview = async (
     resumeFile: File,
     jobDescription: string
@@ -47,18 +61,17 @@ export default function Dashboard() {
       setLoadingStage("Generating AI interview questions...");
       await new Promise((r) => setTimeout(r, 1000));
 
+      const interviewType = getInterviewType(
+        selectedType || "Technical Interview"
+      );
+
       const response = await fetch("/api/interview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           resumeData,
           jobDescription,
-          interviewType:
-            selectedType === "Technical Interview"
-              ? "technical"
-              : selectedType === "HR Interview"
-              ? "hr"
-              : "mixed",
+          interviewType: interviewType,
         }),
       });
 
@@ -81,7 +94,10 @@ export default function Dashboard() {
       setLoadingStage(null);
       setShowResumeModal(false);
 
-      router.push(`/dashboard/interview/${interviewSessionId}/session`);
+      // ✅ Add interview type as URL parameter
+      router.push(
+        `/dashboard/interview/${interviewSessionId}/session?type=${interviewType}`
+      );
     } catch (err) {
       console.error("Interview generation error:", err);
       setUploading(false);

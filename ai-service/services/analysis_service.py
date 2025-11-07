@@ -1,5 +1,5 @@
 import dotenv
-from services.core.llm_client import llm
+from services.core.llm_client import generate_llm_from_api_key
 
 dotenv.load_dotenv()
 
@@ -11,7 +11,9 @@ class AnalysisService:
     """
 
     @staticmethod
-    def analyze_conversation_history(conversation: list[tuple[str, str]]) -> str:
+    def analyze_conversation_history(
+        conversation: list[tuple[str, str]], api_key: str
+    ) -> str:
         """
         conversation: list of (ai_question, human_answer)
 
@@ -68,7 +70,7 @@ Rules:
 """
 
         try:
-            # 🔹 Invoke LLM
+            llm = generate_llm_from_api_key(api_key=api_key)
             response = llm.invoke(prompt)
 
             # 🧹 Extract text safely

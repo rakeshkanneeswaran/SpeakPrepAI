@@ -26,6 +26,7 @@ export class InterviewService {
                 jobDescription,
                 resumeData,
                 session_id: interviewSession.sessionId,
+                userId
             });
 
             console.log("Create interview session response from ai", response);
@@ -81,16 +82,32 @@ export class InterviewService {
         }
         return prisma.interview.update({
             where: { id: interview.id },
-            data: { analysis: analysisData },
+            data: {
+                analysis: analysisData,
+                interviewOpen: false,
+            },
         });
     }
 
     static async getFirstQuestionFromAI(sessionId: string): Promise<{ status: string; question: string; interview_end: boolean }> {
-        return AIService.getFirstQuestion(sessionId);
+        const userId = await this.getUserIdBySessionId(sessionId);
+        return AIService.getFirstQuestion(sessionId, userId);
     }
 
     static async getContinuedQuestionFromAI({ sessionId, userAnswer }: { sessionId: string, userAnswer: string }): Promise<{ status: string; question: string; interview_end: boolean }> {
-        return AIService.getContinuedQuestion(sessionId, userAnswer);
+        const userId = await this.getUserIdBySessionId(sessionId);
+        return AIService.getContinuedQuestion(sessionId, userAnswer, userId);
+    }
+
+    // NEW HR Interview Methods
+    static async getFirstHRQuestionFromAI(sessionId: string): Promise<{ status: string; question: string; interview_end: boolean }> {
+        const userId = await this.getUserIdBySessionId(sessionId);
+        return AIService.getFirstHRQuestion(sessionId, userId);
+    }
+
+    static async getContinuedHRQuestionFromAI({ sessionId, userAnswer }: { sessionId: string, userAnswer: string }): Promise<{ status: string; question: string; interview_end: boolean }> {
+        const userId = await this.getUserIdBySessionId(sessionId);
+        return AIService.getContinuedHRQuestion(sessionId, userAnswer, userId);
     }
 
     static async getInterviewAnalysis(interviewSessionId: string) {
@@ -121,4 +138,25 @@ export class InterviewService {
         });
     }
 
+    static async getUserIdBySessionId(interviewSessionId: string) {
+        const interview = await prisma.interview.findFirst({
+            where: { sessionId: interviewSessionId },
+        });
+        if (!interview) {
+            throw new Error("Interview session not found");
+        }
+        return interview.userId;
+    }
+
+    static async getInterviewStatus(interviewSessionId: string) {
+        const interview = await prisma.interview.findFirst({
+            where: { sessionId: interviewSessionId },
+        });
+        if (!interview) {
+            throw new Error("Interview session not found");
+        }
+        return {
+            interviewOpen: interview.interviewOpen,
+        };
+    }
 }

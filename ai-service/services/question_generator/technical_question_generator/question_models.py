@@ -2,19 +2,12 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
 from dotenv import load_dotenv
 from services.context_store.redis_context_store import redis_context_store_manager
+from services.core.llm_client import generate_llm_from_api_key
 
 load_dotenv()
 
-# LLM setup
-llm = ChatGroq(
-    model="llama-3.1-8b-instant",
-    temperature=0.5,
-    max_tokens=300,
-    timeout=30,
-)
 
-
-def generate_followup_question(session_id: str, user_answer: str) -> str:
+def generate_followup_question(session_id: str, user_answer: str, api_key: str) -> str:
     """
     Fetches session data from Redis and generates a short, natural follow-up question
     that digs deeper into the candidate's reasoning or experience.
@@ -68,7 +61,7 @@ Keep it realistic for an interview flow.
 """
     )
 
-    # 5️⃣ Generate question from LLM
+    llm = generate_llm_from_api_key(api_key=api_key)
     response = llm.invoke([system_prompt, user_prompt])
     followup_question = response.content.strip()
 
@@ -81,7 +74,7 @@ Keep it realistic for an interview flow.
     return followup_question
 
 
-def generate_first_question(session_id: str) -> dict:
+def generate_first_question(session_id: str, api_key: str) -> dict:
     """
     Generates the first interview question using session context (skills, experience, job description).
     The question should be simple, natural, and answerable in under 40 words.
@@ -134,7 +127,7 @@ Limit the question so it can be answered within about 40 words.
 """
     )
 
-    # 4️⃣ Generate question
+    llm = generate_llm_from_api_key(api_key=api_key)
     response = llm.invoke([system_prompt, user_prompt])
     first_question = response.content.strip()
 
@@ -147,7 +140,7 @@ Limit the question so it can be answered within about 40 words.
     return {"status": "success", "question": first_question, "interview_end": False}
 
 
-def generate_normal_question(session_data: dict) -> str:
+def generate_normal_question(session_data: dict, api_key: str) -> str:
     """
     Generates a new, topic-shifting interview question (non-follow-up).
     The question should sound conversational, professional, and answerable in about 40 words or less.
@@ -196,7 +189,7 @@ Only output the question.
 """
     )
 
-    # 3️⃣ Generate question
+    llm = generate_llm_from_api_key(api_key=api_key)
     response = llm.invoke([system_prompt, user_prompt])
     question = response.content.strip()
 
@@ -208,22 +201,26 @@ Only output the question.
     return question
 
 
-def generate_concluding_message(session_data: dict) -> str:
-    """Sends a closing message after the final question."""
+def generate_concluding_message(session_data: dict, api_key: str) -> str:
+    """Sends a closing message after the final question, written in first person and mentioning the upcoming analysis report."""
     candidate = session_data.get("candidate_name", "the candidate")
 
     system_prompt = SystemMessage(
         content=(
-            "You are wrapping up a professional interview session. "
-            "Generate a polite, encouraging, and natural concluding message thanking the candidate. "
-            "Keep it under 2 sentences. "
-            "Return ONLY the plain text message without any quotes, formatting, or additional text."
+            "You are concluding a professional interview session. "
+            "Speak naturally in the first person (using 'I', 'me', or 'my' when appropriate). "
+            "Generate a warm, professional, and encouraging closing message addressed directly to the candidate. "
+            "Thank them for their time, mention that you will soon share an analysis report summarizing their performance, "
+            "and politely encourage them to go through it carefully for insights and improvement. "
+            "Keep the message genuine, conversational, and under 2 sentences. "
+            "Return ONLY the plain text message — no quotes, markdown, or extra formatting."
         )
     )
 
     user_prompt = HumanMessage(
-        content=f"The candidate's name is {candidate}. End the session gracefully."
+        content=f"The candidate's name is {candidate}. End the interview gracefully in first person, thank them, tell them you'll send an analysis report soon, and ask them to review it carefully."
     )
 
+    llm = generate_llm_from_api_key(api_key=api_key)
     response = llm.invoke([system_prompt, user_prompt])
     return response.content.strip()

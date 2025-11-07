@@ -1,15 +1,8 @@
 from pydantic import BaseModel, Field
-from langchain_groq import ChatGroq
 from dotenv import load_dotenv
+from services.core.llm_client import generate_llm_from_api_key
 
 load_dotenv()
-
-# ⚙️ Initialize the LLM
-llm = ChatGroq(
-    model="llama-3.1-8b-instant",
-    temperature=0.4,
-    max_tokens=512,
-)
 
 
 # 🧩 Define structured schema
@@ -22,12 +15,8 @@ class JobSummary(BaseModel):
     )
 
 
-# 🧠 Structured model setup
-model_with_structure = llm.with_structured_output(JobSummary)
-
-
 # 🚀 Main function
-def summarize_job_description(job_text: str) -> str:
+def summarize_job_description(job_text: str, api_key: str) -> str:
     """
     Takes a long job description and returns a single professionally worded summary sentence.
     """
@@ -38,6 +27,8 @@ def summarize_job_description(job_text: str) -> str:
         f"Job Description:\n{job_text}"
     )
 
+    llm = generate_llm_from_api_key(api_key=api_key)
+    model_with_structure = llm.with_structured_output(JobSummary)
     response = model_with_structure.invoke(prompt)
     data = response.model_dump()
     return data["summary"]

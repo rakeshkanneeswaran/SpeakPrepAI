@@ -1,15 +1,8 @@
 from pydantic import BaseModel, Field
-from langchain_groq import ChatGroq
 from dotenv import load_dotenv
+from services.core.llm_client import generate_llm_from_api_key
 
 load_dotenv()
-
-# ⚙️ Initialize the model
-llm = ChatGroq(
-    model="llama-3.1-8b-instant",
-    temperature=0.2,
-    max_tokens=1024,
-)
 
 
 # 🧩 Define structured schema
@@ -27,12 +20,8 @@ class CandidateDetails(BaseModel):
     )
 
 
-# 🧠 Create structured model wrapper
-model_with_structure = llm.with_structured_output(CandidateDetails)
-
-
 # 🚀 Main function
-def extract_candidate_details(resume_text: str) -> CandidateDetails:
+def extract_candidate_details(resume_text: str, api_key: str) -> CandidateDetails:
     """
     Takes long unstructured resume text and returns structured candidate details.
     """
@@ -43,6 +32,8 @@ def extract_candidate_details(resume_text: str) -> CandidateDetails:
         f"Resume:\n{resume_text}"
     )
 
+    llm = generate_llm_from_api_key(api_key=api_key)
+    model_with_structure = llm.with_structured_output(CandidateDetails)
     response = model_with_structure.invoke(prompt)
     return response
 

@@ -30,19 +30,20 @@ model Interview {
   questions      String[]
   answers        String[]
   analysis       String?
+  interviewOpen  Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
 
 model UserSettings {
-  id                      String  @id @default(cuid())
-  userId                  String  @unique
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
   platformedManagedAPIKey Boolean
   apiChoice               String
   apiKey                  String?
   role                    String?
-  user                    User    @relation(fields: [userId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user                    User     @relation(fields: [userId], references: [id])
+  availableCredits        Int      @default(0)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 }

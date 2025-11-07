@@ -35,7 +35,7 @@ export async function POST(req: Request) {
 
         // 🧠 Here you would run your AI analysis logic, or call OpenAI API, etc.
         // For demo, we’ll just simulate it:
-        const aiResponse = await AIService.analyzeConversation({ conversation });
+        const aiResponse = await AIService.analyzeConversation({ conversation, userId });
         const saveInterviewAnalysisResponse = await InterviewService.saveInterviewAnalysis(sessionId, aiResponse);
         if (!saveInterviewAnalysisResponse) {
             console.error("Failed to save interview analysis");

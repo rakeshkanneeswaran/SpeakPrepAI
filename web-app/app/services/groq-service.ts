@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "dotenv/config";
-import fs from "fs";
 import Groq from "groq-sdk";
+import { UserService } from "./user-service";
 
 export interface ServiceResponse {
     success: boolean;
@@ -10,13 +10,22 @@ export interface ServiceResponse {
     data: string;
 }
 
-const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY,
-});
-
 export default class GroqService {
 
-    static async transcribeAudio(file: File): Promise<ServiceResponse> {
+    static async createGroqClient(userId: string): Promise<Groq> {
+        const userSettings = await UserService.getUserSettings(userId);
+
+        if (userSettings && userSettings.apiKey) {
+            return new Groq({
+                apiKey: userSettings.apiKey,
+            });
+        }
+        else {
+            throw new Error("User API key not found");
+        }
+    }
+
+    static async transcribeAudio(file: File, userId: string): Promise<ServiceResponse> {
         console.log("[Transcription] Start...");
 
         try {
@@ -28,6 +37,8 @@ export default class GroqService {
                     data: "",
                 };
             }
+
+            const groq = await this.createGroqClient(userId);
 
             // Directly send the File (Blob) to Groq
             const transcription = await groq.audio.transcriptions.create({
@@ -58,16 +69,14 @@ export default class GroqService {
         }
     }
 
-    static async createAudioBufferFromText(text: string): Promise<Buffer<ArrayBuffer>> {
+    static async createAudioBufferFromText(text: string, userId: string): Promise<Buffer<ArrayBuffer>> {
         console.log("[TTS] Start...");
 
         try {
             if (!text.trim()) {
                 throw new Error("Input text is empty");
             }
-
-            console.log('converting', { text });
-
+            const groq = await this.createGroqClient(userId);
             const response = await groq.audio.speech.create({
                 model: "playai-tts",
                 voice: "Mitch-PlayAI",

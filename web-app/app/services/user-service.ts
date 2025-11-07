@@ -42,4 +42,18 @@ export class UserService {
 
         return { onboarded: user.onboarded };
     }
+
+    static async getUserSettings(userId: string) {
+        const userSettings = await prisma.userSettings.findUnique({
+            where: { userId: userId },
+        });
+
+        if (!userSettings) {
+            throw new Error("User settings not found");
+        }
+
+        return userSettings;
+    }
+
+
 }
