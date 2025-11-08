@@ -13,8 +13,9 @@ export default function HomePage() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center px-6 md:px-20 py-24 bg-[#f3f3ef] text-center">
-        <div className="max-w-2xl space-y-6">
+      <section className="flex flex-col md:flex-row items-center justify-between px-6 md:px-20 py-24 bg-[#f3f3ef]">
+        {/* Text Content */}
+        <div className="max-w-2xl space-y-6 md:pr-10">
           <h1 className="text-5xl md:text-6xl font-bold leading-tight">
             Master Every Interview <br />
             <span style={{ color: "#f43e02" }}>With Real-Time AI Coaching</span>
@@ -24,7 +25,7 @@ export default function HomePage() {
             and helps you grow faster — all powered by advanced AI.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+          <div className="flex flex-col sm:flex-row gap-4 mt-6">
             <Link href="/dashboard">
               <button
                 style={{ backgroundColor: "#f43e02" }}
@@ -46,16 +47,17 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* Image */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
-          className="mt-12"
+          className="mt-8 md:mt-0 md:flex-1 flex justify-center"
         >
           <img
             src="/hero-illustration.svg"
             alt="AI Interview Illustration"
-            className="w-[380px] md:w-[500px] rounded-lg drop-shadow-xl mx-auto"
+            className="w-[380px] md:w-[500px] rounded-lg drop-shadow-xl"
           />
         </motion.div>
       </section>

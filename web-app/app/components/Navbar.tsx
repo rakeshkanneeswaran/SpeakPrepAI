@@ -5,43 +5,60 @@ import Link from "next/link";
 export default function Navbar() {
   return (
     <nav
-      className="w-full grid grid-cols-3 items-center px-8 md:px-20 py-5 border-b-2  border-black/10"
+      className="w-full grid grid-cols-3 items-center px-8 md:px-20 py-5 border-b-2 border-black/10"
       style={{
         backgroundColor: "#f3f3ef",
         fontFamily: "Montserrat, sans-serif",
       }}
     >
       {/* Left Section */}
-      <div className="flex items-center gap-8 text-[15px] font-medium text-black">
-        <Link href="/" className="hover:text-[#f43e02] transition-colors">
+      <div className="flex items-center gap-8 text-[15px] font-medium text-black flex-wrap">
+        <Link
+          href="/"
+          className="hover:text-[#f43e02] transition-colors whitespace-nowrap"
+        >
           Home
         </Link>
 
         <Link
           href="/pricing"
-          className="hover:text-[#f43e02] transition-colors"
+          className="hover:text-[#f43e02] transition-colors whitespace-nowrap"
         >
           Pricing
         </Link>
 
         <Link
           href="/mission"
-          className="hover:text-[#f43e02] transition-colors"
+          className="hover:text-[#f43e02] transition-colors whitespace-nowrap"
         >
           About
         </Link>
 
-        <Link href="/team" className="hover:text-[#f43e02] transition-colors">
-          Team
+        <Link
+          href="/team"
+          className="hover:text-[#f43e02] transition-colors whitespace-nowrap"
+        >
+          Founder
+        </Link>
+
+        <Link
+          href="/infrastructure"
+          className="hover:text-[#f43e02] transition-colors whitespace-nowrap"
+        >
+          Infrastructure
         </Link>
 
         <Link
           href="/privacy"
-          className="hover:text-[#f43e02] transition-colors"
+          className="hover:text-[#f43e02] transition-colors whitespace-nowrap"
         >
           Privacy & Security
         </Link>
-        <Link href="/faqs" className="hover:text-[#f43e02] transition-colors">
+
+        <Link
+          href="/faqs"
+          className="hover:text-[#f43e02] transition-colors whitespace-nowrap"
+        >
           FAQs
         </Link>
       </div>
@@ -50,7 +67,7 @@ export default function Navbar() {
       <div className="flex justify-center">
         <Link
           href="/"
-          className="text-3xl font-extrabold tracking-tight text-center"
+          className="text-3xl font-extrabold tracking-tight text-center whitespace-nowrap"
           style={{
             color: "#000",
             fontFamily: "Montserrat, sans-serif",
@@ -64,14 +81,14 @@ export default function Navbar() {
       <div className="flex items-center justify-end gap-6">
         <Link
           href="/auth"
-          className="text-[15px] font-medium hover:text-[#f43e02] transition-colors"
+          className="text-[15px] font-medium hover:text-[#f43e02] transition-colors whitespace-nowrap"
         >
           Login
         </Link>
 
         <Link href="/early-access">
           <button
-            className="text-white text-[15px] font-semibold px-5 py-2.5 rounded-full hover:scale-105 transition-transform"
+            className="text-white text-[15px] font-semibold px-5 py-2.5 rounded-full hover:scale-105 transition-transform whitespace-nowrap"
             style={{
               backgroundColor: "#f43e02",
             }}
