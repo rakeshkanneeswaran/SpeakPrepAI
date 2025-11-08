@@ -1,30 +1,34 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { AuthenticationService } from "@/app/services/authentication-service";
 
 export async function POST() {
     try {
         const cookieStore = await cookies();
         const token = cookieStore.get("auth_token")?.value;
 
-        // 🧩 Check if token exists
-        if (!token) {
-            return NextResponse.json(
-                { status: "error", message: "Unauthorized — no token found" },
-                { status: 401 }
-            );
-        }
+        // ✅ ALWAYS create response that clears cookie
+        const response = NextResponse.json({
+            status: "success",
+            message: "Logged out successfully",
+        });
 
-        // 🧠 Verify JWT
-        const userId = AuthenticationService.verifyJWTToken(token);
-        if (!userId) {
-            return NextResponse.json(
-                { status: "error", message: "Invalid token" },
-                { status: 401 }
-            );
-        }
+        // ✅ ALWAYS clear the cookie (whether token exists or not)
+        response.cookies.set({
+            name: "auth_token",
+            value: "",
+            path: "/",
+            maxAge: 0, // expire immediately
+        });
 
-        // ✅ If valid, clear cookie and logout
+        // ✅ Simple logging (optional)
+        console.log("Logout: Cookie cleared", token ? "token existed" : "no token found");
+
+        return response;
+
+    } catch (error) {
+        console.error("Logout error:", error);
+
+        // ✅ Even on error, clear cookie and return success
         const response = NextResponse.json({
             status: "success",
             message: "Logged out successfully",
@@ -34,15 +38,9 @@ export async function POST() {
             name: "auth_token",
             value: "",
             path: "/",
-            maxAge: 0, // expire immediately
+            maxAge: 0,
         });
 
         return response;
-    } catch (error) {
-        console.error("Logout error:", error);
-        return NextResponse.json(
-            { status: "error", message: "Something went wrong" },
-            { status: 500 }
-        );
     }
 }
