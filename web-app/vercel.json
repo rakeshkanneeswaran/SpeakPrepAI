@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm run build",
+  "installCommand": "pnpm install",
+  "outputDirectory": ".next",
+  "functions": {
+    "app/api/**/*.ts": {
+      "includeFiles": "node_modules/.pnpm/**/*.node"
+    }
+  }
+}
