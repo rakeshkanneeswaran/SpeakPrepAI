@@ -37,7 +37,11 @@ export default function DashboardSidebar({
     try {
       setLoggingOut(true);
       const res = await fetch("/api/logout", { method: "POST" });
+
+      const data = await res.json();
       if (res.ok) {
+        router.push("/auth");
+      } else if (data.message == "Unauthorized - no token found") {
         router.push("/auth");
       } else {
         console.error("Logout failed");

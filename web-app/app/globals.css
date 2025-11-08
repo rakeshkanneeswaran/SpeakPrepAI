@@ -7,6 +7,12 @@
   75% { transform: translateX(5px); }
 }
 
+html, body {
+  color-scheme: light only !important;
+  background-color: white !important;
+  color: black !important;
+}
+
 .animate-shake {
   animation: shake 0.3s ease-in-out;
 }
