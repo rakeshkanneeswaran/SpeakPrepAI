@@ -32,15 +32,16 @@ export default function InfrastructurePage() {
           that scale automatically in parallel.
         </p>
 
-        <div className="flex justify-center mb-10">
-          <dotlottie-wc
-            src="https://lottie.host/9236abad-1220-45be-9b64-acfa7906fae3/zOSwQbVxA3.lottie"
-            style={{ width: "320px", height: "320px" }}
-            autoplay
-            loop
-          ></dotlottie-wc>
-        </div>
-
+        <div
+          dangerouslySetInnerHTML={{
+            __html: `<dotlottie-wc
+      src="https://lottie.host/9236abad-1220-45be-9b64-acfa7906fae3/zOSwQbVxA3.lottie"
+      style="width: 320px; height: 320px;"
+      autoplay
+      loop
+    ></dotlottie-wc>`,
+          }}
+        />
         <p className="text-sm text-black/60 max-w-md mx-auto">
           When traffic spikes, our FastAPI microservices automatically spin up
           new workers. Each interview runs in an isolated container, ensuring
