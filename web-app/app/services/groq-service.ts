@@ -94,5 +94,65 @@ export default class GroqService {
             throw new Error(`TTS failed: ${err.message}`);
         }
     }
+
+    static async validateApiKey(apiKey: string): Promise<{ valid: boolean; error?: string; code?: string }> {
+        try {
+            const groq = new Groq({
+                apiKey: apiKey,
+            });
+
+            // Test with a simple TTS request
+            await groq.audio.speech.create({
+                model: "playai-tts",
+                voice: "Mitch-PlayAI",
+                input: "test",
+                response_format: "wav",
+            });
+
+            return { valid: true };
+        } catch (error: any) {
+            console.error("API key validation failed:", error);
+
+            // ✅ FIX: Parse the error string to extract the JSON
+            let errorMessage = "Invalid API key";
+            let errorCode = "unknown_error";
+
+            try {
+                // The error might be a string containing JSON: "400 {...}"
+                const errorString = error.message || error.toString();
+
+                // Extract JSON part from the error string
+                const jsonMatch = errorString.match(/\{.*\}/);
+                if (jsonMatch) {
+                    const errorJson = JSON.parse(jsonMatch[0]);
+                    errorMessage = errorJson.error?.message || errorMessage;
+                    errorCode = errorJson.error?.code || errorCode;
+                } else if (error.error) {
+                    // If it's already an object (fallback)
+                    errorMessage = error.error.message || errorMessage;
+                    errorCode = error.error.code || errorCode;
+                }
+            } catch (parseError) {
+                console.error("Failed to parse error:", parseError);
+                // If parsing fails, use the original error message
+                errorMessage = error.message || "Invalid API key";
+            }
+
+            // Check for TTS terms error
+            if (errorCode === "model_terms_required") {
+                return {
+                    valid: false,
+                    error: errorMessage,
+                    code: "model_terms_required"
+                };
+            }
+
+            return {
+                valid: false,
+                error: errorMessage,
+                code: errorCode
+            };
+        }
+    }
 }
 

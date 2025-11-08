@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 
 export default function OnboardingPage() {
   const [step, setStep] = useState<
@@ -21,7 +21,47 @@ export default function OnboardingPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, startTransition] = useTransition();
+  const [validatingApi, setValidatingApi] = useState(false);
+  const [apiStatus, setApiStatus] = useState<
+    "idle" | "valid" | "invalid" | "terms_required"
+  >("idle");
   const router = useRouter();
+
+  // ✅ Validate API Key with TTS Test
+  async function validateApiKey(key: string) {
+    setValidatingApi(true);
+    setApiStatus("idle");
+    setError("");
+
+    try {
+      const res = await fetch("/api/validate-api-key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey: key }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setApiStatus("valid");
+        return true;
+      } else if (data.error?.code === "model_terms_required") {
+        setApiStatus("terms_required");
+        setError("TTS terms acceptance required");
+        return false;
+      } else {
+        setApiStatus("invalid");
+        setError(data.error?.message || "Invalid API key");
+        return false;
+      }
+    } catch (err) {
+      setApiStatus("invalid");
+      setError("Failed to validate API key");
+      return false;
+    } finally {
+      setValidatingApi(false);
+    }
+  }
 
   function goBack() {
     if (step === "profession") {
@@ -35,7 +75,7 @@ export default function OnboardingPage() {
     }
   }
 
-  function nextStep() {
+  async function nextStep() {
     setError("");
 
     if (step === "apiKey") {
@@ -43,6 +83,13 @@ export default function OnboardingPage() {
         setError("Please enter your Groq API key");
         return;
       }
+
+      // Validate API key before proceeding
+      const isValid = await validateApiKey(apiKey);
+      if (!isValid) {
+        return; // Stop if validation fails
+      }
+
       setStep("profession");
     } else if (step === "profession") {
       if (!profession) {
@@ -144,13 +191,79 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              <input
-                type="text"
-                placeholder="Enter your Groq API key (sk-...)"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f43e02]"
-              />
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Enter your Groq API key (sk-...)"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f43e02]"
+                />
+
+                {/* API Key Status Indicator */}
+                {apiKey && (
+                  <div className="flex items-center gap-2 text-sm">
+                    {validatingApi && (
+                      <>
+                        <div className="w-4 h-4 border-2 border-[#f43e02] border-t-transparent rounded-full animate-spin" />
+                        <span className="text-gray-600">
+                          Validating API key...
+                        </span>
+                      </>
+                    )}
+                    {apiStatus === "valid" && (
+                      <>
+                        <CheckCircle className="text-green-500" size={16} />
+                        <span className="text-green-600">
+                          API key is valid!
+                        </span>
+                      </>
+                    )}
+                    {apiStatus === "invalid" && (
+                      <>
+                        <XCircle className="text-red-500" size={16} />
+                        <span className="text-red-600">Invalid API key</span>
+                      </>
+                    )}
+                    {apiStatus === "terms_required" && (
+                      <>
+                        <AlertTriangle className="text-orange-500" size={16} />
+                        <span className="text-orange-600">
+                          TTS terms required
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* TTS Terms Required Warning */}
+              {apiStatus === "terms_required" && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="bg-orange-50 border border-orange-200 rounded-lg p-4"
+                >
+                  <h4 className="font-semibold text-orange-800 mb-2">
+                    Voice Feature Setup Required
+                  </h4>
+                  <p className="text-orange-700 text-sm mb-3">
+                    To enable voice responses in your interviews, you need to
+                    accept the TTS terms for your Groq account.
+                  </p>
+                  <a
+                    href="https://console.groq.com/playground?model=playai-tts"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block bg-orange-500 text-white px-4 py-2 rounded text-sm hover:bg-orange-600 transition-colors"
+                  >
+                    Accept TTS Terms
+                  </a>
+                  <p className="text-orange-600 text-xs mt-2">
+                    After accepting, come back and click Continue below
+                  </p>
+                </motion.div>
+              )}
 
               <p className="text-xs text-gray-500 text-center">
                 Get your free API key from{" "}
@@ -166,9 +279,14 @@ export default function OnboardingPage() {
 
               <button
                 onClick={nextStep}
-                className="w-full bg-[#f43e02] text-white font-semibold py-3 rounded-lg hover:scale-[1.02] transition-transform"
+                disabled={validatingApi || apiStatus === "invalid"}
+                className={`w-full text-white font-semibold py-3 rounded-lg transition-transform ${
+                  validatingApi || apiStatus === "invalid"
+                    ? "bg-orange-300 cursor-not-allowed"
+                    : "bg-[#f43e02] hover:scale-[1.02]"
+                }`}
               >
-                Continue →
+                {validatingApi ? "Validating..." : "Continue →"}
               </button>
             </motion.div>
           )}

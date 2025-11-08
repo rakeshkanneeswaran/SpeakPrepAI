@@ -28,15 +28,47 @@ const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({
 
   const allConsentsGiven = privacyConsent && dataUsageConsent;
 
+  // Character limit
+  const MAX_CHARACTERS = 1026;
+  const currentCharacters = jobDesc.length;
+  const isOverCharacterLimit = currentCharacters > MAX_CHARACTERS;
+  const charactersRemaining = MAX_CHARACTERS - currentCharacters;
+
+  // ✅ Check if form is valid for submission
+  const isFormValid =
+    resumeFile !== null &&
+    jobDesc.trim() !== "" &&
+    !isOverCharacterLimit &&
+    allConsentsGiven;
+
   const triggerShake = (message: string) => {
-    alert(message); // You can replace this with a proper error state
+    alert(message);
     setShake(true);
     setTimeout(() => setShake(false), 500);
+  };
+
+  const handleJobDescChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+
+    // ✅ FIX: Allow pasting but trim to max characters
+    if (value.length <= MAX_CHARACTERS) {
+      setJobDesc(value);
+    } else {
+      // If pasted content exceeds limit, trim it to max characters
+      setJobDesc(value.substring(0, MAX_CHARACTERS));
+    }
   };
 
   const handleSubmit = () => {
     if (!resumeFile || !jobDesc.trim()) {
       triggerShake("Please upload a resume and enter the job description.");
+      return;
+    }
+
+    if (isOverCharacterLimit) {
+      triggerShake(
+        `Job description exceeds ${MAX_CHARACTERS} characters. Please shorten it.`
+      );
       return;
     }
 
@@ -107,7 +139,7 @@ const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({
                   className={`${shake ? "animate-shake" : ""}`}
                 >
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Upload Resume (PDF)
+                    Upload Resume (PDF) *
                   </label>
                   <motion.input
                     whileFocus={{ scale: 1.02 }}
@@ -117,6 +149,11 @@ const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({
                     className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                     disabled={uploading}
                   />
+                  {!resumeFile && (
+                    <p className="text-red-500 text-xs mt-1">
+                      Resume is required
+                    </p>
+                  )}
                 </motion.div>
 
                 {/* Job Description */}
@@ -126,17 +163,92 @@ const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({
                   transition={{ delay: 0.25 }}
                   className={`${shake ? "animate-shake" : ""}`}
                 >
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Job Description
-                  </label>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Job Description *
+                    </label>
+                    <div
+                      className={`text-xs font-medium ${
+                        charactersRemaining < 100
+                          ? "text-orange-500"
+                          : charactersRemaining < 50
+                          ? "text-red-500"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {currentCharacters}/{MAX_CHARACTERS} characters
+                      {charactersRemaining < 100 &&
+                        ` (${charactersRemaining} left)`}
+                    </div>
+                  </div>
+
                   <motion.textarea
                     whileFocus={{ scale: 1.02 }}
-                    placeholder="Paste job description here..."
+                    placeholder={`Paste job description here (max ${MAX_CHARACTERS} characters)...`}
                     value={jobDesc}
-                    onChange={(e) => setJobDesc(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg p-3 h-32 resize-none focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                    onChange={handleJobDescChange}
+                    className={`w-full border rounded-lg p-3 h-32 resize-none focus:outline-none focus:ring-2 transition-all ${
+                      isOverCharacterLimit
+                        ? "border-red-300 focus:ring-red-500 bg-red-50"
+                        : jobDesc.trim() === ""
+                        ? "border-orange-300 focus:ring-orange-500 bg-orange-50"
+                        : "border-gray-300 focus:ring-orange-500"
+                    }`}
                     disabled={uploading}
                   ></motion.textarea>
+
+                  {/* Empty job description warning */}
+                  {jobDesc.trim() === "" && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-orange-500 text-xs mt-2 flex items-center gap-1"
+                    >
+                      <span>⚠</span>
+                      Job description is required
+                    </motion.p>
+                  )}
+
+                  {/* Character limit warning */}
+                  {isOverCharacterLimit && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-red-500 text-xs mt-2 flex items-center gap-1"
+                    >
+                      <span>⚠</span>
+                      Exceeds {MAX_CHARACTERS} character limit
+                    </motion.p>
+                  )}
+
+                  {/* Low character warning */}
+                  {charactersRemaining < 50 && charactersRemaining > 0 && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-orange-500 text-xs mt-2 flex items-center gap-1"
+                    >
+                      <span>⚠</span>
+                      Only {charactersRemaining} characters remaining
+                    </motion.p>
+                  )}
+
+                  {/* Pasted content trimmed warning */}
+                  {currentCharacters === MAX_CHARACTERS && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-orange-500 text-xs mt-2 flex items-center gap-1"
+                    >
+                      <span>ℹ</span>
+                      Pasted content was trimmed to {MAX_CHARACTERS} characters
+                    </motion.p>
+                  )}
+
+                  <p className="text-gray-400 text-xs mt-2">
+                    Tip: Focus on key responsibilities, requirements, and
+                    qualifications for better interview questions
+                  </p>
                 </motion.div>
 
                 {/* Privacy and Terms Section */}
@@ -147,7 +259,7 @@ const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({
                   className="pt-4 border-t border-gray-200"
                 >
                   <h3 className="text-sm font-semibold text-gray-700 mb-4">
-                    Privacy & Terms
+                    Privacy & Terms *
                   </h3>
 
                   <div className="space-y-4">
@@ -225,16 +337,12 @@ const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({
                 </motion.button>
 
                 <motion.button
-                  whileHover={
-                    !uploading && allConsentsGiven ? { scale: 1.05 } : {}
-                  }
-                  whileTap={
-                    !uploading && allConsentsGiven ? { scale: 0.95 } : {}
-                  }
+                  whileHover={!uploading && isFormValid ? { scale: 1.05 } : {}}
+                  whileTap={!uploading && isFormValid ? { scale: 0.95 } : {}}
                   onClick={handleSubmit}
-                  disabled={uploading || !allConsentsGiven}
+                  disabled={uploading || !isFormValid}
                   className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                    uploading || !allConsentsGiven
+                    uploading || !isFormValid
                       ? "bg-orange-300 cursor-not-allowed text-white"
                       : "bg-orange-500 hover:bg-orange-600 text-white shadow-sm hover:shadow-md"
                   }`}
