@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -11,7 +11,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, startTransition] = useTransition();
+  const [loading, setLoading] = useState(false);
   const [shake, setShake] = useState(false);
   const router = useRouter();
 
@@ -37,7 +37,9 @@ export default function LoginForm() {
     }
 
     setError("");
-    startTransition(async () => {
+    setLoading(true);
+
+    try {
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -45,21 +47,33 @@ export default function LoginForm() {
       });
 
       const data = await res.json();
-      console.log("Login response data:", data.onboarded);
+      console.log("Login response data:", data);
 
+      // ✅ Check if response is successful AND user is authenticated
       if (!res.ok) {
         triggerShake(data.error || "Invalid credentials");
         setStep("email");
         return;
       }
 
-      // If login is successful, check onboarding status
-      if (data.onboarded === false) {
-        router.push("/onboarding");
+      // ✅ Only navigate if login was successful
+      if (data.status === "success") {
+        if (data.onboarded === false) {
+          router.push("/onboarding");
+        } else {
+          router.push("/dashboard");
+        }
       } else {
-        router.push("/dashboard");
+        triggerShake("Login failed. Please try again.");
+        setStep("email");
       }
-    });
+    } catch (error) {
+      console.error("Login error:", error);
+      triggerShake("Network error. Please check your connection.");
+      setStep("email");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
