@@ -20,9 +20,9 @@ export default function TeamPage() {
           Meet the Team Behind SpeakPrep AI
         </h1>
         <p className="text-lg text-white/70 max-w-2xl mx-auto">
-          We are a small, focused team obsessed with learning through practice.
-          We do not believe in test prep that feels robotic. We build tools that
-          mirror how people think, speak, and adapt in the real world.
+          We’re a small, focused team that believes great learning happens
+          through real practice — not theory. Our goal is simple: make interview
+          prep feel as natural as the conversations it’s preparing you for.
         </p>
       </section>
 
@@ -44,28 +44,28 @@ export default function TeamPage() {
               Rakesh Kanneeswaran
             </h2>
             <p className="text-white/80 text-[15px] leading-relaxed">
-              I have sat on both sides of the interview table — anxious,
-              curious, and often wishing I had a way to{" "}
-              <em>practice for the real thing</em>. SpeakPrep AI was born from
-              that feeling. A space where you can actually speak, learn, and
-              improve without fear of judgment.
+              I’ve been on both sides of the interview table — nervous, curious,
+              and often wishing for a space to <em>practice the real thing</em>.
+              SpeakPrep AI started as that idea: a way to build confidence
+              before it’s showtime.
             </p>
             <p className="text-white/80 text-[15px] leading-relaxed">
-              With experience building AI products at leading companies like{" "}
-              <span className="text-[#E6DCAF]">Samsung</span> and fast-growing
+              I’ve worked on AI products at{" "}
+              <span className="text-[#E6DCAF]">Samsung</span> and fast-moving
               startups like{" "}
-              <span className="text-[#E6DCAF]">Optimeleon AI</span>, I have seen
-              how transformative AI can be when applied to real-world
-              challenges.
+              <span className="text-[#E6DCAF]">Optimeleon AI</span>, where I saw
+              how machine learning can shape real human outcomes. Those lessons
+              live inside every part of SpeakPrep — from how it listens to how
+              it gives feedback.
             </p>
             <p className="text-white/80 text-[15px] leading-relaxed">
-              Every part of this platform — from voice-powered sessions to
-              AI-driven feedback — reflects the belief that preparation should
-              not be theoretical. It should <em>feel</em> real.
+              Everything here — the coaching engine, the analytics, the voice
+              system — is built on one belief: good preparation should feel
+              real, not rehearsed.
             </p>
             <p className="text-[#E6DCAF]/90 text-[14px] italic">
-              We are not just building software. We are helping people walk into
-              opportunities with confidence.
+              We’re not just writing code. We’re helping people show up as their
+              best selves when it matters most.
             </p>
           </div>
         </div>
@@ -89,12 +89,12 @@ export default function TeamPage() {
                 Software Engineer · €1.5M Pre-seed
               </p>
               <p className="text-white/70 text-sm mb-4">
-                Built AI systems for conversion optimization, helping companies
-                achieve 10-20% conversion lifts through automated variant
-                testing and real-time optimization.
+                Built optimization systems that helped clients achieve 10–20%
+                higher conversions using automated testing and adaptive AI
+                insights.
               </p>
               <div className="text-white/60 text-xs">
-                Developed web scraping, background job processing, and real-time
+                Focused on backend architecture, data pipelines, and real-time
                 analytics dashboards.
               </div>
             </div>
@@ -106,13 +106,13 @@ export default function TeamPage() {
                 Software Engineer Intern
               </p>
               <p className="text-white/70 text-sm mb-4">
-                Integrated Stable Diffusion XL with Fooocus to enable
-                high-quality, precise image editing through natural language
-                prompts and region-specific controls.
+                Integrated Stable Diffusion XL with Fooocus to power precise,
+                AI-driven image editing through natural language prompts and
+                targeted controls.
               </p>
               <div className="text-white/60 text-xs">
-                Specialized in AI-powered image generation and web-based
-                interface development.
+                Specialized in generative AI, fine-tuning models, and building
+                web-based tools for creative automation.
               </div>
             </div>
           </div>
@@ -126,13 +126,13 @@ export default function TeamPage() {
             What Drives Us
           </h2>
           <p className="text-white/80 max-w-3xl mx-auto text-[15px] leading-relaxed">
-            SpeakPrep AI is built for anyone who has ever felt unprepared before
-            an interview — not because they lacked skill, but because they
-            lacked a chance to <em>practice properly</em>. We exist to make that
-            preparation accessible, fast, and human.
+            SpeakPrep AI exists for anyone who’s ever felt capable but caught
+            off-guard in an interview — not because they weren’t skilled, but
+            because they didn’t get to <em>practice properly</em>. We’re here to
+            change that.
           </p>
           <p className="text-white/70 text-[14px] italic">
-            Our mission is simple — help you sound like yourself, only more
+            Our mission is simple: help you sound like yourself — only more
             confident.
           </p>
         </div>

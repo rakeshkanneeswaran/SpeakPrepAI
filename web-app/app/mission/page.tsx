@@ -17,8 +17,8 @@ export default function MissionPage() {
       <section className="pt-40 pb-20 text-center">
         <h1 className="text-6xl font-bold mb-4">Our Mission</h1>
         <p className="text-lg text-black/70 max-w-2xl mx-auto">
-          Empower every candidate to walk into an interview confident, prepared,
-          and ready to perform — with the power of AI-driven practice.
+          To help every candidate walk into an interview calm, prepared, and
+          confident — using the power of real-time, AI-driven practice.
         </p>
       </section>
 
@@ -29,8 +29,9 @@ export default function MissionPage() {
             The Challenge
           </h2>
           <p className="text-black/80 leading-relaxed text-[15px]">
-            Today’s job market is competitive and uneven. In India, only{" "}
-            <strong>32%</strong> of job-seekers feel prepared for interviews{" "}
+            The job market has never been more competitive — or more uneven. In
+            India, only <strong>32%</strong> of job seekers feel ready to face
+            an interview{" "}
             <a
               href="https://economictimes.indiatimes.com/jobs/hr-policies-trends/just-one-third-of-job-seekers-consider-themselves-prepared-for-interviews-report/articleshow/121361553.cms"
               target="_blank"
@@ -38,8 +39,8 @@ export default function MissionPage() {
             >
               (Economic Times, 2025)
             </a>
-            . Globally, only <strong>2%–3%</strong> of applicants get an
-            interview call{" "}
+            . Globally, just <strong>2–3%</strong> of applicants even reach the
+            interview stage{" "}
             <a
               href="https://teamstage.io/job-interview-statistics/"
               target="_blank"
@@ -47,7 +48,7 @@ export default function MissionPage() {
             >
               (TeamStage)
             </a>
-            , while some reports show 250+ applications for every single job{" "}
+            , and some openings receive 250+ applications per role{" "}
             <a
               href="https://resume.io/blog/interview-statistics"
               target="_blank"
@@ -55,8 +56,8 @@ export default function MissionPage() {
             >
               (Resume.io)
             </a>
-            . Recruiters themselves confirm that interview readiness is one of
-            the top barriers to hiring success{" "}
+            . Recruiters agree — interview readiness remains one of the biggest
+            barriers to hiring success{" "}
             <a
               href="https://recruitcrm.io/blogs/job-interview-statistics/"
               target="_blank"
@@ -66,9 +67,10 @@ export default function MissionPage() {
             </a>
             .
           </p>
+
           <p className="text-black/80 leading-relaxed mt-4 text-[15px]">
-            A recent study found that <strong>40%</strong> of unemployed
-            candidates haven’t had a single interview in a year{" "}
+            Nearly <strong>40%</strong> of unemployed professionals haven’t had
+            a single interview in the past year{" "}
             <a
               href="https://americanstaffing.net/posts/2024/11/20/hopeless-hunting/"
               target="_blank"
@@ -76,8 +78,8 @@ export default function MissionPage() {
             >
               (American Staffing Association)
             </a>
-            . And even when they do, <strong>20%</strong> reject offers due to a
-            poor or stressful interview experience{" "}
+            . And when they do, <strong>1 in 5</strong> candidates turns down
+            offers due to stressful or poorly structured interviews{" "}
             <a
               href="https://www.selectsoftwarereviews.com/blog/recruiting-statistics"
               target="_blank"
@@ -85,8 +87,8 @@ export default function MissionPage() {
             >
               (Select Software Reviews)
             </a>
-            . The problem isn’t talent — it’s the lack of guided, adaptive
-            preparation.
+            . The issue isn’t a lack of talent — it’s a lack of guided,
+            adaptive, and confidence-building preparation.
           </p>
         </div>
       </section>
@@ -97,15 +99,15 @@ export default function MissionPage() {
           {[
             {
               title: "AI-Simulated Interviews",
-              desc: "Experience realistic voice-based sessions tailored to your role and target company.",
+              desc: "Practice with realistic, voice-based sessions tailored to your industry and the company you’re targeting.",
             },
             {
               title: "Actionable Feedback",
-              desc: "Instant AI analysis of your tone, clarity, and technical depth, improving with each attempt.",
+              desc: "Get instant insights on tone, clarity, and depth — personalized to help you grow with each attempt.",
             },
             {
               title: "Company-Specific Insights",
-              desc: "Understand what recruiters actually evaluate — powered by data from real hiring patterns.",
+              desc: "Understand what recruiters actually evaluate, backed by data from real-world hiring patterns.",
             },
           ].map((card) => (
             <div
@@ -130,10 +132,10 @@ export default function MissionPage() {
             Why It Matters
           </h2>
           <p className="text-black/80 text-[15px] leading-relaxed">
-            Every interview is a gateway to opportunity. Yet, when only one in
-            three candidates feels ready, ambition is held back. Studies show
-            that candidates using smart preparation tools report{" "}
-            <strong>58% higher confidence</strong> before interviews{" "}
+            Every interview opens a door — but too many people hesitate on the
+            threshold. Research shows that candidates using structured practice
+            tools report <strong>58% higher confidence</strong> before their
+            interviews{" "}
             <a
               href="https://novoresume.com/career-blog/job-interview-statistics"
               target="_blank"
@@ -141,7 +143,7 @@ export default function MissionPage() {
             >
               (Novorésumé)
             </a>{" "}
-            and are <strong>2×</strong> more likely to receive job offers{" "}
+            and are up to <strong>2×</strong> more likely to receive job offers{" "}
             <a
               href="https://qureos.com/career-guide/job-interview-statistics"
               target="_blank"
@@ -149,8 +151,7 @@ export default function MissionPage() {
             >
               (Qureos)
             </a>
-            . With remote interviews now making up <strong>82%</strong> of
-            sessions{" "}
+            . With <strong>82%</strong> of interviews now conducted remotely{" "}
             <a
               href="https://www.testgorilla.com/blog/job-interview-statistics/"
               target="_blank"
@@ -158,7 +159,8 @@ export default function MissionPage() {
             >
               (TestGorilla)
             </a>
-            , adaptability and real-time AI feedback have become essential.
+            , adaptability and real-time feedback have gone from nice-to-have to
+            essential.
           </p>
         </div>
       </section>
@@ -168,11 +170,10 @@ export default function MissionPage() {
         <div className="max-w-4xl mx-auto">
           <h2 className="text-4xl font-semibold mb-4">Our Promise</h2>
           <p className="text-white/90 text-[15px] leading-relaxed">
-            • Preparation that feels real — not rehearsed. <br />
-            • Built with fairness, privacy, and encryption by design. <br />
-            • Designed for every learner — from fresh graduates to senior
-            professionals aiming higher. <br />• Always fast, secure, and
-            feedback-driven.
+            • Preparation that feels real, not rehearsed. <br />
+            • Privacy and fairness at the core — no shortcuts. <br />
+            • Designed for every learner, from graduates to professionals aiming
+            higher. <br />• Always fast, secure, and built to help you grow.
           </p>
 
           <div className="mt-10">

@@ -27,9 +27,9 @@ export default function InfrastructurePage() {
           Reliable, Scalable Infrastructure
         </h1>
         <p className="text-lg text-black/70 max-w-2xl mx-auto mb-10">
-          SpeakPrep AI runs on a modern, containerized backend built for speed
-          and reliability. Every user request is handled by independent workers
-          that scale automatically in parallel.
+          SpeakPrep AI runs on a cloud-native, containerized backend designed
+          for real-time interaction. Every interview request is handled by its
+          own worker — isolated, fast, and automatically scaled on demand.
         </p>
 
         <div
@@ -43,9 +43,9 @@ export default function InfrastructurePage() {
           }}
         />
         <p className="text-sm text-black/60 max-w-md mx-auto">
-          When traffic spikes, our FastAPI microservices automatically spin up
-          new workers. Each interview runs in an isolated container, ensuring
-          consistent performance and zero cross-session interference.
+          When traffic spikes, new FastAPI workers spin up in seconds. Each
+          session runs inside its own container, so your experience stays smooth
+          and unaffected — no matter how many users join at once.
         </p>
       </section>
 
@@ -62,28 +62,28 @@ export default function InfrastructurePage() {
                 <Cloud size={38} strokeWidth={2.5} className="mx-auto mb-3" />
               ),
               title: "Deployed on Google Cloud Run",
-              desc: "Our AI microservice runs in a serverless containerized setup that scales up or down instantly based on demand.",
+              desc: "Our AI service runs in a fully managed, serverless setup. Containers scale automatically — up when busy, down when quiet — keeping things fast and cost-efficient.",
             },
             {
               icon: (
                 <Server size={38} strokeWidth={2.5} className="mx-auto mb-3" />
               ),
               title: "Parallel FastAPI Workers",
-              desc: "Each user session is handled by its own FastAPI worker process, enabling concurrent interviews without bottlenecks.",
+              desc: "Each user session is handled by its own FastAPI worker, allowing dozens of interviews to run in parallel without any slowdown or queueing.",
             },
             {
               icon: (
                 <Zap size={38} strokeWidth={2.5} className="mx-auto mb-3" />
               ),
               title: "Groq LPU Acceleration",
-              desc: "We use Groq’s ultra-low latency inference engine to deliver real-time AI responses for an authentic interview feel.",
+              desc: "Responses are powered by Groq’s low-latency inference engine — purpose-built for real-time AI. The result: instant feedback that feels conversational, not delayed.",
             },
             {
               icon: (
                 <Lock size={38} strokeWidth={2.5} className="mx-auto mb-3" />
               ),
-              title: "End-to-End Privacy",
-              desc: "Your resume and responses are processed securely. No data is shared or reused — sessions live only as long as your interview.",
+              title: "Private by Design",
+              desc: "Your resumes, transcripts, and responses stay yours. Data lives only for your session and is never reused, shared, or stored beyond what’s needed for analysis.",
             },
           ].map((item, index) => (
             <div
@@ -105,29 +105,28 @@ export default function InfrastructurePage() {
         <div className="max-w-5xl mx-auto text-center">
           <Database size={48} strokeWidth={2.5} className="mx-auto mb-6" />
           <h2 className="text-3xl font-bold mb-6">
-            Real-Time State Management with Redis
+            Real-Time Session Memory with Redis
           </h2>
           <p className="text-[#E6DCAF]/90 max-w-3xl mx-auto text-base leading-relaxed mb-10">
-            At the heart of our infrastructure lies Redis — a lightning-fast,
-            in-memory data store that tracks every user’s interview state in
-            real time. Each session, question, and response is cached instantly,
-            allowing smooth recovery, seamless continuity, and zero latency
-            between turns.
+            At the core of our system is Redis — a lightning-fast in-memory data
+            store that tracks every conversation as it happens. It remembers
+            your current question, last answer, and interview flow without
+            hitting a database, keeping response times under a few milliseconds.
           </p>
 
           <div className="grid md:grid-cols-3 gap-8 mt-8">
             {[
               {
-                title: "Blazing-Fast Access",
-                desc: "Session data is retrieved in milliseconds, ensuring no delay between AI questions and your answers.",
+                title: "Blazing-Fast Retrieval",
+                desc: "Session data is fetched in real time, ensuring no lag between AI prompts and your responses.",
               },
               {
-                title: "Ephemeral by Design",
-                desc: "Data lives only for the duration of your interview session — then it’s automatically cleared for privacy.",
+                title: "Ephemeral by Nature",
+                desc: "Interview data expires automatically once your session ends, keeping every conversation private and temporary.",
               },
               {
-                title: "Global Reliability",
-                desc: "Redis handles thousands of concurrent sessions safely, providing consistent uptime across every user.",
+                title: "Resilient Under Load",
+                desc: "Redis handles thousands of concurrent sessions without breaking a sweat — ensuring uptime even under heavy traffic.",
               },
             ].map((card, i) => (
               <div
@@ -150,8 +149,8 @@ export default function InfrastructurePage() {
           Built for Performance. Ready for Scale.
         </h2>
         <p className="text-white/80 max-w-xl mx-auto mb-10">
-          Our infrastructure adapts to your usage — whether you’re a single
-          learner or a university conducting hundreds of interviews in parallel.
+          Whether you’re practicing solo or running hundreds of interviews at
+          once, the platform adapts automatically — same stability, same speed.
         </p>
         <Link href="/auth">
           <button
