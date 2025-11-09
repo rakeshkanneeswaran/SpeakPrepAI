@@ -20,9 +20,9 @@ export default function TeamPage() {
           Meet the Team Behind SpeakPrep AI
         </h1>
         <p className="text-lg text-white/70 max-w-2xl mx-auto">
-          We’re a small, focused team that believes great learning happens
+          We're a small, focused team that believes great learning happens
           through real practice — not theory. Our goal is simple: make interview
-          prep feel as natural as the conversations it’s preparing you for.
+          prep feel as natural as the conversations it's preparing you for.
         </p>
       </section>
 
@@ -41,16 +41,16 @@ export default function TeamPage() {
           {/* Founder Story */}
           <div className="space-y-6 text-left">
             <h2 className="text-3xl font-semibold text-[#E6DCAF]">
-              Rakesh Kanneeswaran
+              Rakesh Maravar
             </h2>
             <p className="text-white/80 text-[15px] leading-relaxed">
-              I’ve been on both sides of the interview table — nervous, curious,
+              I've been on both sides of the interview table — nervous, curious,
               and often wishing for a space to <em>practice the real thing</em>.
               SpeakPrep AI started as that idea: a way to build confidence
-              before it’s showtime.
+              before it's showtime.
             </p>
             <p className="text-white/80 text-[15px] leading-relaxed">
-              I’ve worked on AI products at{" "}
+              I've worked on AI products at{" "}
               <span className="text-[#E6DCAF]">Samsung</span> and fast-moving
               startups like{" "}
               <span className="text-[#E6DCAF]">Optimeleon AI</span>, where I saw
@@ -64,9 +64,33 @@ export default function TeamPage() {
               real, not rehearsed.
             </p>
             <p className="text-[#E6DCAF]/90 text-[14px] italic">
-              We’re not just writing code. We’re helping people show up as their
+              We're not just writing code. We're helping people show up as their
               best selves when it matters most.
             </p>
+
+            {/* LinkedIn Link */}
+            <div className="pt-4">
+              <a
+                href="https://www.linkedin.com/in/rakeshkanneeswaran/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#E6DCAF] text-[#0c0c0c] rounded-lg hover:bg-[#E6DCAF]/90 transition-colors font-medium text-sm"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                </svg>
+                Connect with Rakesh on LinkedIn
+              </a>
+              <p className="text-white/60 text-xs mt-2">
+                Feel free to reach out — I'm always happy to chat about AI,
+                interviews, or your career journey!
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -126,9 +150,9 @@ export default function TeamPage() {
             What Drives Us
           </h2>
           <p className="text-white/80 max-w-3xl mx-auto text-[15px] leading-relaxed">
-            SpeakPrep AI exists for anyone who’s ever felt capable but caught
-            off-guard in an interview — not because they weren’t skilled, but
-            because they didn’t get to <em>practice properly</em>. We’re here to
+            SpeakPrep AI exists for anyone who's ever felt capable but caught
+            off-guard in an interview — not because they weren't skilled, but
+            because they didn't get to <em>practice properly</em>. We're here to
             change that.
           </p>
           <p className="text-white/70 text-[14px] italic">

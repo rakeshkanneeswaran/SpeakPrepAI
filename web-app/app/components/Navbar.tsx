@@ -88,6 +88,13 @@ export default function Navbar() {
           About
         </Link>
 
+        <Link
+          href="/team"
+          className="hover:text-[#f43e02] transition-colors whitespace-nowrap"
+        >
+          Founder
+        </Link>
+
         {/* More Dropdown for Desktop */}
         <div className="relative" ref={moreRef}>
           <button
@@ -100,13 +107,6 @@ export default function Navbar() {
           {isMoreOpen && (
             <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
               <div className="py-2">
-                <Link
-                  href="/team"
-                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors text-black"
-                  onClick={() => setIsMoreOpen(false)}
-                >
-                  Founder
-                </Link>
                 <Link
                   href="/infrastructure"
                   className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors text-black"
@@ -177,6 +177,13 @@ export default function Navbar() {
         >
           <div className="flex flex-col space-y-4 px-4">
             <Link
+              href="/team"
+              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Founder
+            </Link>
+            <Link
               href="/"
               className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
@@ -198,14 +205,6 @@ export default function Navbar() {
               onClick={() => setIsMenuOpen(false)}
             >
               About
-            </Link>
-
-            <Link
-              href="/team"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Founder
             </Link>
 
             <Link
