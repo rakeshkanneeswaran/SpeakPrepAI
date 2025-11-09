@@ -133,7 +133,7 @@ export default function InterviewAnalysisPage() {
           {/* Page Header */}
           <div className="flex items-center justify-between w-full mb-8">
             <button
-              onClick={() => router.back()}
+              onClick={() => router.push("/dashboard")}
               className="flex items-center gap-2 text-gray-700 hover:text-orange-500 transition"
             >
               <ArrowLeft size={20} />

@@ -60,11 +60,11 @@ export default function PricingPage() {
               <ul className="space-y-4 sm:space-y-5 text-sm sm:text-base text-black/80 mb-8 md:mb-10">
                 {[
                   "Bring your own free Groq API key",
-                  "Practice up to 5 interviews per day (~30 questions total)",
-                  "Daily limit resets automatically after 24 hours",
+                  "Practice up to 5 interviews per day",
+                  "Daily limit resets automatically after 24 hours unless you have a paid Groq plan",
                   "Instant AI feedback and question analysis",
                   "No setup, no cost, just plug in your key",
-                  "Access to all interview types: Technical, HR, and Mixed",
+                  "Access to all interview types: Technical and HR",
                   "Real-time performance analytics",
                   "Unlimited session history and review",
                 ].map((item, index) => (
@@ -122,9 +122,6 @@ export default function PricingPage() {
 
             <div className="text-center border-t pt-6 md:pt-8">
               <p className="text-4xl sm:text-5xl font-bold mb-2 sm:mb-3">$0</p>
-              <p className="text-base sm:text-lg text-black/60">
-                Forever free — just use your own Groq key
-              </p>
             </div>
           </div>
         </section>

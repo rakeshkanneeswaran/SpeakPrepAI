@@ -9,6 +9,7 @@ import { getPdfContent } from "./action";
 import { useRouter } from "next/navigation";
 import platformColors from "../utils/colors";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -185,50 +186,87 @@ export default function Dashboard() {
         />
 
         <main className="flex-1 flex flex-col">
-          <div className="flex-1 p-8 space-y-8 flex flex-col items-center">
-            <div className="text-center mb-6 w-full max-w-3xl">
-              <h2 className="text-4xl font-semibold text-gray-800 mb-2">
+          <div className="flex-1 p-8 space-y-8 flex flex-col items-center justify-center">
+            <div className="text-center mb-8 w-full max-w-4xl">
+              <h2 className="text-4xl font-semibold text-gray-800 mb-3">
                 What would you like to do today?
               </h2>
-              <p className="text-gray-500 text-sm">
+              <p className="text-gray-500 text-lg">
                 Choose how you want to prepare or research with SpeakPrep AI.
               </p>
             </div>
 
-            {/* Option Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 w-full max-w-5xl">
+            {/* Option Cards - Centered and larger */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-6xl px-4">
               {[
                 {
                   title: "Technical Interview",
                   desc: "Sharpen technical skills with AI-guided mock sessions.",
+                  image: "/images/technical-interview.png",
                 },
                 {
                   title: "HR Interview",
                   desc: "Improve clarity, confidence, and behavioral responses.",
-                },
-                {
-                  title: "Technical + HR (Mixed)",
-                  desc: "Practice both technical and HR-style questions together.",
+                  image: "/images/hr-interview.png",
                 },
                 {
                   title: "Company Insights",
                   desc: "Get AI-researched summaries about your target company.",
+                  image: "/images/company-insights.png",
                 },
               ].map((card) => (
                 <div
                   key={card.title}
                   onClick={() => handleCardClick(card.title)}
-                  className={`border rounded-xl p-6 shadow-sm hover:shadow-md transition cursor-pointer ${
+                  className={`border-2 rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 min-h-[380px] flex flex-col justify-between ${
                     selectedType === card.title
-                      ? "bg-orange-50 border-orange-400"
-                      : "bg-white"
+                      ? "bg-[#f6f6f4] border-orange-400 shadow-md"
+                      : "bg-[#f6f6f4] border-gray-200 hover:border-orange-300"
                   }`}
-                  style={{ borderColor: platformColors.borderColor }}
+                  style={{
+                    borderColor:
+                      selectedType === card.title
+                        ? platformColors.borderColor
+                        : platformColors.borderColor,
+                  }}
                 >
-                  <h3 className="font-semibold text-lg mb-2">{card.title}</h3>
-                  <p className="text-sm text-gray-600">{card.desc}</p>
+                  <div className="flex flex-col items-center">
+                    {/* Title and Description First */}
+                    <h3 className="font-bold text-xl mb-4 text-center text-gray-800">
+                      {card.title}
+                    </h3>
+                    <p className="text-base text-gray-600 text-center leading-relaxed mb-6">
+                      {card.desc}
+                    </p>
+
+                    {/* Larger Image Container Below Description */}
+                    <div className="w-full h-40 mb-4 flex items-center justify-center  rounded-xl p-4">
+                      <Image
+                        src={card.image}
+                        alt={card.title}
+                        width={160}
+                        height={160}
+                        className="object-contain w-full h-full"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Action Text */}
+                  <div className="text-center mt-4">
+                    <span className="text-orange-500 font-semibold text-sm">
+                      Get Started →
+                    </span>
+                  </div>
                 </div>
               ))}
+            </div>
+
+            {/* Additional call-to-action section */}
+            <div className="text-center mt-8 max-w-2xl">
+              <p className="text-gray-500 text-sm">
+                Select any option above to get started with your interview
+                preparation journey.
+              </p>
             </div>
           </div>
         </main>

@@ -32,9 +32,9 @@ export default function TeamPage() {
           {/* Founder Image */}
           <div className="flex-shrink-0">
             <img
-              src="/founder.jpeg"
+              src="/founder.png"
               alt="Rakesh Kanneeswaran"
-              className="w-64 h-64 rounded-2xl object-cover border border-[#E6DCAF]/40 shadow-[0_0_20px_rgba(230,220,175,0.15)]"
+              className="w-64 h-80 rounded-2xl object-cover border border-[#E6DCAF]/40 shadow-[0_0_20px_rgba(230,220,175,0.15)]"
             />
           </div>
 
@@ -44,8 +44,8 @@ export default function TeamPage() {
               Rakesh Kanneeswaran
             </h2>
             <p className="text-white/80 text-[15px] leading-relaxed">
-              I've sat on both sides of the interview table — anxious, curious,
-              and often wishing I had a way to{" "}
+              I have sat on both sides of the interview table — anxious,
+              curious, and often wishing I had a way to{" "}
               <em>practice for the real thing</em>. SpeakPrep AI was born from
               that feeling. A space where you can actually speak, learn, and
               improve without fear of judgment.
@@ -54,7 +54,7 @@ export default function TeamPage() {
               With experience building AI products at leading companies like{" "}
               <span className="text-[#E6DCAF]">Samsung</span> and fast-growing
               startups like{" "}
-              <span className="text-[#E6DCAF]">Optimeleon AI</span>, I've seen
+              <span className="text-[#E6DCAF]">Optimeleon AI</span>, I have seen
               how transformative AI can be when applied to real-world
               challenges.
             </p>
@@ -126,7 +126,7 @@ export default function TeamPage() {
             What Drives Us
           </h2>
           <p className="text-white/80 max-w-3xl mx-auto text-[15px] leading-relaxed">
-            SpeakPrep AI is built for anyone who's ever felt unprepared before
+            SpeakPrep AI is built for anyone who has ever felt unprepared before
             an interview — not because they lacked skill, but because they
             lacked a chance to <em>practice properly</em>. We exist to make that
             preparation accessible, fast, and human.
@@ -140,7 +140,7 @@ export default function TeamPage() {
 
       {/* Footer */}
       <footer className="text-center text-sm text-white/60 py-10 bg-[#0c0c0c] border-t border-white/10">
-        © {year} SpeakPrep AI · Built with purpose by Rakesh Kanneeswaran.
+        © {year} SpeakPrep AI
       </footer>
     </main>
   );

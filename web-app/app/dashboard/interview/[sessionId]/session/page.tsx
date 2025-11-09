@@ -577,7 +577,9 @@ export default function InterviewSession() {
             </button>
             {analysisResult && (
               <button
-                onClick={() => setIsInterviewStarted(true)}
+                onClick={() => {
+                  router.push(`/dashboard/interview/${sessionId}/analysis`);
+                }}
                 className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
               >
                 View Analysis

@@ -145,9 +145,9 @@ export default function PrivacyPage() {
           your audio, and all content is deleted once your session ends —
           permanently.
         </p>
-        <Link href="/early-access">
+        <Link href="/auth">
           <button className="bg-black text-[#E6DCAF] font-semibold text-lg px-8 py-4 rounded-full hover:scale-105 transition-transform">
-            Join Early Access
+            Get Started for Free
           </button>
         </Link>
       </section>

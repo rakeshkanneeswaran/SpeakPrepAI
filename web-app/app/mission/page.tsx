@@ -176,9 +176,9 @@ export default function MissionPage() {
           </p>
 
           <div className="mt-10">
-            <Link href="/early-access">
+            <Link href="/auth">
               <button className="bg-white text-[#f43e02] font-semibold text-lg px-8 py-4 rounded-full hover:scale-105 transition-transform">
-                Join Early Access
+                Get Started for Free
               </button>
             </Link>
           </div>

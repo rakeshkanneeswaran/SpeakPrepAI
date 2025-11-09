@@ -153,12 +153,12 @@ export default function InfrastructurePage() {
           Our infrastructure adapts to your usage — whether you’re a single
           learner or a university conducting hundreds of interviews in parallel.
         </p>
-        <Link href="/early-access">
+        <Link href="/auth">
           <button
             className="text-black text-lg px-8 py-3 rounded-md font-semibold hover:scale-105 transition-transform"
             style={{ backgroundColor: "#E6DCAF" }}
           >
-            Join Early Access
+            Get Started for Free
           </button>
         </Link>
       </section>

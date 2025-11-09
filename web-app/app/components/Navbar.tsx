@@ -1,12 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Menu, X, ChevronDown } from "lucide-react";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+      if (moreRef.current && !moreRef.current.contains(event.target as Node)) {
+        setIsMoreOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <nav
@@ -40,7 +59,7 @@ export default function Navbar() {
         {/* Mobile Login Button */}
         <Link
           href="/auth"
-          className="text-[15px] font-medium hover:text-[#f43e02] transition-colors"
+          className="text-[15px] font-medium hover:text-[#f43e02] transition-colors text-black"
         >
           Login
         </Link>
@@ -70,7 +89,7 @@ export default function Navbar() {
         </Link>
 
         {/* More Dropdown for Desktop */}
-        <div className="relative">
+        <div className="relative" ref={moreRef}>
           <button
             onClick={() => setIsMoreOpen(!isMoreOpen)}
             className="flex items-center gap-1 hover:text-[#f43e02] transition-colors whitespace-nowrap"
@@ -83,28 +102,28 @@ export default function Navbar() {
               <div className="py-2">
                 <Link
                   href="/team"
-                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
+                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors text-black"
                   onClick={() => setIsMoreOpen(false)}
                 >
                   Founder
                 </Link>
                 <Link
                   href="/infrastructure"
-                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
+                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors text-black"
                   onClick={() => setIsMoreOpen(false)}
                 >
                   Infrastructure
                 </Link>
                 <Link
                   href="/privacy"
-                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
+                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors text-black"
                   onClick={() => setIsMoreOpen(false)}
                 >
                   Privacy & Security
                 </Link>
                 <Link
                   href="/faqs"
-                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
+                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors text-black"
                   onClick={() => setIsMoreOpen(false)}
                 >
                   FAQs
@@ -152,11 +171,14 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {isMenuOpen && (
-        <div className="md:hidden w-full bg-white border-t border-gray-200 mt-4 py-4 rounded-lg shadow-lg">
+        <div
+          className="md:hidden w-full bg-white border-t border-gray-200 mt-4 py-4 rounded-lg shadow-lg z-50 relative"
+          ref={menuRef}
+        >
           <div className="flex flex-col space-y-4 px-4">
             <Link
               href="/"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100"
+              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
             >
               Home
@@ -164,7 +186,7 @@ export default function Navbar() {
 
             <Link
               href="/pricing"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100"
+              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
             >
               Pricing
@@ -172,7 +194,7 @@ export default function Navbar() {
 
             <Link
               href="/mission"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100"
+              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
             >
               About
@@ -180,7 +202,7 @@ export default function Navbar() {
 
             <Link
               href="/team"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100"
+              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
             >
               Founder
@@ -188,7 +210,7 @@ export default function Navbar() {
 
             <Link
               href="/infrastructure"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100"
+              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
             >
               Infrastructure
@@ -196,7 +218,7 @@ export default function Navbar() {
 
             <Link
               href="/privacy"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100"
+              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
             >
               Privacy & Security
@@ -204,7 +226,7 @@ export default function Navbar() {
 
             <Link
               href="/faqs"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100"
+              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
             >
               FAQs
@@ -225,17 +247,6 @@ export default function Navbar() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Close dropdown when clicking outside */}
-      {(isMoreOpen || isMenuOpen) && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => {
-            setIsMoreOpen(false);
-            setIsMenuOpen(false);
-          }}
-        />
       )}
     </nav>
   );
