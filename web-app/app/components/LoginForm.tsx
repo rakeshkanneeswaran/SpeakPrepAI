@@ -47,22 +47,17 @@ export default function LoginForm() {
       });
 
       const data = await res.json();
-      console.log("Login response data:", data);
 
-      // ✅ Check if response is successful AND user is authenticated
       if (!res.ok) {
         triggerShake(data.error || "Invalid credentials");
         setStep("email");
         return;
       }
 
-      // ✅ Only navigate if login was successful
       if (data.status === "success") {
-        if (data.onboarded === false) {
-          router.push("/onboarding");
-        } else {
-          router.push("/dashboard");
-        }
+        // ✅ Force hard redirect with cache busting
+        const target = data.onboarded === false ? "/onboarding" : "/dashboard";
+        window.location.href = target + "?t=" + Date.now(); // Cache bust
       } else {
         triggerShake("Login failed. Please try again.");
         setStep("email");
