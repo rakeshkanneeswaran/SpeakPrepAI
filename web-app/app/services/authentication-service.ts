@@ -71,4 +71,47 @@ export class AuthenticationService {
         }
         return false;
     }
+
+    static async changePassword(userId: string, oldPassword: string, newPassword: string) {
+        // Get user with password
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, password: true }
+        });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        // Verify old password
+        const passwordMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!passwordMatch) {
+            throw new Error("Current password is incorrect");
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password
+        await prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedPassword }
+        });
+
+        return { success: true, message: "Password updated successfully" };
+    }
+
+    static async validatePassword(userId: string, password: string): Promise<boolean> {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { password: true }
+        });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        return await bcrypt.compare(password, user.password);
+    }
+
 }

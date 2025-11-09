@@ -54,6 +54,69 @@ export class UserService {
 
         return userSettings;
     }
+    static async getUserProfile(userId: string) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                createdAt: true,
+                updatedAt: true
+            }
+        });
 
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const settings = await prisma.userSettings.findUnique({
+            where: { userId }
+        });
+
+        return { user, settings };
+    }
+
+    static async updateUserProfile(
+        userId: string,
+        updates: {
+            name?: string;
+            email?: string;
+            apiKey?: string;
+            apiChoice?: string;
+            role?: string;
+        }
+    ) {
+        return await prisma.$transaction(async (tx) => {
+            // Update user
+            const updatedUser = await tx.user.update({
+                where: { id: userId },
+                data: {
+                    ...(updates.name && { name: updates.name }),
+                    ...(updates.email && { email: updates.email }),
+                },
+                select: { id: true, email: true, name: true, updatedAt: true }
+            });
+
+            // Update or create settings
+            const updatedSettings = await tx.userSettings.upsert({
+                where: { userId },
+                update: {
+                    ...(updates.apiKey && { apiKey: updates.apiKey }),
+                    ...(updates.apiChoice && { apiChoice: updates.apiChoice }),
+                    ...(updates.role && { role: updates.role }),
+                },
+                create: {
+                    userId,
+                    apiKey: updates.apiKey || "",
+                    apiChoice: updates.apiChoice || "groq",
+                    role: updates.role || "",
+                    platformedManagedAPIKey: false
+                },
+            });
+
+            return { user: updatedUser, settings: updatedSettings };
+        });
+    }
 
 }

@@ -207,6 +207,11 @@ export default function DashboardSidebar({
     router.push(`/dashboard/interview/${sessionId}/analysis`);
   };
 
+  // ✅ Navigate to settings page
+  const handleSettingsClick = () => {
+    router.push("/dashboard/settings");
+  };
+
   return (
     <aside
       className={`${
@@ -335,11 +340,14 @@ export default function DashboardSidebar({
               FAQs
             </button>
 
-            <SidebarItem
-              icon={<Settings />}
-              label="Settings"
-              open={sidebarOpen}
-            />
+            {/* ✅ Settings Link - Updated to use the handler */}
+            <button
+              onClick={handleSettingsClick}
+              className="flex items-center gap-2 text-sm text-gray-700 hover:text-orange-500 transition mb-3 w-full"
+            >
+              <Settings size={16} />
+              Settings
+            </button>
 
             {/* Logout - Use the SAFE version */}
             <button
@@ -354,22 +362,5 @@ export default function DashboardSidebar({
         )}
       </div>
     </aside>
-  );
-}
-
-function SidebarItem({
-  icon,
-  label,
-  open,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  open: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-3 cursor-pointer p-2 rounded-md hover:bg-gray-100">
-      <div className="w-5 h-5">{icon}</div>
-      {open && <span>{label}</span>}
-    </div>
   );
 }
