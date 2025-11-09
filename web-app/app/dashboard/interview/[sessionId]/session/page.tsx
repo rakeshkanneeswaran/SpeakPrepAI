@@ -99,28 +99,28 @@ export default function InterviewSession() {
       case "technical":
         return {
           name: "Technical Interview",
-          icon: "🧠",
+          icon: "",
           color: "#3b82f6", // Blue
           description: "Technical Skills Assessment",
         };
       case "hr":
         return {
           name: "HR Interview",
-          icon: "💼",
+          icon: "",
           color: "#10b981", // Green
           description: "Behavioral & Soft Skills",
         };
       case "mixed":
         return {
           name: "Mixed Interview",
-          icon: "🎯",
+          icon: "",
           color: "#f59e0b", // Amber
           description: "Technical + HR Combined",
         };
       default:
         return {
           name: "Technical Interview",
-          icon: "🧠",
+          icon: "",
           color: "#3b82f6",
           description: "Technical Skills Assessment",
         };

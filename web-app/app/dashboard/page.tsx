@@ -13,7 +13,9 @@ import Image from "next/image";
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<string | null>(
+    "Technical Interview"
+  ); // Set default here
   const [showResumeModal, setShowResumeModal] = useState(false);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -125,7 +127,8 @@ export default function Dashboard() {
   const handleCardClick = (cardTitle: string) => {
     setSelectedType(cardTitle);
     if (cardTitle === "Company Insights") {
-      setShowCompanyModal(true);
+      // Don't open modal since it's coming soon
+      return;
     } else {
       setShowResumeModal(true);
     }
@@ -203,33 +206,54 @@ export default function Dashboard() {
                   title: "Technical Interview",
                   desc: "Sharpen technical skills with AI-guided mock sessions.",
                   image: "/images/technical-interview.png",
+                  available: true,
                 },
                 {
                   title: "HR Interview",
                   desc: "Improve clarity, confidence, and behavioral responses.",
                   image: "/images/hr-interview.png",
+                  available: true,
                 },
                 {
                   title: "Company Insights",
                   desc: "Get AI-researched summaries about your target company.",
                   image: "/images/company-insights.png",
+                  available: false,
                 },
               ].map((card) => (
                 <div
                   key={card.title}
-                  onClick={() => handleCardClick(card.title)}
-                  className={`border-2 rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 min-h-[380px] flex flex-col justify-between ${
-                    selectedType === card.title
+                  onClick={() => card.available && handleCardClick(card.title)}
+                  className={`border-2 rounded-2xl p-8 shadow-sm transition-all duration-300 min-h-[380px] flex flex-col justify-between relative ${
+                    card.available
+                      ? "cursor-pointer transform hover:scale-105 hover:shadow-xl"
+                      : "cursor-not-allowed"
+                  } ${
+                    selectedType === card.title && card.available
                       ? "bg-[#f6f6f4] border-orange-400 shadow-md"
                       : "bg-[#f6f6f4] border-gray-200 hover:border-orange-300"
                   }`}
                   style={{
                     borderColor:
-                      selectedType === card.title
+                      selectedType === card.title && card.available
                         ? platformColors.borderColor
                         : platformColors.borderColor,
                   }}
                 >
+                  {/* Coming Soon Overlay - Only for Company Insights */}
+                  {!card.available && (
+                    <div className="absolute inset-0 bg-white bg-opacity-80 rounded-2xl flex items-center justify-center z-10 backdrop-blur-sm">
+                      <div className="text-center">
+                        <div className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-semibold mb-2">
+                          Coming Soon
+                        </div>
+                        <p className="text-gray-700 font-medium">
+                          Feature in development
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex flex-col items-center">
                     {/* Title and Description First */}
                     <h3 className="font-bold text-xl mb-4 text-center text-gray-800">
@@ -240,7 +264,7 @@ export default function Dashboard() {
                     </p>
 
                     {/* Larger Image Container Below Description */}
-                    <div className="w-full h-40 mb-4 flex items-center justify-center  rounded-xl p-4">
+                    <div className="w-full h-40 mb-4 flex items-center justify-center rounded-xl p-4">
                       <Image
                         src={card.image}
                         alt={card.title}

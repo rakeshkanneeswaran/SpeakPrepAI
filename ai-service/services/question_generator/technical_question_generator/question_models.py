@@ -29,12 +29,12 @@ def generate_followup_question(session_id: str, user_answer: str, api_key: str) 
     # 3️⃣ System instruction (improved tone)
     system_prompt = SystemMessage(
         content=(
-            "You are a professional interviewer conducting a live interview. "
-            "Your task is to ask one short, natural follow-up question based on the candidate’s previous answer. "
-            "Keep the tone conversational and focused. Avoid technical jargon unless it’s contextually required. "
-            "The question must be specific to the candidate’s answer, not generic. "
-            "Avoid repeating any previous questions. "
-            "Keep it clear, human, and answerable within 40 words."
+            "You're having a friendly, realistic interview chat with the candidate. "
+            "Speak like a thoughtful professional — relaxed, conversational, but insightful. "
+            "You can use their first name naturally in your follow-up "
+            "Ask one short question that builds naturally on their last answer. "
+            "Avoid robotic phrasing, flattery, or filler words. "
+            "Keep it simple, human, and easy to answer in a few sentences."
         )
     )
 
@@ -48,16 +48,17 @@ def generate_followup_question(session_id: str, user_answer: str, api_key: str) 
 
     user_prompt = HumanMessage(
         content=f"""
-Here is the interview so far:
+Candidate name: {session_data.get("candidate_name", "the candidate")}
 
+Conversation so far:
 {context_summary}
 
-Candidate’s latest answer:
+Their latest answer:
 {user_answer}
 
-Generate one short, natural follow-up question (1–2 sentences max).
-Do not ask the candidate to 'explain more' or 'describe in detail' directly.
-Keep it realistic for an interview flow.
+Write one short, natural follow-up question that feels like part of a friendly conversation.
+Don't use heavy words like 'elaborate' or 'detailed explanation'.
+Ask something you'd say in person.
 """
     )
 
@@ -77,7 +78,7 @@ Keep it realistic for an interview flow.
 def generate_first_question(session_id: str, api_key: str) -> dict:
     """
     Generates the first interview question using session context (skills, experience, job description).
-    The question should be simple, natural, and answerable in under 40 words.
+    Starts with a friendly, human greeting before asking the first relevant question.
     """
 
     # 1️⃣ Fetch session context
@@ -97,15 +98,15 @@ def generate_first_question(session_id: str, api_key: str) -> dict:
     )
     education = candidate_details.get("education", "relevant academic background")
 
-    # 2️⃣ System instruction (tightened tone)
+    # 2️⃣ System instruction (human + friendly tone)
     system_prompt = SystemMessage(
         content=(
-            "You are a professional technical interviewer. "
-            "Your task is to start the interview with one clear, open-ended question "
-            "that feels natural and professional. "
-            "Avoid jargon-heavy or essay-style phrasing. "
-            "The question should be answerable in 40 words or less. "
-            "Keep it focused on the candidate’s background or the job description."
+            "You are a friendly and professional interviewer starting a conversation with the candidate. "
+            "Begin with a warm, natural greeting — something like 'Hope you're doing great' or 'Glad to have you here today.' "
+            "Then smoothly transition into the first question with 'Let's start with...' or a similar phrase. "
+            "Ask one clear, simple, open-ended question based on the candidate’s background or the job description. "
+            "The question should feel conversational, not robotic, and be answerable in under 40 words. "
+            "Avoid jargon-heavy, complex, or essay-like phrasing."
         )
     )
 
@@ -121,9 +122,12 @@ Candidate Summary:
 Job Description Summary:
 {job_description}
 
-Generate one short, realistic first interview question that sets the tone for a conversational interview.
-Avoid greetings or introductions.
-Limit the question so it can be answered within about 40 words.
+Write a friendly first interview line that:
+1. Starts with a short, warm greeting (1 sentence max, e.g., 'Hey Rakesh, hope you're doing great!').
+2. Transitions naturally into the first question (e.g., 'Let's start with...').
+3. Keeps tone conversational and professional.
+4. Keeps the question answerable in about 40 words or less.
+Return only the full combined message (greeting + question).
 """
     )
 
@@ -160,13 +164,14 @@ def generate_normal_question(session_data: dict, api_key: str) -> str:
     # 1️⃣ System instruction with clear tone control
     system_prompt = SystemMessage(
         content=(
-            "You are a professional interviewer conducting a real conversation. "
-            "Generate one short, natural interview question that shifts to a different relevant topic "
-            "based on the candidate’s background or the job description. "
+            "You're continuing a relaxed, intelligent interview chat. "
+            "You’re curious and conversational — not formal or scripted. "
+            "Ask one clear, friendly question that smoothly changes the topic while staying relevant. "
+            "Base your question on the candidate’s background or the job description. "
+            "Mention the candidate’s name if it feels natural. "
             "The question must be conversational and answerable in under 40 words. "
-            "Avoid complex phrasing, heavy vocabulary, or multi-part questions. "
-            "Do not add explanations, introductions, or context. "
-            "Start directly with the question — examples include: 'Can you explain...', 'How would you...', or 'Tell me about...'."
+            "Avoid complex phrasing, heavy vocabulary, rhetorical language, or multi-part questions. "
+            "Sound human, curious, and genuinely engaged — like you’re having a natural conversation, not reading a script."
         )
     )
 
@@ -202,23 +207,34 @@ Only output the question.
 
 
 def generate_concluding_message(session_data: dict, api_key: str) -> str:
-    """Sends a closing message after the final question, written in first person and mentioning the upcoming analysis report."""
+    """
+    Sends a friendly, natural closing message after the final interview question.
+    The tone should be warm, conversational, and written in first person,
+    mentioning that the analysis report will appear on screen right after the interview.
+    """
     candidate = session_data.get("candidate_name", "the candidate")
 
     system_prompt = SystemMessage(
         content=(
-            "You are concluding a professional interview session. "
-            "Speak naturally in the first person (using 'I', 'me', or 'my' when appropriate). "
-            "Generate a warm, professional, and encouraging closing message addressed directly to the candidate. "
-            "Thank them for their time, mention that you will soon share an analysis report summarizing their performance, "
-            "and politely encourage them to go through it carefully for insights and improvement. "
-            "Keep the message genuine, conversational, and under 2 sentences. "
-            "Return ONLY the plain text message — no quotes, markdown, or extra formatting."
+            "You are wrapping up a friendly and professional interview conversation. "
+            "Speak in the first person (using 'I' or 'me' naturally). "
+            "Keep your tone relaxed, genuine, and encouraging — like a real interviewer who enjoyed the chat. "
+            "Address the candidate by name if it fits naturally. "
+            "Thank them sincerely for their time and insights. "
+            "Mention that their analysis report will now appear on the screen, summarizing their performance and key takeaways. "
+            "Encourage them to review it carefully for insights and improvement. "
+            "You can end with a short positive line like 'Good luck ahead!' or 'Glad we connected today.' "
+            "Keep the message under 2 sentences. "
+            "Return ONLY the plain text message — no quotes, emojis, or extra formatting."
         )
     )
 
     user_prompt = HumanMessage(
-        content=f"The candidate's name is {candidate}. End the interview gracefully in first person, thank them, tell them you'll send an analysis report soon, and ask them to review it carefully."
+        content=f"""
+The candidate's name is {candidate}.
+End the interview naturally and warmly in first person.
+Let them know that their analysis report will now appear on their screen for review.
+"""
     )
 
     llm = generate_llm_from_api_key(api_key=api_key)

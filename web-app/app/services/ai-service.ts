@@ -81,9 +81,10 @@ export default class AIService {
                 throw new Error("AI_BASE_URL environment variable is not set");
             }
 
+            const userDetails = await UserService.getUserProfile(userId);
             const response = await axios.post(`${AI_BASE_URL}/register-session`, {
                 session_id: session_id,
-                candidate_name: "Candidate",
+                candidate_name: userDetails.user.name ? userDetails.user.name : "candidate",
                 candidate_details: resumeData,
                 job_description: jobDescription
             }, {
@@ -94,7 +95,6 @@ export default class AIService {
             });
 
             console.log("Create interview session response:", response.data);
-
             if (response.status == 200) {
                 if (!response.data.session_id || response.data.session_id === "") {
                     throw new Error("AI service returned invalid response - no session_id");

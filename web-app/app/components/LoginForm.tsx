@@ -23,7 +23,7 @@ export default function LoginForm() {
 
   async function handleNext() {
     if (!email.trim()) {
-      triggerShake("Email cannot be empty");
+      triggerShake("username cannot be empty");
       return;
     }
     setError("");
@@ -84,7 +84,7 @@ export default function LoginForm() {
           >
             <input
               type="email"
-              placeholder="Enter your email"
+              placeholder="Enter your username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f43e02]"
@@ -134,15 +134,6 @@ export default function LoginForm() {
             >
               {loading ? "Signing in..." : "Sign In →"}
             </button>
-
-            <p className="text-sm text-center text-gray-500 mt-4">
-              <button
-                onClick={() => alert("Password reset feature coming soon.")}
-                className="text-[#f43e02] hover:underline"
-              >
-                Forgot password?
-              </button>
-            </p>
           </motion.div>
         )}
       </AnimatePresence>

@@ -63,12 +63,12 @@ export default function SignupForm() {
 
   async function handleNextFromEmail() {
     if (!formData.email.trim()) {
-      triggerShake("Email cannot be empty");
+      triggerShake("Username cannot be empty");
       return;
     }
 
     if (emailAvailable === false) {
-      triggerShake("Email already exists. Please use a different email.");
+      triggerShake("Username already exists. Please use a different username.");
       return;
     }
 
@@ -166,7 +166,7 @@ export default function SignupForm() {
             <div className="relative">
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Enter your prefered username"
                 value={formData.email}
                 onChange={(e) => updateFormData("email", e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f43e02] pr-10"

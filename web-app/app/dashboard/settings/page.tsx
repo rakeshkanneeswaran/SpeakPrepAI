@@ -53,6 +53,12 @@ export default function SettingsPage() {
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalContent, setModalContent] = useState<{
+    type: "success" | "error";
+    title: string;
+    message: string;
+  } | null>(null);
 
   const [userData, setUserData] = useState<UserData | null>(null);
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
@@ -63,6 +69,8 @@ export default function SettingsPage() {
     apiKey: "",
     role: "",
   });
+
+  const [originalApiKey, setOriginalApiKey] = useState("");
 
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: "",
@@ -91,23 +99,78 @@ export default function SettingsPage() {
           apiKey: data.settings?.apiKey || "",
           role: data.settings?.role || "",
         });
+        setOriginalApiKey(data.settings?.apiKey || "");
       } else {
-        showMessage("error", "Failed to load user data");
+        showModalMessage("error", "Error", "Failed to load user data");
       }
     } catch (error) {
       console.error("Failed to fetch user data:", error);
-      showMessage("error", "Failed to load user data");
+      showModalMessage("error", "Error", "Failed to load user data");
     } finally {
       setLoading(false);
     }
   };
 
-  const showMessage = (type: "success" | "error", text: string) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage(null), 4000);
+  const showModalMessage = (
+    type: "success" | "error",
+    title: string,
+    message: string
+  ) => {
+    setModalContent({ type, title, message });
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setModalContent(null);
+  };
+
+  const validateApiKey = async (apiKey: string): Promise<boolean> => {
+    if (!apiKey.trim()) {
+      return false;
+    }
+
+    try {
+      setValidatingApi(true);
+      const response = await fetch("/api/validate-api-key", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          apiKey: apiKey,
+        }),
+      });
+
+      const data = await response.json();
+      return response.ok;
+    } catch (error) {
+      return false;
+    } finally {
+      setValidatingApi(false);
+    }
   };
 
   const handleProfileSave = async () => {
+    // Check if API key has changed
+    const apiKeyChanged = profileForm.apiKey !== originalApiKey;
+
+    if (apiKeyChanged) {
+      // Validate the new API key before saving
+      setSaving(true);
+      const isValid = await validateApiKey(profileForm.apiKey);
+
+      if (!isValid) {
+        showModalMessage(
+          "error",
+          "Invalid API Key",
+          "The API key you entered is invalid. Please check your API key and try again."
+        );
+        setSaving(false);
+        return;
+      }
+    }
+
     try {
       setSaving(true);
       const response = await fetch("/api/user/settings", {
@@ -119,64 +182,27 @@ export default function SettingsPage() {
       });
 
       if (response.ok) {
-        showMessage("success", "Profile updated successfully");
+        showModalMessage("success", "Success", "Profile updated successfully");
         fetchUserData(); // Refresh data
+        setOriginalApiKey(profileForm.apiKey); // Update original API key
       } else {
         const error = await response.json();
-        showMessage("error", error.message || "Failed to update profile");
+        showModalMessage(
+          "error",
+          "Error",
+          error.message || "Failed to update profile"
+        );
       }
     } catch (error) {
-      showMessage("error", "Failed to update profile");
+      showModalMessage("error", "Error", "Failed to update profile");
     } finally {
       setSaving(false);
     }
   };
 
-  const handlePasswordChange = async () => {
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      showMessage("error", "New passwords don't match");
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 6) {
-      showMessage("error", "Password must be at least 6 characters long");
-      return;
-    }
-
-    try {
-      setSaving(true);
-      const response = await fetch("/api/user/change-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          oldPassword: passwordForm.oldPassword,
-          newPassword: passwordForm.newPassword,
-        }),
-      });
-
-      if (response.ok) {
-        showMessage("success", "Password changed successfully");
-        setPasswordForm({
-          oldPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        });
-      } else {
-        const error = await response.json();
-        showMessage("error", error.message || "Failed to change password");
-      }
-    } catch (error) {
-      showMessage("error", "Failed to change password");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const validateApiKey = async () => {
+  const handleTestApiKey = async () => {
     if (!profileForm.apiKey.trim()) {
-      showMessage("error", "Please enter an API key first");
+      showModalMessage("error", "Error", "Please enter an API key first");
       return;
     }
 
@@ -198,16 +224,79 @@ export default function SettingsPage() {
 
       if (response.ok) {
         setApiValidationStatus("valid");
-        showMessage("success", "API key is valid and working! ✅");
+        showModalMessage(
+          "success",
+          "API Key Valid",
+          "Your API key is valid and working!"
+        );
       } else {
         setApiValidationStatus("invalid");
-        showMessage("error", data.error?.message || "Invalid API key");
+        showModalMessage(
+          "error",
+          "Invalid API Key",
+          data.error?.message ||
+            "The API key you entered is invalid. Please check your API key and try again."
+        );
       }
     } catch (error) {
       setApiValidationStatus("invalid");
-      showMessage("error", "Failed to validate API key");
+      showModalMessage(
+        "error",
+        "Validation Failed",
+        "Failed to validate API key. Please check your connection and try again."
+      );
     } finally {
       setValidatingApi(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      showModalMessage("error", "Error", "New passwords don't match");
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      showModalMessage(
+        "error",
+        "Error",
+        "Password must be at least 6 characters long"
+      );
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const response = await fetch("/api/user/change-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          oldPassword: passwordForm.oldPassword,
+          newPassword: passwordForm.newPassword,
+        }),
+      });
+
+      if (response.ok) {
+        showModalMessage("success", "Success", "Password changed successfully");
+        setPasswordForm({
+          oldPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      } else {
+        const error = await response.json();
+        showModalMessage(
+          "error",
+          "Error",
+          error.message || "Failed to change password"
+        );
+      }
+    } catch (error) {
+      showModalMessage("error", "Error", "Failed to change password");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -240,6 +329,50 @@ export default function SettingsPage() {
       className="min-h-screen py-8"
       style={{ backgroundColor: platformColors.mainBackground }}
     >
+      {/* Modal */}
+      {showModal && modalContent && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div
+            className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border"
+            style={{
+              borderColor: platformColors.borderColor,
+            }}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div
+                className={`p-2 rounded-full ${
+                  modalContent.type === "success"
+                    ? "bg-green-100 text-green-600"
+                    : "bg-red-100 text-red-600"
+                }`}
+              >
+                {modalContent.type === "success" ? (
+                  <CheckCircle size={24} />
+                ) : (
+                  <XCircle size={24} />
+                )}
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                {modalContent.title}
+              </h3>
+            </div>
+            <p className="text-gray-600 mb-6">{modalContent.message}</p>
+            <div className="flex justify-end">
+              <button
+                onClick={closeModal}
+                className={`px-4 py-2 rounded-lg font-medium ${
+                  modalContent.type === "success"
+                    ? "bg-green-500 hover:bg-green-600 text-white"
+                    : "bg-red-500 hover:bg-red-600 text-white"
+                } transition-colors`}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10">
         {/* Header */}
         <div className="mb-8">
@@ -253,24 +386,6 @@ export default function SettingsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
           <p className="text-gray-600">Manage your account and preferences</p>
         </div>
-
-        {/* Alert */}
-        {message && (
-          <div
-            className={`mb-6 p-3 rounded-lg flex items-center gap-3 ${
-              message.type === "success"
-                ? "bg-green-50 text-green-800 border border-green-200"
-                : "bg-red-50 text-red-800 border border-red-200"
-            }`}
-          >
-            {message.type === "success" ? (
-              <CheckCircle size={18} className="text-green-600" />
-            ) : (
-              <XCircle size={18} className="text-red-600" />
-            )}
-            <span className="text-sm">{message.text}</span>
-          </div>
-        )}
 
         {/* Layout */}
         <div className="flex flex-col lg:flex-row gap-8">
@@ -347,20 +462,16 @@ export default function SettingsPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email
+                        Username
                       </label>
                       <input
                         type="email"
                         value={profileForm.email}
-                        onChange={(e) =>
-                          setProfileForm({
-                            ...profileForm,
-                            email: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 bg-gray-100 text-gray-600 rounded-lg cursor-not-allowed"
                         style={{ borderColor: platformColors.borderColor }}
                         placeholder="you@email.com"
+                        readOnly
+                        disabled
                       />
                     </div>
 
@@ -451,7 +562,7 @@ export default function SettingsPage() {
 
                     <div className="flex flex-wrap gap-3 items-center">
                       <button
-                        onClick={validateApiKey}
+                        onClick={handleTestApiKey}
                         disabled={validatingApi || !profileForm.apiKey.trim()}
                         className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
