@@ -8,6 +8,13 @@ import { Upload, Mic, BarChart3 } from "lucide-react";
 export default function HomePage() {
   const year = new Date().getFullYear();
 
+  // YouTube video IDs - replace with your actual video IDs
+  const youtubeVideos = {
+    upload: "zQDhe5_d3Uk", // Replace with actual YouTube ID
+    practice: "JrtZMetp-9I",
+    analysis: "56FO9Vll36g", // Replace with actual YouTube ID
+  };
+
   return (
     <main className="min-h-screen flex flex-col bg-[#fafafa] text-black">
       {/* Navbar */}
@@ -38,7 +45,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Image - UPDATED WITH LARGER DESKTOP SIZE */}
+        {/* Image */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -89,7 +96,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* How It Works - UPDATED WITH BOTH DESKTOP & MOBILE LAYOUTS */}
+      {/* How It Works - UPDATED WITH YOUTUBE EMBEDS & AUTOPLAY */}
       <section
         className="py-24 px-6 md:px-20"
         style={{ backgroundColor: "#fff7f0" }}
@@ -108,21 +115,21 @@ export default function HomePage() {
               step: "1",
               title: "Upload Resume & Job Description",
               desc: "Our AI learns about your background and the job you're aiming for. Simply upload your resume and paste the job description - our system analyzes both to create personalized interview questions.",
-              video: "/videos/upload-demo.mp4",
+              videoId: youtubeVideos.upload,
               icon: <Upload size={24} />,
             },
             {
               step: "2",
               title: "Practice in Real-Time",
               desc: "Experience interactive interviews tailored to your field. Speak naturally and get real-time feedback on your responses, tone, and communication style.",
-              video: "/videos/practice-demo.mp4",
+              videoId: youtubeVideos.practice,
               icon: <Mic size={24} />,
             },
             {
               step: "3",
               title: "Get Detailed Analysis",
               desc: "Receive comprehensive feedback on communication, technical skills, and areas for improvement. Our AI pinpoints exactly what to work on for your next interview.",
-              video: "/videos/analysis-demo.mp4",
+              videoId: youtubeVideos.analysis,
               icon: <BarChart3 size={24} />,
             },
           ].map((item) => (
@@ -133,18 +140,15 @@ export default function HomePage() {
               transition={{ duration: 0.5 }}
               className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
             >
-              {/* Video Container - AUTOPLAY & LOOP */}
+              {/* YouTube Embed Container - AUTOPLAY ENABLED */}
               <div className="relative aspect-video bg-gray-900">
-                <video
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className="w-full h-full object-cover"
-                >
-                  <source src={item.video} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
+                <iframe
+                  src={`https://www.youtube.com/embed/${item.videoId}?autoplay=1&mute=1&loop=1&playlist=${item.videoId}&controls=1&modestbranding=1&rel=0`}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title={item.title}
+                />
               </div>
 
               {/* Content */}
@@ -175,21 +179,21 @@ export default function HomePage() {
                 step: "1",
                 title: "Upload Resume & Job Description",
                 desc: "Our AI learns about your background and the job you're aiming for. Simply upload your resume and paste the job description - our system analyzes both to create personalized interview questions.",
-                video: "/videos/upload-demo.mp4",
+                videoId: youtubeVideos.upload,
                 alignment: "left",
               },
               {
                 step: "2",
                 title: "Practice in Real-Time",
                 desc: "Experience interactive interviews tailored to your field. Speak naturally and get real-time feedback on your responses, tone, and communication style.",
-                video: "/videos/practice-demo.mp4",
+                videoId: youtubeVideos.practice,
                 alignment: "right",
               },
               {
                 step: "3",
                 title: "Get Detailed Analysis",
                 desc: "Receive comprehensive feedback on communication, technical skills, and areas for improvement. Our AI pinpoints exactly what to work on for your next interview.",
-                video: "/videos/analysis-demo.mp4",
+                videoId: youtubeVideos.analysis,
                 alignment: "left",
               },
             ].map((item) => (
@@ -199,19 +203,16 @@ export default function HomePage() {
                   item.alignment === "right" ? "flex-row-reverse" : ""
                 }`}
               >
-                {/* Video Section - AUTOPLAY & LOOP */}
+                {/* YouTube Embed Section - AUTOPLAY ENABLED */}
                 <div className="flex-1">
                   <div className="relative rounded-2xl overflow-hidden shadow-lg bg-gray-900 aspect-video">
-                    <video
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      className="w-full h-full object-cover"
-                    >
-                      <source src={item.video} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
+                    <iframe
+                      src={`https://www.youtube.com/embed/${item.videoId}?autoplay=1&mute=1&loop=1&playlist=${item.videoId}&controls=1&modestbranding=1&rel=0`}
+                      className="w-full h-full rounded-2xl"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={item.title}
+                    />
                   </div>
                 </div>
 
