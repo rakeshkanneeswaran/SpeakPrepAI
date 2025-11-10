@@ -6,7 +6,9 @@ from services.question_generator.hr_question_generator.question_models import (
 )
 
 
-def generate_continued_hr_question(session_id: str, user_answer: str) -> dict:
+def generate_continued_hr_question(
+    session_id: str, user_answer: str, api_key: str
+) -> dict:
     """
     Orchestrates the HR interview flow with behavioral focus.
     """
@@ -25,7 +27,7 @@ def generate_continued_hr_question(session_id: str, user_answer: str) -> dict:
 
     # HR interview logic - can adjust timing as needed
     if num_questions >= 4:  # HR interviews might be slightly shorter
-        conclusion = generate_hr_concluding_message(session_data)
+        conclusion = generate_hr_concluding_message(session_data, api_key)
         session_data["status"] = "completed"
         session_data["interview_type"] = "hr"
         redis_context_store_manager.store_session(session_id, session_data)
@@ -35,12 +37,12 @@ def generate_continued_hr_question(session_id: str, user_answer: str) -> dict:
     elif num_questions % 2 == 0 and num_questions > 0:
         # Every 2nd question → HR follow-up
         print("🔁 Generating HR follow-up question...")
-        next_question = generate_hr_followup_question(session_id, user_answer)
+        next_question = generate_hr_followup_question(session_id, user_answer, api_key)
 
     else:
         # Otherwise → new HR behavioral question
         print("🧠 Generating new HR behavioral question...")
-        next_question = generate_normal_hr_question(session_data)
+        next_question = generate_normal_hr_question(session_data, api_key)
         question_history.append(next_question)
         session_data["question_history"] = question_history
         session_data["interview_type"] = "hr"
