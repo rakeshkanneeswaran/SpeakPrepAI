@@ -28,8 +28,9 @@ export UVICORN_COLOR=true
 # 🧹 Clear terminal before start
 clear
 
-# Start FastAPI server with live reload
+# Start FastAPI server with Gunicorn and Uvicorn workers
 echo "=========================================="
-echo "🚀 Starting FastAPI server (unbuffered logs)"
+echo "🚀 Starting FastAPI server with Gunicorn"
+echo "📊 Workers: 4 | Port: 8080 | Host: 0.0.0.0"
 echo "=========================================="
-uvicorn main:app --reload --host 127.0.0.1 --port 8000 --log-level debug
+gunicorn main:app -k uvicorn.workers.UvicornWorker --workers 4 --bind 0.0.0.0:8080

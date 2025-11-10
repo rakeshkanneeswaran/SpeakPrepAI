@@ -6,6 +6,11 @@ interface InterviewQuestionsResponse {
 
 import { UserService } from "./user-service";
 
+// Attach AI authorization token from environment to requests to AI service.
+// This token should be set in your environment (.env) as AI_AUTHORIZATION_TOKEN.
+const AI_AUTHORIZATION_TOKEN = process.env.AI_AUTHORIZATION_TOKEN;
+const aiAuthHeader = AI_AUTHORIZATION_TOKEN ? { 'x-ai-authorization': AI_AUTHORIZATION_TOKEN } : {};
+
 export default class AIService {
 
     static async getInterviewQuestions({ jobDescription, resumeData, userId }: { jobDescription: string, resumeData: string, userId: string }): Promise<InterviewQuestionsResponse> {
@@ -22,6 +27,7 @@ export default class AIService {
                 resume: resumeData
             }, {
                 headers: {
+                    ...aiAuthHeader,
                     'Authorization': `Bearer ${userSettings.apiKey}`,
                     'Content-Type': 'application/json'
                 }
@@ -46,6 +52,7 @@ export default class AIService {
                 conversation: conversation
             }, {
                 headers: {
+                    ...aiAuthHeader,
                     'Authorization': `Bearer ${userSettings.apiKey}`,
                     'Content-Type': 'application/json'
                 }
@@ -89,6 +96,7 @@ export default class AIService {
                 job_description: jobDescription
             }, {
                 headers: {
+                    ...aiAuthHeader,
                     'Authorization': `Bearer ${userSettings.apiKey}`,
                     'Content-Type': 'application/json'
                 }
@@ -116,6 +124,7 @@ export default class AIService {
 
         const response = await axios.post(`${AI_BASE_URL}/generate-first-question/${sessionId}`, {}, {
             headers: {
+                ...aiAuthHeader,
                 'Authorization': `Bearer ${userSettings.apiKey}`,
                 'Content-Type': 'application/json'
             }
@@ -134,6 +143,7 @@ export default class AIService {
             user_answer: userAnswer
         }, {
             headers: {
+                ...aiAuthHeader,
                 'Authorization': `Bearer ${userSettings.apiKey}`,
                 'Content-Type': 'application/json'
             }
@@ -149,6 +159,7 @@ export default class AIService {
 
         const response = await axios.post(`${AI_BASE_URL}/generate-first-hr-question/${sessionId}`, {}, {
             headers: {
+                ...aiAuthHeader,
                 'Authorization': `Bearer ${userSettings.apiKey}`,
                 'Content-Type': 'application/json'
             }
@@ -167,6 +178,7 @@ export default class AIService {
             user_answer: userAnswer
         }, {
             headers: {
+                ...aiAuthHeader,
                 'Authorization': `Bearer ${userSettings.apiKey}`,
                 'Content-Type': 'application/json'
             }

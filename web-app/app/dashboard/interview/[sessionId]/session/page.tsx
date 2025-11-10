@@ -31,12 +31,70 @@ export default function InterviewSession() {
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [interviewCompleted, setInterviewCompleted] = useState(false);
 
+  // 🎯 NEW: Recording timer state
+  const [recordingTimeRemaining, setRecordingTimeRemaining] = useState(0);
+  const [maxRecordingTime, setMaxRecordingTime] = useState(30); // Default 30 seconds - easily adjustable
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<BlobPart[]>([]);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
+
+  // 🎯 NEW: Function to adjust recording time (you can call this from anywhere)
+  const adjustRecordingTime = (seconds: number) => {
+    if (seconds > 0) {
+      setMaxRecordingTime(seconds);
+      // If currently recording, update the remaining time accordingly
+      if (isAudioRecording && recordingTimeRemaining > 0) {
+        const newRemaining = Math.min(
+          recordingTimeRemaining + (seconds - maxRecordingTime),
+          seconds
+        );
+        setRecordingTimeRemaining(newRemaining);
+      }
+    }
+  };
+
+  // 🎯 NEW: Format time for display (MM:SS)
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+
+  // 🎯 NEW: Start countdown timer
+  const startCountdownTimer = useCallback(() => {
+    setRecordingTimeRemaining(maxRecordingTime);
+
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+    }
+
+    countdownTimerRef.current = setInterval(() => {
+      setRecordingTimeRemaining((prev) => {
+        if (prev <= 1) {
+          if (countdownTimerRef.current) {
+            clearInterval(countdownTimerRef.current);
+          }
+          stopRecording();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [maxRecordingTime]);
+
+  // 🎯 NEW: Stop countdown timer
+  const stopCountdownTimer = useCallback(() => {
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
+    setRecordingTimeRemaining(0);
+  }, []);
 
   // Check interview status on component mount
   const checkInterviewStatus = useCallback(async () => {
@@ -413,15 +471,22 @@ export default function InterviewSession() {
         });
         await processAudio(audioBlob);
         setShouldRecordAnswer(false);
+        stopCountdownTimer(); // 🎯 NEW: Stop timer when recording stops
       };
 
       recorder.start();
       setIsAudioRecording(true);
-      recordingTimerRef.current = setTimeout(() => stopRecording(), 20000);
+
+      // 🎯 UPDATED: Use our configurable timer instead of fixed 20 seconds
+      recordingTimerRef.current = setTimeout(
+        () => stopRecording(),
+        maxRecordingTime * 1000
+      );
+      startCountdownTimer(); // 🎯 NEW: Start the visual countdown
     } catch (err) {
       console.error("Mic access error:", err);
     }
-  }, []);
+  }, [maxRecordingTime, startCountdownTimer, stopCountdownTimer]);
 
   const stopRecording = useCallback(() => {
     if (
@@ -435,7 +500,8 @@ export default function InterviewSession() {
       clearTimeout(recordingTimerRef.current);
       recordingTimerRef.current = null;
     }
-  }, []);
+    stopCountdownTimer(); // 🎯 NEW: Stop the visual countdown
+  }, [stopCountdownTimer]);
 
   const processAudio = async (blob: Blob) => {
     try {
@@ -496,8 +562,9 @@ export default function InterviewSession() {
     return () => {
       stopRecording();
       stopCamera();
+      stopCountdownTimer(); // 🎯 NEW: Cleanup timer on unmount
     };
-  }, [stopRecording, interviewCompleted]);
+  }, [stopRecording, stopCountdownTimer, interviewCompleted]);
 
   const getAccentColor = (
     type: "primary" | "success" | "warning" | "error" = "primary"
@@ -513,6 +580,13 @@ export default function InterviewSession() {
       default:
         return baseColor;
     }
+  };
+
+  // 🎯 NEW: Get timer color based on remaining time
+  const getTimerColor = () => {
+    if (recordingTimeRemaining > 10) return getAccentColor("success");
+    if (recordingTimeRemaining > 5) return getAccentColor("warning");
+    return getAccentColor("error");
   };
 
   // Show loading while checking status
@@ -646,16 +720,33 @@ export default function InterviewSession() {
           </div>
         </div>
 
-        <button
-          onClick={() => router.push("/dashboard")}
-          className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium border bg-red-500 text-white hover:bg-red-600 transition-all shadow-sm hover:shadow-md"
-          style={{
-            borderColor: platformColors.borderColor,
-          }}
-        >
-          <PhoneOff size={16} strokeWidth={2} />
-          Leave
-        </button>
+        {/* 🎯 NEW: Recording Time Adjuster (Admin/Dev tool - can be hidden in production) */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-gray-600">Answer Time:</span>
+            <div
+              className="px-2 py-1 border rounded text-sm font-medium"
+              style={{
+                borderColor: platformColors.borderColor,
+                backgroundColor: platformColors.mainBackground,
+                color: platformColors.borderColor,
+              }}
+            >
+              30 seconds
+            </div>
+          </div>
+
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium border bg-red-500 text-white hover:bg-red-600 transition-all shadow-sm hover:shadow-md"
+            style={{
+              borderColor: platformColors.borderColor,
+            }}
+          >
+            <PhoneOff size={16} strokeWidth={2} />
+            Leave
+          </button>
+        </div>
       </header>
 
       {/* Rest of your component remains the same */}
@@ -851,29 +942,41 @@ export default function InterviewSession() {
                 </p>
               </div>
 
-              {/* State Block (Playback / Recording / Preparing) */}
+              {/* 🎯 UPDATED: State Block with Timer */}
               <div className="flex flex-col items-center justify-center space-y-4 min-h-[150px]">
                 {isAudioRecording ? (
                   <div className="flex flex-col items-center justify-center space-y-3">
-                    <div className="relative flex items-center justify-center">
+                    {/* Timer Display */}
+                    <div className="flex flex-col items-center justify-center space-y-2">
                       <div
-                        className="absolute h-10 w-10 rounded-full animate-ping"
-                        style={{
-                          backgroundColor: getAccentColor("error"),
-                          opacity: 0.3,
-                        }}
-                      ></div>
-                      <div
-                        className="h-5 w-5 rounded-full shadow-md"
-                        style={{ backgroundColor: getAccentColor("error") }}
-                      ></div>
+                        className="text-3xl font-bold font-mono transition-colors duration-300"
+                        style={{ color: getTimerColor() }}
+                      >
+                        {formatTime(recordingTimeRemaining)}
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        Time remaining to answer
+                      </p>
                     </div>
-                    <p className="text-lg font-semibold text-black">
-                      Recording in progress...
-                    </p>
-                    <p className="text-sm italic text-gray-700">
-                      Auto-stops in a few seconds
-                    </p>
+
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <div className="relative flex items-center justify-center">
+                        <div
+                          className="absolute h-10 w-10 rounded-full animate-ping"
+                          style={{
+                            backgroundColor: getAccentColor("error"),
+                            opacity: 0.3,
+                          }}
+                        ></div>
+                        <div
+                          className="h-5 w-5 rounded-full shadow-md"
+                          style={{ backgroundColor: getAccentColor("error") }}
+                        ></div>
+                      </div>
+                      <p className="text-lg font-semibold text-black">
+                        Recording in progress...
+                      </p>
+                    </div>
                   </div>
                 ) : isAudioPlaying ? (
                   <div className="flex flex-col items-center justify-center space-y-3">
@@ -891,8 +994,8 @@ export default function InterviewSession() {
                     </div>
                     <p className="text-lg font-semibold text-black">
                       {interviewEnded
-                        ? "Playing concluding message..."
-                        : "Playing question..."}
+                        ? "Interviewer is speaking..."
+                        : "Interviewer is speaking..."}
                     </p>
                   </div>
                 ) : (
@@ -900,8 +1003,8 @@ export default function InterviewSession() {
                     <div className="h-6 w-6 border-2 border-gray-300 border-t-orange-500 rounded-full animate-spin"></div>
                     <p className="text-lg font-semibold text-black">
                       {interviewEnded
-                        ? "Preparing final message..."
-                        : "Preparing next step..."}
+                        ? "Analyzing your answer..."
+                        : "Analyzing your answer..."}
                     </p>
                   </div>
                 )}

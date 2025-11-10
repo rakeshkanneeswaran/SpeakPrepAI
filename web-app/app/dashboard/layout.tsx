@@ -11,6 +11,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
   const [isOnboarded, setIsOnboarded] = useState(false);
+  const [showAuthError, setShowAuthError] = useState(false);
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
@@ -25,7 +26,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to check onboarding status");
+          // If onboarding check fails, logout and show error modal
+          await fetch("/api/logout", { method: "POST" });
+          setShowAuthError(true);
+          setIsCheckingOnboarding(false);
+          return;
         }
 
         const data = await response.json();
@@ -38,9 +43,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }
       } catch (error) {
         console.error("Error checking onboarding status:", error);
-        // On error, we can either redirect to onboarding or show an error
-        // For now, let's redirect to onboarding to be safe
-        router.push("/onboarding");
+        // On error, logout and show error modal
+        await fetch("/api/logout", { method: "POST" });
+        setShowAuthError(true);
       } finally {
         setIsCheckingOnboarding(false);
       }
@@ -61,6 +66,31 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <p className="text-gray-500 mt-2">
             Please wait while we verify your information.
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error modal if authentication fails
+  if (showAuthError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md mx-auto">
+            <h2 className="text-xl font-semibold text-red-600 mb-2">
+              Authentication Error
+            </h2>
+            <p className="text-gray-700 mb-4">
+              There is some problem in authentication of your account. Please
+              login again.
+            </p>
+            <button
+              className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+              onClick={() => router.push("/auth")}
+            >
+              Go to Login
+            </button>
+          </div>
         </div>
       </div>
     );

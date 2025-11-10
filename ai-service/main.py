@@ -1,8 +1,9 @@
 import dotenv
+import os
 
 dotenv.load_dotenv()
 
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import FastAPI, HTTPException, Depends, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Tuple, Optional
@@ -22,9 +23,9 @@ from services.question_generator.hr_question_generator.question_models import (
 from services.question_generator.hr_question_generator.continued_question import (
     generate_continued_hr_question,
 )
-from fastapi import Request
 import traceback
 import logging
+from fastapi.responses import JSONResponse
 
 # Set up logging
 logging.basicConfig(level=logging.ERROR)
@@ -44,6 +45,50 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Middleware to enforce AI authorization token on incoming requests.
+# It reads expected token from environment variable AI_AUTHORIZATION_TOKEN
+# and checks the request header 'x-ai-authorization' (or 'ai-authorization').
+# The root ('/') and '/health' endpoints are allowed without this header.
+@app.middleware("http")
+async def ai_authorization_middleware(request: Request, call_next):
+    try:
+        # Allow health and root without the AI auth token
+        if request.url.path in ("/", "/health"):
+            return await call_next(request)
+
+        expected_token = os.getenv("AI_AUTHORIZATION_TOKEN")
+
+        # If no token is configured, skip enforcement but log a warning.
+        if not expected_token:
+            logger.warning(
+                "AI authorization token not set in environment (AI_AUTHORIZATION_TOKEN). Skipping enforcement."
+            )
+            return await call_next(request)
+
+        # Accept either 'x-ai-authorization' or 'ai-authorization' header names
+        header_token = request.headers.get("x-ai-authorization") or request.headers.get(
+            "ai-authorization"
+        )
+
+        if not header_token or header_token != expected_token:
+            logger.error(
+                f"Invalid or missing AI authorization token for path {request.url.path}."
+            )
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Invalid or missing AI authorization token"},
+            )
+
+        # Token valid, continue handling
+        return await call_next(request)
+
+    except Exception as e:
+        logger.error(f"Error in AI authorization middleware: {e}")
+        return JSONResponse(
+            status_code=500, content={"detail": "Internal server error"}
+        )
 
 
 # ----------- Request Schemas -----------
