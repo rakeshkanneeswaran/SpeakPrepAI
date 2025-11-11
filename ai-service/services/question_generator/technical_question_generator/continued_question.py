@@ -12,8 +12,8 @@ def generate_continued_question(
     """
     Orchestrates the interview flow:
       - Every 2 normal questions → ask a follow-up.
-      - After 4 total questions → send a conclusion.
-      - Otherwise → continue normally.
+      - After 4 total questions → send a conclusion with interview_end=True.
+      - If more than 4 questions → return empty text with interview_end=True.
     """
 
     session_data = redis_context_store_manager.get_session(session_id)
@@ -31,22 +31,27 @@ def generate_continued_question(
 
     # 🎯 Logic branching
     if num_questions >= 4:
-        # End the interview early after 4 questions
-        conclusion = generate_concluding_message(session_data, api_key=api_key)
-        session_data["status"] = "completed"
-        redis_context_store_manager.store_session(session_id, session_data)
-        print("🟢 Interview concluded after 4 questions.")
-        return {"question": conclusion, "interview_end": True}
+        # If exactly 4 questions → send concluding message and end interview
+        if num_questions == 4:
+            conclusion = generate_concluding_message(session_data, api_key=api_key)
+            session_data["status"] = "completed"
+            redis_context_store_manager.store_session(session_id, session_data)
+            print("🟢 Interview concluded after 4 questions with concluding message.")
+            return {"question": conclusion, "interview_end": True}
+        else:
+            # If more than 4 questions → return empty text and confirm interview ended
+            print("🔴 Interview already completed, returning empty text.")
+            return {"question": "", "interview_end": True}
 
     elif num_questions % 2 == 0 and num_questions > 0:
-        # Every 2nd question → follow-up
+        # Every 2nd question → follow-up (interview continues)
         print("🔁 Generating follow-up question...")
         next_question = generate_followup_question(
             session_id, user_answer, api_key=api_key
         )
 
     else:
-        # Otherwise → normal topic-changing question
+        # Otherwise → normal topic-changing question (interview continues)
         print("🧠 Generating new normal question...")
         next_question = generate_normal_question(session_data, api_key=api_key)
         question_history.append(next_question)

@@ -67,11 +67,10 @@ export default function TTSErrorCard({
           Audio Processing Limited
         </h3>
         <p className="text-white/80 text-sm leading-relaxed max-w-sm mx-auto mb-6">
-          Your current API key usage has exceeded its limit. This affects our
-          ability to process and analyze your audio in real time. You’re seeing
-          this message because the voice processing service temporarily paused.
-          You can wait for the limit to reset in 24 hours or take action below
-          to continue using audio features.
+          The text-to-speech service has reached its daily limit. Since audio is
+          essential for this interview experience, we need to pause here. You
+          can either upgrade your plan for immediate access or start a new
+          session tomorrow when limits reset.
         </p>
 
         {/* Error detail (optional tech info) */}

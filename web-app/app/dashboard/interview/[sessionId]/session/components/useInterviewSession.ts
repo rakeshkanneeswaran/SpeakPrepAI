@@ -55,7 +55,7 @@ export const useInterviewSession = () => {
 
     // Timer state
     const [recordingTimeRemaining, setRecordingTimeRemaining] = useState(0);
-    const [maxRecordingTime, setMaxRecordingTime] = useState(30);
+    const [maxRecordingTime, setMaxRecordingTime] = useState(20);
     const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<BlobPart[]>([]);
@@ -276,10 +276,15 @@ export const useInterviewSession = () => {
 
             if (data.status === "success") {
                 if (data.interview_end) {
+                    // 🎯 INTERVIEW ENDED - Set states to prevent recording
                     setInterviewEnded(true);
                     setCurrentQuestion(data.question);
                     setShouldPlayQuestion(true);
+
+                    // 🚫 CRITICAL: Prevent recording after concluding message
+                    setShouldRecordAnswer(false);
                 } else {
+                    // Interview continues
                     setCurrentQuestion(data.question);
                     setShouldPlayQuestion(true);
                 }
@@ -323,25 +328,32 @@ export const useInterviewSession = () => {
 
     // Effects
     // In your useInterviewSession.ts, update the audio effect:
+    // In the useEffect that plays audio:
     useEffect(() => {
         if (shouldPlayQuestion && currentQuestion) {
             console.log("🔊 Playing question:", currentQuestion.substring(0, 50) + "...");
 
-            // Add a small delay to ensure state is properly updated
             const playAudio = async () => {
-                await playQuestion(currentQuestion, interviewEnded, wait, setConcludingMessagePlayed, setShouldRecordAnswer);
+                await playQuestion(
+                    currentQuestion,
+                    interviewEnded,
+                    wait,
+                    setConcludingMessagePlayed,
+                    setShouldRecordAnswer,
+                    setInterviewEnded // 🆕 Pass this to terminate interview on rate limit
+                );
             };
 
             playAudio();
         }
-    }, [shouldPlayQuestion, currentQuestion, playQuestion, interviewEnded, wait, setConcludingMessagePlayed, setShouldRecordAnswer]);;
+    }, [shouldPlayQuestion, currentQuestion, playQuestion, interviewEnded, wait, setConcludingMessagePlayed, setShouldRecordAnswer, setInterviewEnded]);
 
     useEffect(() => {
-        if (shouldRecordAnswer && !interviewEnded && !isRecordingInProgress) {
+        if (shouldRecordAnswer && !interviewEnded && !isRecordingInProgress && !concludingMessagePlayed) {
             console.log("🎤 Should record answer triggered");
             startRecording();
         }
-    }, [shouldRecordAnswer, interviewEnded, startRecording, isRecordingInProgress]);
+    }, [shouldRecordAnswer, interviewEnded, startRecording, isRecordingInProgress, concludingMessagePlayed]);
 
     useEffect(() => {
         if (isInterviewStarted && !sessionInitialized && !interviewCompleted) {
