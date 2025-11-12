@@ -55,7 +55,7 @@ export const useInterviewSession = () => {
 
     // Timer state
     const [recordingTimeRemaining, setRecordingTimeRemaining] = useState(0);
-    const [maxRecordingTime, setMaxRecordingTime] = useState(20);
+    const [maxRecordingTime, setMaxRecordingTime] = useState(60);
     const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<BlobPart[]>([]);
