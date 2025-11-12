@@ -1,8 +1,8 @@
-from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
 from dotenv import load_dotenv
 from services.context_store.redis_context_store import redis_context_store_manager
-from services.core.llm_client import generate_llm_from_api_key
+from services.core.llm_client import generate_llm_for_question_from_api_key
+from services.core.llm_client import invoke_llm_with_retry
 
 load_dotenv()
 
@@ -62,8 +62,8 @@ Ask something you'd say in person.
 """
     )
 
-    llm = generate_llm_from_api_key(api_key=api_key)
-    response = llm.invoke([system_prompt, user_prompt])
+    llm = generate_llm_for_question_from_api_key(api_key=api_key)
+    response = invoke_llm_with_retry(llm, [system_prompt, user_prompt])
     followup_question = response.content.strip()
 
     # 6️⃣ Store updated history
@@ -131,8 +131,8 @@ Return only the full combined message (greeting + question).
 """
     )
 
-    llm = generate_llm_from_api_key(api_key=api_key)
-    response = llm.invoke([system_prompt, user_prompt])
+    llm = generate_llm_for_question_from_api_key(api_key=api_key)
+    response = invoke_llm_with_retry(llm, [system_prompt, user_prompt])
     first_question = response.content.strip()
 
     # 5️⃣ Store in Redis
@@ -194,8 +194,8 @@ Only output the question.
 """
     )
 
-    llm = generate_llm_from_api_key(api_key=api_key)
-    response = llm.invoke([system_prompt, user_prompt])
+    llm = generate_llm_for_question_from_api_key(api_key=api_key)
+    response = invoke_llm_with_retry(llm, [system_prompt, user_prompt])
     question = response.content.strip()
 
     # 4️⃣ Clean up (for safety against model intros)
@@ -237,6 +237,6 @@ Let them know that their analysis report will now appear on their screen for rev
 """
     )
 
-    llm = generate_llm_from_api_key(api_key=api_key)
-    response = llm.invoke([system_prompt, user_prompt])
+    llm = generate_llm_for_question_from_api_key(api_key=api_key)
+    response = invoke_llm_with_retry(llm, [system_prompt, user_prompt])
     return response.content.strip()

@@ -1,8 +1,10 @@
-from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
 from dotenv import load_dotenv
 from services.context_store.redis_context_store import redis_context_store_manager
-from services.core.llm_client import generate_llm_from_api_key
+from services.core.llm_client import generate_llm_for_question_from_api_key
+from services.core.llm_client import (
+    invoke_llm_with_retry,
+)  # ✅ Import the retry function
 
 load_dotenv()
 
@@ -53,26 +55,28 @@ def generate_hr_followup_question(
     # 🗣️ Prompt for follow-up generation
     user_prompt = HumanMessage(
         content=f"""
-Here’s the HR interview so far:
+Here's the HR interview so far:
 
 {context_summary}
 
-The candidate’s name is {candidate}.
+The candidate's name is {candidate}.
 Their most recent answer was:
 "{user_answer}"
 
 Generate one short, natural **follow-up question** that directly relates to what {candidate} said.
-Speak in the second person (“you”), as if continuing the same chat.
-If it fits naturally, mention {candidate}’s name in the question.
+Speak in the second person ("you"), as if continuing the same chat.
+If it fits naturally, mention {candidate}'s name in the question.
 Example tone:
-"Rakesh, that’s really interesting — how do you usually stay motivated in situations like that?"
+"Rakesh, that's really interesting — how do you usually stay motivated in situations like that?"
 Keep it warm, conversational, and under 40 words.
 """
     )
 
-    # ⚙️ Generate response
-    llm_hr = generate_llm_from_api_key(api_key=api_key)
-    response = llm_hr.invoke([system_prompt, user_prompt])
+    # ⚙️ Generate response WITH RETRY
+    llm_hr = generate_llm_for_question_from_api_key(api_key=api_key)
+    response = invoke_llm_with_retry(
+        llm_hr, [system_prompt, user_prompt]
+    )  # ✅ WITH RETRY
     followup_question = response.content.strip()
 
     # 🧽 Cleanup for extra formatting
@@ -113,12 +117,12 @@ def generate_first_hr_question(session_id: str, api_key: str) -> dict:
     # 🧠 HR-style system prompt — friendly, direct, and second-person focused
     system_prompt = SystemMessage(
         content=(
-            "You’re an HR interviewer beginning a relaxed, friendly conversation. "
+            "You're an HR interviewer beginning a relaxed, friendly conversation. "
             "Speak naturally in the first person (using 'I', 'me', or 'my' when it feels right). "
             "Address the candidate directly in the **second person** — using 'you' — to make the tone warm and conversational. "
-            "If it feels natural, mention the candidate’s name casually in your greeting or question. "
-            "You can start with something like: 'Hi Rakesh, hope you’re doing well' or 'It’s great to have you here, Rakesh.' "
-            "Ask just **one clear, open-ended question** that helps you learn more about the candidate’s mindset, motivation, or work style. "
+            "If it feels natural, mention the candidate's name casually in your greeting or question. "
+            "You can start with something like: 'Hi Rakesh, hope you're doing well' or 'It's great to have you here, Rakesh.' "
+            "Ask just **one clear, open-ended question** that helps you learn more about the candidate's mindset, motivation, or work style. "
             "Avoid robotic or formal phrasing — sound human and curious. "
             "Do not include multiple questions. Keep it short, natural, and answerable in under 40 words."
         )
@@ -135,18 +139,20 @@ Candidate Profile:
 
 Job Role: {job_description}
 
-Generate the **first HR interview question** as if you’re personally starting a warm, conversational chat with {candidate}.
+Generate the **first HR interview question** as if you're personally starting a warm, conversational chat with {candidate}.
 Speak directly to them using the second person ("you") — make it sound like a real exchange, not a script.
 You can open with a short friendly line, then move into your question.
 Example tone:
-"Hi {candidate}, I’m glad you’re here today. Can you tell me about a time when you felt most engaged at work?"
+"Hi {candidate}, I'm glad you're here today. Can you tell me about a time when you felt most engaged at work?"
 Keep it friendly, simple, and answerable in less than 40 words.
 """
     )
 
-    # ⚙️ Generate question
-    llm_hr = generate_llm_from_api_key(api_key=api_key)
-    response = llm_hr.invoke([system_prompt, user_prompt])
+    # ⚙️ Generate question WITH RETRY
+    llm_hr = generate_llm_for_question_from_api_key(api_key=api_key)
+    response = invoke_llm_with_retry(
+        llm_hr, [system_prompt, user_prompt]
+    )  # ✅ WITH RETRY
     first_question = response.content.strip()
 
     # 💾 Store in Redis
@@ -200,14 +206,16 @@ Job Context: {job_description}
 Generate one new HR question that sounds like you're continuing the conversation with {candidate}.
 Use their name naturally, speak directly to them using 'you', and explore a different soft-skill area than before.
 Example tone:
-"Rakesh, I’m curious — how do you usually handle situations where your team disagrees with your approach?"
+"Rakesh, I'm curious — how do you usually handle situations where your team disagrees with your approach?"
 Keep it short, inviting, and conversational — something an actual HR interviewer would ask mid-chat.
 """
     )
 
-    # ⚙️ Generate question
-    llm_hr = generate_llm_from_api_key(api_key=api_key)
-    response = llm_hr.invoke([system_prompt, user_prompt])
+    # ⚙️ Generate question WITH RETRY
+    llm_hr = generate_llm_for_question_from_api_key(api_key=api_key)
+    response = invoke_llm_with_retry(
+        llm_hr, [system_prompt, user_prompt]
+    )  # ✅ WITH RETRY
     question = response.content.strip()
 
     # 🧹 Cleanup for consistency
@@ -250,13 +258,15 @@ mention that you'll share an analysis report which will appear on their screen n
 and encourage them to review it for feedback and growth.
 Keep it short, conversational, and natural — like a real HR interviewer speaking.
 Example tone:
-"Rakesh, it was great hearing your thoughts today. I’ll share your analysis report next — take a look through it to see where you did well and what you can improve."
+"Rakesh, it was great hearing your thoughts today. I'll share your analysis report next — take a look through it to see where you did well and what you can improve."
 """
     )
 
-    # ⚙️ Generate the closing message
-    llm_hr = generate_llm_from_api_key(api_key=api_key)
-    response = llm_hr.invoke([system_prompt, user_prompt])
+    # ⚙️ Generate the closing message WITH RETRY
+    llm_hr = generate_llm_for_question_from_api_key(api_key=api_key)
+    response = invoke_llm_with_retry(
+        llm_hr, [system_prompt, user_prompt]
+    )  # ✅ WITH RETRY
     conclusion = response.content.strip()
 
     # 🧹 Cleanup

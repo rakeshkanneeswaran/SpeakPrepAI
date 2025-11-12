@@ -1,8 +1,8 @@
 import dotenv
 import os
-
-dotenv.load_dotenv()
-
+import asyncio  # ✅ ADD THIS
+import traceback
+import logging
 from fastapi import FastAPI, HTTPException, Depends, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -23,9 +23,9 @@ from services.question_generator.hr_question_generator.question_models import (
 from services.question_generator.hr_question_generator.continued_question import (
     generate_continued_hr_question,
 )
-import traceback
-import logging
 from fastapi.responses import JSONResponse
+
+dotenv.load_dotenv()
 
 # Set up logging
 logging.basicConfig(level=logging.ERROR)
@@ -40,38 +40,28 @@ app = FastAPI(
 # ✅ Add CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # change to ["http://localhost:3000"] later for security
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# Middleware to enforce AI authorization token on incoming requests.
-# It reads expected token from environment variable AI_AUTHORIZATION_TOKEN
-# and checks the request header 'x-ai-authorization' (or 'ai-authorization').
-# The root ('/') and '/health' endpoints are allowed without this header.
+# Middleware to enforce AI authorization token
 @app.middleware("http")
 async def ai_authorization_middleware(request: Request, call_next):
     try:
-        # Allow health and root without the AI auth token
         if request.url.path in ("/", "/health"):
             return await call_next(request)
 
         expected_token = os.getenv("AI_AUTHORIZATION_TOKEN")
-
-        # If no token is configured, skip enforcement but log a warning.
         if not expected_token:
-            logger.warning(
-                "AI authorization token not set in environment (AI_AUTHORIZATION_TOKEN). Skipping enforcement."
-            )
+            logger.warning("AI authorization token not set. Skipping enforcement.")
             return await call_next(request)
 
-        # Accept either 'x-ai-authorization' or 'ai-authorization' header names
         header_token = request.headers.get("x-ai-authorization") or request.headers.get(
             "ai-authorization"
         )
-
         if not header_token or header_token != expected_token:
             logger.error(
                 f"Invalid or missing AI authorization token for path {request.url.path}."
@@ -81,9 +71,7 @@ async def ai_authorization_middleware(request: Request, call_next):
                 content={"detail": "Invalid or missing AI authorization token"},
             )
 
-        # Token valid, continue handling
         return await call_next(request)
-
     except Exception as e:
         logger.error(f"Error in AI authorization middleware: {e}")
         return JSONResponse(
@@ -112,26 +100,18 @@ class RegisterSessionRequest(BaseModel):
 async def get_api_key(authorization: Optional[str] = Header(None)):
     if not authorization:
         raise HTTPException(status_code=401, detail="Authorization header is required")
-
     try:
-        # Extract Bearer token
         if not authorization.startswith("Bearer "):
             raise HTTPException(
                 status_code=401,
                 detail="Invalid authorization format. Expected 'Bearer <token>'",
             )
-
         api_key = authorization.replace("Bearer ", "").strip()
-
         if not api_key:
             raise HTTPException(status_code=401, detail="API key is empty")
-
-        # Basic validation for Groq API key format
         if not api_key.startswith("gsk_"):
             raise HTTPException(status_code=401, detail="Invalid API key format")
-
         return api_key
-
     except HTTPException:
         raise
     except Exception as e:
@@ -139,6 +119,7 @@ async def get_api_key(authorization: Optional[str] = Header(None)):
         raise HTTPException(status_code=401, detail="Invalid authorization header")
 
 
+# ✅ FIXED: Run blocking LLM calls in background threads
 @app.post("/analyze-responses")
 async def analyze_responses(
     request: AnalysisRequest, api_key: str = Depends(get_api_key)
@@ -147,8 +128,14 @@ async def analyze_responses(
         print("Received analyze responses request:")
         print(f"API Key: {api_key[:10]}...")
         print(request.conversation)
-        result = AnalysisService.analyze_conversation_history(
-            request.conversation, api_key
+
+        # ✅ Run in background thread - MAIN THREAD STAYS FREE!
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(
+            None,
+            lambda: AnalysisService.analyze_conversation_history(
+                request.conversation, api_key
+            ),
         )
         return result
     except Exception as e:
@@ -169,14 +156,22 @@ async def register_session(
         print(f"API Key: {api_key[:10]}...")
         print(request.session_id, request.candidate_name)
 
-        # Parse and structure the inputs with API key
-        job_description = summarize_job_description(request.job_description, api_key)
-        candidate_details = extract_candidate_details(
-            request.candidate_details, api_key
+        loop = asyncio.get_event_loop()
+
+        # ✅ Start BOTH threads IMMEDIATELY and run in parallel
+        job_task = loop.run_in_executor(
+            None, lambda: summarize_job_description(request.job_description, api_key)
+        )
+        candidate_task = loop.run_in_executor(
+            None, lambda: extract_candidate_details(request.candidate_details, api_key)
         )
 
-        # Convert Pydantic models to dict before storing
-        job_description = job_description
+        # ✅ Wait for BOTH to complete simultaneously
+        job_description, candidate_details = await asyncio.gather(
+            job_task, candidate_task
+        )
+
+        # Convert Pydantic model to dictionary
         candidate_details_dict = candidate_details.model_dump()
 
         redis_context_store_manager.create_session(
@@ -214,7 +209,6 @@ async def get_session_data(session_id: str, api_key: str = Depends(get_api_key))
                 "message": f"No session found for ID: {session_id}",
             }
         return {"status": "success", "data": session_data}
-
     except Exception as e:
         logger.error(f"Error in get-session: {str(e)}")
         logger.error(traceback.format_exc())
@@ -224,6 +218,7 @@ async def get_session_data(session_id: str, api_key: str = Depends(get_api_key))
         )
 
 
+# ✅ FIXED: Run question generation in background threads
 @app.post("/generate-first-question/{session_id}")
 async def generate_first_question_endpoint(
     session_id: str, api_key: str = Depends(get_api_key)
@@ -232,9 +227,12 @@ async def generate_first_question_endpoint(
         print("Received generate first question request:")
         print(f"API Key: {api_key[:10]}...")
         print(session_id)
-        response = generate_first_question(session_id, api_key)
-        return response
 
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(
+            None, lambda: generate_first_question(session_id, api_key)
+        )
+        return response
     except Exception as e:
         logger.error(f"Error in generate-first-question: {str(e)}")
         logger.error(traceback.format_exc())
@@ -256,14 +254,16 @@ async def generate_continued_question_endpoint(
         print(f"API Key: {api_key[:10]}...")
         print(session_id, user_answer)
 
-        result = generate_continued_question(session_id, user_answer, api_key)
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(
+            None, lambda: generate_continued_question(session_id, user_answer, api_key)
+        )
 
         return {
             "status": "success",
             "question": result["question"],
             "interview_end": result["interview_end"],
         }
-
     except Exception as e:
         logger.error(f"Error in generate-continued-question: {str(e)}")
         logger.error(traceback.format_exc())
@@ -282,6 +282,7 @@ async def health_check():
         raise HTTPException(status_code=500, detail=f"Health check failed: {str(e)}")
 
 
+# ✅ FIXED: HR question endpoints with background threads
 @app.post("/generate-first-hr-question/{session_id}")
 async def generate_first_hr_question_endpoint(
     session_id: str, api_key: str = Depends(get_api_key)
@@ -290,9 +291,12 @@ async def generate_first_hr_question_endpoint(
         print("Received generate first HR question request:")
         print(f"API Key: {api_key[:10]}...")
         print(session_id)
-        response = generate_first_hr_question(session_id, api_key)
-        return response
 
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(
+            None, lambda: generate_first_hr_question(session_id, api_key)
+        )
+        return response
     except Exception as e:
         logger.error(f"Error in generate-first-hr-question: {str(e)}")
         logger.error(traceback.format_exc())
@@ -314,14 +318,17 @@ async def generate_continued_hr_question_endpoint(
         print(f"API Key: {api_key[:10]}...")
         print(session_id, user_answer)
 
-        result = generate_continued_hr_question(session_id, user_answer, api_key)
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(
+            None,
+            lambda: generate_continued_hr_question(session_id, user_answer, api_key),
+        )
 
         return {
             "status": "success",
             "question": result["question"],
             "interview_end": result["interview_end"],
         }
-
     except Exception as e:
         logger.error(f"Error in generate-continued-hr-question: {str(e)}")
         logger.error(traceback.format_exc())
