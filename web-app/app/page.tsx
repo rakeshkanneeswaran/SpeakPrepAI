@@ -8,11 +8,10 @@ import { Upload, Mic, BarChart3 } from "lucide-react";
 export default function HomePage() {
   const year = new Date().getFullYear();
 
-  // YouTube video IDs - replace with your actual video IDs
   const youtubeVideos = {
-    upload: "zQDhe5_d3Uk", // Replace with actual YouTube ID
+    upload: "zQDhe5_d3Uk",
     practice: "JrtZMetp-9I",
-    analysis: "56FO9Vll36g", // Replace with actual YouTube ID
+    analysis: "56FO9Vll36g",
   };
 
   return (
@@ -54,49 +53,25 @@ export default function HomePage() {
         >
           <img
             src="/hero-illustration.png"
-            alt="AI Interview Illustration"
+            alt="AI mock interview preparation illustration showing a candidate practicing with an AI assistant"
             className="w-[380px] md:w-[600px] lg:w-[700px] xl:w-[800px] rounded-lg drop-shadow-xl"
           />
         </motion.div>
       </section>
 
-      {/* Copilot Section */}
-      <section className="py-24 px-6 md:px-20 bg-black text-[#E6DCAF]">
-        <h2 className="text-4xl font-semibold text-center mb-12 text-[#E6DCAF]">
-          Your AI Interview Copilot
-        </h2>
-
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {[
-            {
-              title: "Adaptive AI Interviews",
-              desc: "Personalized sessions crafted from your resume and job goals, ensuring every question feels relevant.",
-            },
-            {
-              title: "Actionable Feedback",
-              desc: "Instant analysis on tone, structure, and confidence — learn exactly what to improve after each session.",
-            },
-            {
-              title: "Voice-Powered Practice",
-              desc: "Realistic, hands-free mock interviews — speak naturally, and let AI handle evaluation and coaching.",
-            },
-          ].map((card) => (
-            <div
-              key={card.title}
-              className="p-6 rounded-xl border border-[#E6DCAF]/30 bg-[#111] hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(230,220,175,0.3)] transition text-center"
-            >
-              <h3 className="text-xl font-semibold mb-2 text-[#E6DCAF]">
-                {card.title}
-              </h3>
-              <p className="text-[#E6DCAF]/80 text-sm leading-relaxed">
-                {card.desc}
-              </p>
-            </div>
-          ))}
-        </div>
+      {/* Intro SEO Section */}
+      <section className="px-6 md:px-20 py-12 bg-white text-center">
+        <p className="max-w-3xl mx-auto text-gray-700 text-lg leading-relaxed">
+          <strong>SpeakPrep AI</strong> is an intelligent interview preparation
+          tool designed to help candidates practice speaking, answer real
+          interview questions, and gain confidence through personalized,
+          voice-based mock interviews. Whether you're preparing for your first
+          job or your next big career move, SpeakPrep provides real-time AI
+          feedback to help you improve clarity, tone, and communication skills.
+        </p>
       </section>
 
-      {/* How It Works - UPDATED WITH YOUTUBE EMBEDS & AUTOPLAY */}
+      {/* How It Works */}
       <section
         className="py-24 px-6 md:px-20"
         style={{ backgroundColor: "#fff7f0" }}
@@ -108,27 +83,27 @@ export default function HomePage() {
           See SpeakPrep AI in action with our step-by-step video demonstrations
         </p>
 
-        {/* MOBILE & TABLET LAYOUT (Stacked cards) */}
+        {/* MOBILE & TABLET LAYOUT */}
         <div className="xl:hidden grid gap-8 max-w-2xl mx-auto">
           {[
             {
               step: "1",
               title: "Upload Resume & Job Description",
-              desc: "Our AI learns about your background and the job you're aiming for. Simply upload your resume and paste the job description - our system analyzes both to create personalized interview questions.",
+              desc: "Our AI learns about your background and the job you're aiming for. Upload your resume and paste the job description — SpeakPrep analyzes both to create personalized interview questions.",
               videoId: youtubeVideos.upload,
               icon: <Upload size={24} />,
             },
             {
               step: "2",
               title: "Practice in Real-Time",
-              desc: "Experience interactive interviews tailored to your field. Speak naturally and get real-time feedback on your responses, tone, and communication style.",
+              desc: "Experience interactive interviews tailored to your field. Speak naturally and get real-time feedback on tone, confidence, and communication.",
               videoId: youtubeVideos.practice,
               icon: <Mic size={24} />,
             },
             {
               step: "3",
               title: "Get Detailed Analysis",
-              desc: "Receive comprehensive feedback on communication, technical skills, and areas for improvement. Our AI pinpoints exactly what to work on for your next interview.",
+              desc: "Receive comprehensive feedback on communication, structure, and technical responses. SpeakPrep pinpoints exactly what to improve for your next interview.",
               videoId: youtubeVideos.analysis,
               icon: <BarChart3 size={24} />,
             },
@@ -140,18 +115,16 @@ export default function HomePage() {
               transition={{ duration: 0.5 }}
               className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
             >
-              {/* YouTube Embed Container - AUTOPLAY ENABLED */}
               <div className="relative aspect-video bg-gray-900">
                 <iframe
                   src={`https://www.youtube.com/embed/${item.videoId}?autoplay=1&mute=1&loop=1&playlist=${item.videoId}&controls=1&modestbranding=1&rel=0`}
                   className="w-full h-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
-                  title={item.title}
+                  title={`Video: ${item.title}`}
                 />
               </div>
 
-              {/* Content */}
               <div className="p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <div
@@ -171,28 +144,28 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* DESKTOP LAYOUT (Side-by-side) */}
+        {/* DESKTOP LAYOUT */}
         <div className="hidden xl:block mt-16 max-w-6xl mx-auto">
           <div className="space-y-16">
             {[
               {
                 step: "1",
                 title: "Upload Resume & Job Description",
-                desc: "Our AI learns about your background and the job you're aiming for. Simply upload your resume and paste the job description - our system analyzes both to create personalized interview questions.",
+                desc: "Upload your resume and target job role — SpeakPrep’s AI personalizes interview questions for your field.",
                 videoId: youtubeVideos.upload,
                 alignment: "left",
               },
               {
                 step: "2",
                 title: "Practice in Real-Time",
-                desc: "Experience interactive interviews tailored to your field. Speak naturally and get real-time feedback on your responses, tone, and communication style.",
+                desc: "Engage in interactive AI mock interviews, practice speaking naturally, and receive instant evaluation.",
                 videoId: youtubeVideos.practice,
                 alignment: "right",
               },
               {
                 step: "3",
                 title: "Get Detailed Analysis",
-                desc: "Receive comprehensive feedback on communication, technical skills, and areas for improvement. Our AI pinpoints exactly what to work on for your next interview.",
+                desc: "Review feedback on tone, structure, and confidence to improve before your next interview.",
                 videoId: youtubeVideos.analysis,
                 alignment: "left",
               },
@@ -203,7 +176,6 @@ export default function HomePage() {
                   item.alignment === "right" ? "flex-row-reverse" : ""
                 }`}
               >
-                {/* YouTube Embed Section - AUTOPLAY ENABLED */}
                 <div className="flex-1">
                   <div className="relative rounded-2xl overflow-hidden shadow-lg bg-gray-900 aspect-video">
                     <iframe
@@ -211,12 +183,11 @@ export default function HomePage() {
                       className="w-full h-full rounded-2xl"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
-                      title={item.title}
+                      title={`How It Works: ${item.title}`}
                     />
                   </div>
                 </div>
 
-                {/* Text Section */}
                 <div className="flex-1">
                   <div className="flex items-center gap-4 mb-4">
                     <div
@@ -239,13 +210,49 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* AI Interview Copilot */}
+      <section className="py-24 px-6 md:px-20 bg-black text-[#E6DCAF]">
+        <h2 className="text-4xl font-semibold text-center mb-12 text-[#E6DCAF]">
+          Your AI Interview Copilot
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {[
+            {
+              title: "Adaptive AI Interviews",
+              desc: "Personalized sessions crafted from your resume and goals — every question feels relevant and realistic.",
+            },
+            {
+              title: "Actionable Feedback",
+              desc: "Instant insights on tone, clarity, and confidence — learn exactly what to improve after each practice.",
+            },
+            {
+              title: "Voice-Powered Practice",
+              desc: "Hands-free, natural mock interviews with real-time coaching for communication improvement.",
+            },
+          ].map((card) => (
+            <div
+              key={card.title}
+              className="p-6 rounded-xl border border-[#E6DCAF]/30 bg-[#111] hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(230,220,175,0.3)] transition text-center"
+            >
+              <h3 className="text-xl font-semibold mb-2 text-[#E6DCAF]">
+                {card.title}
+              </h3>
+              <p className="text-[#E6DCAF]/80 text-sm leading-relaxed">
+                {card.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="py-16 px-6 md:px-20 text-center bg-black text-[#E6DCAF]">
         <h2 className="text-3xl font-semibold mb-4">
           Ready to Ace Your Next Interview?
         </h2>
         <p className="text-white/80 mb-8">
-          SpeakPrep AI is currently completely free.
+          SpeakPrep AI is currently completely free to use.
         </p>
         <Link href="/auth">
           <button

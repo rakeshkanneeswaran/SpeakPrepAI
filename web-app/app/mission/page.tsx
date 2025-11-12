@@ -9,6 +9,7 @@ export default function MissionPage() {
       className="min-h-screen bg-[#f3f2ef] text-black"
       style={{ fontFamily: "Montserrat, sans-serif" }}
     >
+      {/* Navbar */}
       <div className="fixed top-0 left-0 w-full z-50 bg-[#f3f2ef]/95 backdrop-blur-md">
         <Navbar />
       </div>
@@ -93,39 +94,7 @@ export default function MissionPage() {
         </div>
       </section>
 
-      {/* Approach */}
-      <section className="bg-black text-white py-20 px-6 md:px-20">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-10">
-          {[
-            {
-              title: "AI-Simulated Interviews",
-              desc: "Practice with realistic, voice-based sessions tailored to your industry and the company you’re targeting.",
-            },
-            {
-              title: "Actionable Feedback",
-              desc: "Get instant insights on tone, clarity, and depth — personalized to help you grow with each attempt.",
-            },
-            {
-              title: "Company-Specific Insights",
-              desc: "Understand what recruiters actually evaluate, backed by data from real-world hiring patterns.",
-            },
-          ].map((card) => (
-            <div
-              key={card.title}
-              className="bg-[#141414] rounded-2xl border border-white/10 p-8 text-center hover:-translate-y-1 transition"
-            >
-              <h3 className="text-xl font-semibold mb-3 text-[#E6DCAF]">
-                {card.title}
-              </h3>
-              <p className="text-white/80 text-sm leading-relaxed">
-                {card.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Impact */}
+      {/* Impact Section */}
       <section className="py-24 px-6 md:px-20 text-center bg-white">
         <div className="max-w-3xl mx-auto space-y-6">
           <h2 className="text-4xl font-semibold text-[#f43e02]">
@@ -165,7 +134,7 @@ export default function MissionPage() {
         </div>
       </section>
 
-      {/* Promise */}
+      {/* Promise Section */}
       <section className="py-20 bg-[#f43e02] text-white text-center px-6 md:px-20">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-4xl font-semibold mb-4">Our Promise</h2>
@@ -186,7 +155,7 @@ export default function MissionPage() {
         </div>
       </section>
 
-      {/* Sources Footer */}
+      {/* Footer */}
       <footer className="text-center text-sm text-black/60 py-10">
         <p>
           Sources:{" "}
