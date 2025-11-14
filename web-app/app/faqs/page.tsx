@@ -14,166 +14,154 @@ export default function FAQsPage() {
     {
       question: "What is SpeakPrep AI?",
       answer:
-        "SpeakPrep AI is an AI-powered mock interview and coaching platform that simulates real interview scenarios, helping candidates practice and improve their communication and problem-solving skills.",
+        "SpeakPrep AI is an AI-powered mock interview platform that simulates real interview scenarios. It helps you practice speaking, structure answers, improve communication, and build confidence through real-time coaching.",
     },
     {
-      question: "How are the interview questions generated?",
+      question: "How does SpeakPrep AI generate interview questions?",
       answer:
-        "Our system uses advanced large language models (LLMs) trained on real-world interview patterns. The AI tailors each question based on your resume, job description, and previous answers.",
+        "The system uses advanced LLMs that analyze your resume, job description, and interview style. Each question is tailored to your role, field, and previous responses — making every session personalized.",
     },
     {
-      question: "Are my recordings and data stored securely?",
+      question: "Do you use my data to train the AI?",
       answer:
-        "Yes. All user data, including audio responses and interview details, are processed securely. We only store essential session information to enhance your experience.",
+        "No. SpeakPrep AI does not use your interview data, voice, or transcripts to train any model. Your interactions are used only to generate responses during your session.",
     },
     {
-      question: "Can I retake or revisit previous interviews?",
+      question: "Are my recordings and data stored permanently?",
       answer:
-        "Absolutely. Your recent sessions are saved and accessible from the sidebar under 'Recent Sessions'. You can review, analyze, or restart any past session at any time.",
+        "No. Your audio is ephemeral — it exists only during transcription and analysis. You may optionally choose to save session transcripts for later review.",
+    },
+    {
+      question: "Can I see my interview analysis afterwards?",
+      answer:
+        "Yes. After each interview, you receive a detailed breakdown of your performance — including clarity, tone, structure, and answer quality. You can revisit your analysis anytime from your dashboard.",
     },
     {
       question: "Does SpeakPrep AI support both technical and HR interviews?",
       answer:
-        "Yes. You can choose between technical, HR, or mixed interview modes, and the AI will adapt the flow accordingly to mimic real interview conditions.",
+        "Absolutely. You can select technical, HR, or mixed mode — the AI adjusts in real time to match the interview type.",
     },
     {
-      question: "Are my audio files stored permanently?",
+      question: "Do I need a credit card to get started?",
       answer:
-        "No. Your audio recordings are used solely for transcription and analysis purposes during your session. We do not permanently store your audio files after the transcription is complete.",
+        "No. SpeakPrep AI is completely free to use. You only need your Groq API key – nothing else.",
     },
     {
-      question: "What personal information is sent with my audio recordings?",
+      question: "What personal data is sent with my audio?",
       answer:
-        "We do not send any personally identifiable information with your audio recordings. The audio is processed anonymously for transcription and analysis only.",
+        "None. Audio is processed anonymously and is not tied to personal identifiers such as your name, email, or resume data.",
     },
     {
-      question: "Do you sell my data to third parties or advertisers?",
+      question: "Do you sell or share my data?",
       answer:
-        "Absolutely not. We do not sell, share, or distribute your personal data, interview responses, or any other information to third-party vendors, advertisers, or any external organizations.",
+        "Never. SpeakPrep AI does not sell, share, or distribute any user data to third-party vendors, advertisers, or external organizations.",
     },
     {
-      question: "How long do you keep my interview data?",
+      question: "How accurate is the AI feedback?",
       answer:
-        "We only retain your interview session data for as long as necessary to provide you with the service and allow you to review your previous sessions. You can delete your session history at any time.",
+        "The feedback system is designed to mimic real interviewer expectations — clarity, tone, structure, and relevance. While not a replacement for human coaching, it provides highly actionable insights.",
     },
     {
-      question: "Is my payment information secure?",
+      question: "Which devices and browsers are supported?",
       answer:
-        "Yes. All payment processing is handled through secure, PCI-compliant third-party payment processors. We do not store your credit card or payment information on our servers.",
-    },
-    {
-      question: "Can I export or download my interview data?",
-      answer:
-        "Yes. You can export your interview transcripts and feedback reports from your dashboard. This allows you to keep a personal record of your progress and insights.",
-    },
-    {
-      question: "What measures are in place to protect my privacy?",
-      answer:
-        "We employ industry-standard encryption, secure data transmission protocols, and strict access controls. Our privacy-first approach ensures your data is used only to enhance your interview preparation experience.",
+        "SpeakPrep AI works best on modern browsers like Chrome, Edge, Brave, and Firefox. Mobile devices are supported, but desktop provides the best experience.",
     },
   ];
 
-  const handleBack = () => {
-    // Go back to the previous page in history
-    router.back();
-  };
+  const handleBack = () => router.back();
 
   return (
     <div
       className="min-h-screen flex flex-col items-center"
       style={{ backgroundColor: platformColors.mainBackground }}
     >
-      {/* ✅ Custom Navbar */}
+      {/* Navbar */}
       <nav
-        className="w-full flex items-center justify-between px-8 py-4 border-b border-black/10 shadow-sm"
+        className="w-full flex items-center justify-between px-8 py-4 border-b border-black/10 shadow-sm sticky top-0 z-50"
         style={{
           backgroundColor: "#f3f3ef",
           fontFamily: "Montserrat, sans-serif",
         }}
       >
-        {/* Left: Back Button */}
         <button
           onClick={handleBack}
           className="flex items-center gap-2 text-black font-medium hover:text-[#f43e02] transition-colors"
         >
           <ArrowLeft size={20} />
-          <span>Back</span>
+          Back
         </button>
 
-        {/* Center: Logo */}
         <Link
           href="/"
-          className="text-3xl font-extrabold tracking-tight text-center"
-          style={{
-            color: "#000",
-            fontFamily: "Montserrat, sans-serif",
-          }}
+          className="text-3xl font-extrabold tracking-tight"
+          style={{ color: "#000" }}
         >
           SpeakPrep<span style={{ color: "#f43e02" }}>AI</span>
         </Link>
 
-        {/* Right: Empty for symmetry */}
         <div className="w-[60px]" />
       </nav>
 
-      {/* ✅ FAQ Content */}
+      {/* FAQ Content */}
       <div className="max-w-3xl w-full px-6 py-12">
-        {/* Header */}
-        <h1
-          className="text-3xl font-bold text-center mb-4"
-          style={{ color: "black" }}
-        >
+        <h1 className="text-3xl font-bold text-center mb-4 text-black">
           Frequently Asked Questions
         </h1>
         <p className="text-center text-gray-900 mb-10">
-          Get quick answers about how SpeakPrep AI works and how we protect your
-          privacy.
+          Clear answers about how SpeakPrep AI works, how your data is handled,
+          and what to expect.
         </p>
 
         {/* FAQ List */}
         <div className="space-y-4">
-          {faqs.map((faq, index) => (
-            <div
-              key={index}
-              className="border rounded-lg shadow-sm transition-all"
-              style={{
-                backgroundColor: platformColors.outerMainBackground,
-                borderColor: platformColors.borderColor,
-              }}
-            >
-              <button
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full flex justify-between items-center px-5 py-3 text-left"
-              >
-                <span
-                  className="font-medium text-gray-800"
-                  style={{ color: "black" }}
-                >
-                  {faq.question}
-                </span>
-                {openIndex === index ? (
-                  <ChevronUp size={18} className="text-orange-500" />
-                ) : (
-                  <ChevronDown size={18} className="text-orange-500" />
-                )}
-              </button>
+          {faqs.map((faq, index) => {
+            const isOpen = openIndex === index;
 
-              {openIndex === index && (
+            return (
+              <div
+                key={index}
+                className="border rounded-lg shadow-sm transition-all overflow-hidden"
+                style={{
+                  backgroundColor: platformColors.outerMainBackground,
+                  borderColor: platformColors.borderColor,
+                }}
+              >
+                {/* Question */}
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : index)}
+                  className="w-full flex justify-between items-center px-5 py-4 text-left"
+                >
+                  <span
+                    className="font-medium text-gray-800 text-lg"
+                    style={{ color: "black" }}
+                  >
+                    {faq.question}
+                  </span>
+                  {isOpen ? (
+                    <ChevronUp size={20} className="text-[#f43e02]" />
+                  ) : (
+                    <ChevronDown size={20} className="text-[#f43e02]" />
+                  )}
+                </button>
+
+                {/* Answer */}
                 <div
-                  className="px-5 pb-4 text-sm text-gray-600 leading-relaxed border-t"
+                  className={`px-5 pb-4 text-sm text-gray-600 leading-relaxed border-t transition-all duration-300 ${
+                    isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                  }`}
                   style={{ borderColor: platformColors.borderColor }}
                 >
                   {faq.answer}
                 </div>
-              )}
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
 
         {/* Footer */}
         <div className="text-center mt-12">
           <p className="text-gray-500 text-sm">
-            Didn't find what you were looking for?{" "}
+            Didn’t find what you were looking for?{" "}
             <span className="text-orange-500 cursor-pointer hover:underline">
               Contact Support
             </span>

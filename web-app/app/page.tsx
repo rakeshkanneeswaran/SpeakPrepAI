@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Navbar from "./components/Navbar";
-import { Upload, Mic, BarChart3 } from "lucide-react";
+import { Upload, Mic, BarChart3, Shield, Users, Sparkles } from "lucide-react";
 
 export default function HomePage() {
   const year = new Date().getFullYear();
@@ -27,9 +27,12 @@ export default function HomePage() {
             Master Every Interview <br />
             <span style={{ color: "#f43e02" }}>With Real-Time AI Coaching</span>
           </h1>
-          <p className="text-lg text-gray-600">
-            SpeakPrep AI simulates real interviews, evaluates your responses,
-            and helps you grow faster — all powered by advanced AI.
+
+          {/* NEW – Sharper value prop */}
+          <p className="text-lg text-gray-700">
+            Practice real interviews using your resume and job description.
+            Speak naturally, get instant voice-based feedback, and improve your
+            clarity, structure, and confidence in minutes.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-6">
@@ -42,6 +45,11 @@ export default function HomePage() {
               </button>
             </Link>
           </div>
+
+          {/* NEW – Reassurance under CTA */}
+          <p className="text-sm text-gray-500 mt-2">
+            No credit card · Takes 2 minutes to begin · 100% private
+          </p>
         </div>
 
         {/* Image */}
@@ -53,7 +61,7 @@ export default function HomePage() {
         >
           <img
             src="/hero-illustration.png"
-            alt="AI mock interview preparation illustration showing a candidate practicing with an AI assistant"
+            alt="AI mock interview preparation illustration"
             className="w-[380px] md:w-[600px] lg:w-[700px] xl:w-[800px] rounded-lg drop-shadow-xl"
           />
         </motion.div>
@@ -62,12 +70,11 @@ export default function HomePage() {
       {/* Intro SEO Section */}
       <section className="px-6 md:px-20 py-12 bg-white text-center">
         <p className="max-w-3xl mx-auto text-gray-700 text-lg leading-relaxed">
-          <strong>SpeakPrep AI</strong> is an intelligent interview preparation
-          tool designed to help candidates practice speaking, answer real
-          interview questions, and gain confidence through personalized,
-          voice-based mock interviews. Whether you're preparing for your first
-          job or your next big career move, SpeakPrep provides real-time AI
-          feedback to help you improve clarity, tone, and communication skills.
+          <strong>SpeakPrep AI</strong> is an intelligent mock interview tool
+          designed for students, job-seekers, and professionals. Practice with
+          real interview questions tailored to your resume, get instant feedback
+          on communication, and build confidence through voice-based interactive
+          sessions.
         </p>
       </section>
 
@@ -80,30 +87,30 @@ export default function HomePage() {
           How It Works
         </h2>
         <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-          See SpeakPrep AI in action with our step-by-step video demonstrations
+          See SpeakPrep AI in action with our step-by-step walkthrough
         </p>
 
-        {/* MOBILE & TABLET LAYOUT */}
+        {/* MOBILE + TABLET */}
         <div className="xl:hidden grid gap-8 max-w-2xl mx-auto">
           {[
             {
               step: "1",
               title: "Upload Resume & Job Description",
-              desc: "Our AI learns about your background and the job you're aiming for. Upload your resume and paste the job description — SpeakPrep analyzes both to create personalized interview questions.",
+              desc: "Upload your resume and target job role — the AI instantly personalizes interview questions for your field.",
               videoId: youtubeVideos.upload,
               icon: <Upload size={24} />,
             },
             {
               step: "2",
               title: "Practice in Real-Time",
-              desc: "Experience interactive interviews tailored to your field. Speak naturally and get real-time feedback on tone, confidence, and communication.",
+              desc: "Speak naturally in an AI-powered mock interview. Receive live guidance on tone, pace, structure, and clarity.",
               videoId: youtubeVideos.practice,
               icon: <Mic size={24} />,
             },
             {
               step: "3",
               title: "Get Detailed Analysis",
-              desc: "Receive comprehensive feedback on communication, structure, and technical responses. SpeakPrep pinpoints exactly what to improve for your next interview.",
+              desc: "Review actionable insights on confidence, communication, and answer effectiveness to improve rapidly.",
               videoId: youtubeVideos.analysis,
               icon: <BarChart3 size={24} />,
             },
@@ -115,11 +122,12 @@ export default function HomePage() {
               transition={{ duration: 0.5 }}
               className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
             >
+              {/* FIXED – Autoplay disabled */}
               <div className="relative aspect-video bg-gray-900">
                 <iframe
-                  src={`https://www.youtube.com/embed/${item.videoId}?autoplay=1&mute=1&loop=1&playlist=${item.videoId}&controls=1&modestbranding=1&rel=0`}
+                  src={`https://www.youtube.com/embed/${item.videoId}?mute=1&controls=1&modestbranding=1&rel=0`}
                   className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   title={`Video: ${item.title}`}
                 />
@@ -144,28 +152,28 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* DESKTOP LAYOUT */}
+        {/* DESKTOP */}
         <div className="hidden xl:block mt-16 max-w-6xl mx-auto">
           <div className="space-y-16">
             {[
               {
                 step: "1",
                 title: "Upload Resume & Job Description",
-                desc: "Upload your resume and target job role — SpeakPrep’s AI personalizes interview questions for your field.",
+                desc: "Upload your resume and target job description — the AI instantly tailors interview questions for your field.",
                 videoId: youtubeVideos.upload,
                 alignment: "left",
               },
               {
                 step: "2",
                 title: "Practice in Real-Time",
-                desc: "Engage in interactive AI mock interviews, practice speaking naturally, and receive instant evaluation.",
+                desc: "Experience voice-based mock interviews. Get immediate guidance on tone, confidence, and clarity.",
                 videoId: youtubeVideos.practice,
                 alignment: "right",
               },
               {
                 step: "3",
                 title: "Get Detailed Analysis",
-                desc: "Review feedback on tone, structure, and confidence to improve before your next interview.",
+                desc: "Receive in-depth feedback on communication style, structure, and answer quality.",
                 videoId: youtubeVideos.analysis,
                 alignment: "left",
               },
@@ -208,6 +216,56 @@ export default function HomePage() {
             ))}
           </div>
         </div>
+
+        {/* NEW MID-PAGE CTA */}
+        <div className="text-center mt-20">
+          <Link href="/auth">
+            <button
+              style={{ backgroundColor: "#f43e02" }}
+              className="hover:opacity-90 text-white text-lg px-8 py-3 rounded-md shadow-md transition-transform transform hover:scale-105"
+            >
+              Start Practicing Now
+            </button>
+          </Link>
+        </div>
+      </section>
+
+      {/* NEW – TRUST SECTION */}
+      <section className="py-20 px-6 md:px-20 bg-white text-center">
+        <h2 className="text-3xl font-semibold mb-10">
+          Trusted & Built for Real Candidates
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
+          {[
+            {
+              icon: <Shield size={36} />,
+              title: "Private & Secure",
+              desc: "Your interview audio is processed securely and never stored.",
+            },
+            {
+              icon: <Users size={36} />,
+              title: "Made for Everyone",
+              desc: "Freshers, engineers, managers — SpeakPrep adapts to any role.",
+            },
+            {
+              icon: <Sparkles size={36} />,
+              title: "Real Results",
+              desc: "Users report higher confidence and smoother interviews in just one week.",
+            },
+          ].map((item) => (
+            <div
+              key={item.title}
+              className="p-6 bg-[#f8f8f8] rounded-xl shadow-sm hover:shadow-md transition"
+            >
+              <div className="text-orange-500 flex justify-center mb-4">
+                {item.icon}
+              </div>
+              <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+              <p className="text-gray-600">{item.desc}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* AI Interview Copilot */}
@@ -219,16 +277,16 @@ export default function HomePage() {
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {[
             {
-              title: "Adaptive AI Interviews",
-              desc: "Personalized sessions crafted from your resume and goals — every question feels relevant and realistic.",
+              title: "Role-Based Interview Scenarios",
+              desc: "Dynamic interview questions generated from your resume and job description.",
             },
             {
-              title: "Actionable Feedback",
-              desc: "Instant insights on tone, clarity, and confidence — learn exactly what to improve after each practice.",
+              title: "Instant Communication Coaching",
+              desc: "Live feedback on tone, clarity, filler words, and confidence during the interview.",
             },
             {
               title: "Voice-Powered Practice",
-              desc: "Hands-free, natural mock interviews with real-time coaching for communication improvement.",
+              desc: "Practice naturally with real-time AI listening — just speak and get coached.",
             },
           ].map((card) => (
             <div

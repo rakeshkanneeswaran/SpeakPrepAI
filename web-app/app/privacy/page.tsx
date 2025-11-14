@@ -20,58 +20,63 @@ export default function PrivacyPage() {
           Privacy. Security. Trust.
         </h1>
         <p className="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
-          Your data is yours — always. We’re here to help you prepare, not to
-          collect, profile, or profit from what you share. Every design choice
-          we make starts with privacy.
+          Your data belongs to you. SpeakPrep AI’s mission is simple — help you
+          practice confidently while keeping your information private,
+          protected, and never used for anything beyond your session.
         </p>
       </section>
 
-      {/* Philosophy Section */}
+      {/* Why Privacy Matters */}
       <section className="px-6 md:px-24 py-20 bg-[#111] border-t border-[#E6DCAF]/10">
-        <div className="max-w-5xl mx-auto space-y-8">
+        <div className="max-w-4xl mx-auto space-y-8 text-center md:text-left">
           <h2 className="text-3xl font-semibold text-[#E6DCAF]">
-            Our Security Philosophy
+            Why Privacy Matters to Us
           </h2>
-          <p className="text-white/80 text-[15px] leading-relaxed">
-            SpeakPrep AI is built on a simple principle — privacy should be as
-            strong as performance. Every interaction, from your voice to your
-            feedback, is encrypted, anonymized, and never used for model
-            training or analytics. We operate with a zero-trust architecture,
-            meaning every internal service must verify its access before any
-            data moves.
+          <p className="text-white/80 text-[15px] leading-relaxed max-w-3xl">
+            Interview preparation often involves personal experiences, career
+            history, and voice interaction. We believe these sensitive moments
+            should never become analytics, datasets, or training material. Every
+            design choice — from processing workflows to system architecture —
+            prioritizes user privacy from the ground up.
           </p>
         </div>
       </section>
 
       {/* Core Security Pillars */}
       <section className="py-24 px-6 md:px-20 bg-black">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-10">
-          {[
-            {
-              title: "End-to-End Encryption",
-              desc: "All data in motion is protected using TLS 1.3, and data at rest is secured with AES-256 encryption. You choose what to upload and what to delete — full control stays with you.",
-            },
-            {
-              title: "Ephemeral Voice Data",
-              desc: "Your voice recordings never live on our servers. Audio is processed securely in-memory and deleted as soon as analysis finishes — no copies, no archives.",
-            },
-            {
-              title: "Zero Retention by Default",
-              desc: "Interview sessions are temporary by design. Once your session ends, both audio and transcript data are erased automatically unless you explicitly choose to save them.",
-            },
-          ].map((card) => (
-            <div
-              key={card.title}
-              className="bg-[#141414] p-8 rounded-2xl border border-[#E6DCAF]/20 hover:border-[#E6DCAF]/60 hover:-translate-y-1 transition"
-            >
-              <h3 className="text-xl font-semibold text-[#E6DCAF] mb-3">
-                {card.title}
-              </h3>
-              <p className="text-white/70 text-sm leading-relaxed">
-                {card.desc}
-              </p>
-            </div>
-          ))}
+        <div className="max-w-6xl mx-auto space-y-12">
+          <h2 className="text-4xl font-semibold text-center text-[#E6DCAF] mb-4">
+            Our Core Security Principles
+          </h2>
+
+          <div className="grid md:grid-cols-3 gap-10">
+            {[
+              {
+                title: "End-to-End Encryption",
+                desc: "All data in motion uses TLS 1.3, and data at rest is encrypted using AES-256. Your inputs remain protected from the moment they leave your device.",
+              },
+              {
+                title: "Ephemeral Voice Data",
+                desc: "Voice input is processed securely in real time and not retained after analysis. No audio is stored, archived, or reused.",
+              },
+              {
+                title: "Zero Retention by Default",
+                desc: "Your interview activity is temporary unless you intentionally choose to save it. Your sessions exist only for as long as you’re actively using them.",
+              },
+            ].map((card) => (
+              <div
+                key={card.title}
+                className="bg-[#141414] p-8 rounded-2xl border border-[#E6DCAF]/20 hover:border-[#E6DCAF]/60 hover:-translate-y-1 transition"
+              >
+                <h3 className="text-xl font-semibold text-[#E6DCAF] mb-3">
+                  {card.title}
+                </h3>
+                <p className="text-white/70 text-sm leading-relaxed">
+                  {card.desc}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -82,26 +87,25 @@ export default function PrivacyPage() {
             Under the Hood
           </h2>
           <p className="text-white/80 max-w-3xl mx-auto text-[15px] leading-relaxed">
-            Every request to SpeakPrep AI passes through secure API gateways,
-            DDoS protection, and strict rate limits. Model interactions are
-            sandboxed and isolated, so data from one user can never overlap with
-            another. Access is verified through short-lived keys, backed by
-            real-time audit logs and internal monitoring.
+            Behind the scenes, SpeakPrep AI uses a modern security-first
+            architecture. Every request flows through protected gateways, strict
+            rate limits, and isolated model environments — ensuring that user
+            inputs remain separated, secure, and auditable.
           </p>
 
           <div className="grid md:grid-cols-3 gap-10 pt-12 text-left">
             {[
               {
-                title: "Secure APIs",
-                desc: "JWT-based authentication, short-lived tokens, and rotating access keys keep your data safe and verifiable end-to-end.",
+                title: "Secure API Boundaries",
+                desc: "Requests are authenticated using short-lived tokens and protected behind DDoS-resistant gateways.",
               },
               {
                 title: "Role-Based Access",
-                desc: "Only verified internal services can request limited access. Even within our systems, permissions are minimal by default.",
+                desc: "Internal services follow the principle of least privilege, ensuring minimal permissions and controlled access.",
               },
               {
                 title: "In-Memory Processing",
-                desc: "All intermediate data — including audio, transcripts, and AI analysis — is processed in volatile memory and never written to disk.",
+                desc: "Audio, transcripts, and AI outputs are handled in-memory and never written to disk or stored in persistent logs.",
               },
             ].map((item) => (
               <div
@@ -124,14 +128,14 @@ export default function PrivacyPage() {
       <section className="py-24 px-6 md:px-20 bg-black text-white text-center">
         <div className="max-w-4xl mx-auto space-y-6">
           <h2 className="text-4xl font-semibold text-[#E6DCAF]">
-            Global Standards, Local Care
+            Built for Global Privacy Standards
           </h2>
           <p className="text-white/80 text-[15px] leading-relaxed">
-            SpeakPrep AI complies with <strong>GDPR</strong>,{" "}
-            <strong>CCPA</strong>, and{" "}
+            SpeakPrep AI aligns with major international data regulations,
+            including <strong>GDPR</strong>, <strong>CCPA</strong>, and{" "}
             <strong>India’s Digital Personal Data Protection Act (2023)</strong>
-            . You can request full data deletion anytime — we process verified
-            requests within 48 hours.
+            . Users may request data removal or account deletion at any time,
+            and verified requests are honored within 48 hours.
           </p>
         </div>
       </section>
@@ -141,13 +145,14 @@ export default function PrivacyPage() {
         <h2 className="text-4xl font-semibold mb-4">
           Privacy isn’t a feature — it’s our foundation.
         </h2>
-        <p className="text-black/80 mb-8 max-w-2xl mx-auto text-[15px]">
-          Your voice and data are processed in real time, securely, and never
-          stored. Once your session ends, everything is erased — permanently.
+        <p className="text-black/80 mb-8 max-w-2xl mx-auto text-[15px] leading-relaxed">
+          SpeakPrep AI is built so you can practice freely. No data mining, no
+          profiling, no hidden agendas — just secure, real-time interview
+          preparation designed for you.
         </p>
         <Link href="/auth">
           <button className="bg-black text-[#E6DCAF] font-semibold text-lg px-8 py-4 rounded-full hover:scale-105 transition-transform">
-            Get Started for Free
+            Start Practicing Securely
           </button>
         </Link>
       </section>
