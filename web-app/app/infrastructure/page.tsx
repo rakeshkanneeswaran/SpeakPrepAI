@@ -42,9 +42,11 @@ export default function InfrastructurePage() {
           className="w-[280px] sm:w-[360px] md:w-[480px] lg:w-[600px] h-auto mb-6 rounded-xl"
         />
 
-        <p className="text-sm text-black/60 max-w-md mx-auto mt-4">
-          Great technology should be open. Here's exactly how SpeakPrep AI
-          delivers real-time interview performance — at scale.
+        <p className="text-black/70 max-w-3xl mx-auto leading-relaxed">
+          Interview practice demands reliable audio processing, fast model
+          responses, and seamless session handling. That’s why we use
+          enterprise-grade infrastructure — so every user experiences smooth,
+          uninterrupted performance no matter where they are.
         </p>
       </section>
 
@@ -77,7 +79,7 @@ export default function InfrastructurePage() {
         <div className="grid md:grid-cols-3 gap-8 mt-8">
           {[
             {
-              title: "Real-Time Insight",
+              title: "Smooth Performance",
               desc: "Every interview runs with consistent speed — no throttling, no hidden constraints.",
             },
             {

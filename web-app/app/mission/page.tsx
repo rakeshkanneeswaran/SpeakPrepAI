@@ -17,9 +17,12 @@ export default function MissionPage() {
       {/* Hero Section */}
       <section className="pt-40 pb-20 text-center">
         <h1 className="text-6xl font-bold mb-4">Our Mission</h1>
+
+        {/* ✅ UPDATED LINE */}
         <p className="text-lg text-black/70 max-w-2xl mx-auto leading-relaxed">
           To help every candidate walk into an interview calm, prepared, and
-          confident — using the power of real-time, AI-driven practice.
+          confident — through realistic AI interview practice and post-session
+          analysis.
         </p>
       </section>
 
@@ -85,7 +88,7 @@ export default function MissionPage() {
               className="text-[#f43e02] underline"
             >
               (TeamStage)
-            </a>
+            </a>{" "}
             , and many openings receive over <strong>250</strong> applications{" "}
             <a
               href="https://resume.io/blog/interview-statistics"

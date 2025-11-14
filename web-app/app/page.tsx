@@ -16,12 +16,10 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen flex flex-col bg-[#fafafa] text-black">
-      {/* Navbar */}
       <Navbar />
 
       {/* Hero Section */}
       <section className="flex flex-col md:flex-row items-center justify-between px-6 md:px-20 py-24 bg-[#f3f3ef]">
-        {/* Text Content */}
         <div className="max-w-2xl space-y-6 md:pr-10">
           <h1 className="text-5xl md:text-6xl font-bold leading-tight">
             Master Every Interview <br />
@@ -30,11 +28,11 @@ export default function HomePage() {
             </span>
           </h1>
 
-          {/* NEW – Sharper value prop */}
           <p className="text-lg text-gray-700">
             Practice real interviews using your resume and job description.
-            Speak naturally, then receive a detailed AI analysis after your
-            session to improve clarity, structure, and confidence.
+            Speak naturally through human-like questions and follow-ups, then
+            receive a detailed AI analysis after your session to improve
+            clarity, structure, and confidence.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-6">
@@ -48,13 +46,11 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* NEW – Reassurance under CTA */}
           <p className="text-sm text-gray-500 mt-2">
             No credit card · Takes 2 minutes to begin · 100% private
           </p>
         </div>
 
-        {/* Image */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -73,10 +69,10 @@ export default function HomePage() {
       <section className="px-6 md:px-20 py-12 bg-white text-center">
         <p className="max-w-3xl mx-auto text-gray-700 text-lg leading-relaxed">
           <strong>SpeakPrep AI</strong> is an intelligent mock interview tool
-          designed for students, job-seekers, and professionals. Practice with
-          real interview questions tailored to your resume, get instant feedback
-          on communication, and build confidence through voice-based interactive
-          sessions.
+          designed for students, job-seekers, and professionals. Practice
+          through natural, human-like interview conversations and receive a
+          detailed AI analysis at the end of each session to help you improve
+          your communication and confidence.
         </p>
       </section>
 
@@ -98,21 +94,21 @@ export default function HomePage() {
             {
               step: "1",
               title: "Upload Resume & Job Description",
-              desc: "Upload your resume and target job role — the AI instantly personalizes interview questions for your field.",
+              desc: "Upload your resume and job description — the AI instantly personalizes interview questions for your role.",
               videoId: youtubeVideos.upload,
               icon: <Upload size={24} />,
             },
             {
               step: "2",
-              title: "Practice in Real-Time",
-              desc: "Speak naturally in an AI-powered mock interview. Receive live guidance on tone, pace, structure, and clarity.",
+              title: "Practice in a Real Interview Flow",
+              desc: "Speak naturally through a realistic mock interview with human-like follow-up questions — just like a real interviewer.",
               videoId: youtubeVideos.practice,
               icon: <Mic size={24} />,
             },
             {
               step: "3",
               title: "Get Detailed Analysis",
-              desc: "Review actionable insights on confidence, communication, and answer effectiveness to improve rapidly.",
+              desc: "After the interview ends, receive a complete AI-generated performance breakdown including clarity, confidence, tone, and structure.",
               videoId: youtubeVideos.analysis,
               icon: <BarChart3 size={24} />,
             },
@@ -124,14 +120,13 @@ export default function HomePage() {
               transition={{ duration: 0.5 }}
               className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
             >
-              {/* FIXED – Autoplay disabled */}
               <div className="relative aspect-video bg-gray-900">
                 <iframe
                   src={`https://www.youtube.com/embed/${item.videoId}?mute=1&controls=1&modestbranding=1&rel=0`}
                   className="w-full h-full"
                   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
-                  title={`Video: ${item.title}`}
+                  title={item.title}
                 />
               </div>
 
@@ -161,21 +156,21 @@ export default function HomePage() {
               {
                 step: "1",
                 title: "Upload Resume & Job Description",
-                desc: "Upload your resume and target job description — the AI instantly tailors interview questions for your field.",
+                desc: "Upload your resume and job description — the AI instantly tailors interview questions for your field.",
                 videoId: youtubeVideos.upload,
                 alignment: "left",
               },
               {
                 step: "2",
-                title: "Practice in Real-Time",
-                desc: "Experience voice-based mock interviews. Get immediate guidance on tone, confidence, and clarity.",
+                title: "Practice in a Real Interview Flow",
+                desc: "Experience a realistic mock interview with human-like follow-up questions that adapt to your answers.",
                 videoId: youtubeVideos.practice,
                 alignment: "right",
               },
               {
                 step: "3",
                 title: "Get Detailed Analysis",
-                desc: "Receive in-depth feedback on communication style, structure, and answer quality.",
+                desc: "After the session ends, receive in-depth feedback on communication style, clarity, structure, and answer quality.",
                 videoId: youtubeVideos.analysis,
                 alignment: "left",
               },
@@ -193,7 +188,7 @@ export default function HomePage() {
                       className="w-full h-full rounded-2xl"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
-                      title={`How It Works: ${item.title}`}
+                      title={item.title}
                     />
                   </div>
                 </div>
@@ -219,7 +214,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* NEW MID-PAGE CTA */}
         <div className="text-center mt-20">
           <Link href="/auth">
             <button
@@ -232,7 +226,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* NEW – TRUST SECTION */}
+      {/* TRUST SECTION */}
       <section className="py-20 px-6 md:px-20 bg-white text-center">
         <h2 className="text-3xl font-semibold mb-10">
           Trusted & Built for Real Candidates
@@ -253,7 +247,7 @@ export default function HomePage() {
             {
               icon: <Sparkles size={36} />,
               title: "Real Results",
-              desc: "Users report higher confidence and smoother interviews in just one week.",
+              desc: "Users report higher confidence and smoother interviews after consistent practice.",
             },
           ].map((item) => (
             <div
@@ -283,12 +277,12 @@ export default function HomePage() {
               desc: "Dynamic interview questions generated from your resume and job description.",
             },
             {
-              title: "Instant Communication Coaching",
-              desc: "Live feedback on tone, clarity, filler words, and confidence during the interview.",
+              title: "Post-Interview Communication Analysis",
+              desc: "Receive insights on tone, clarity, filler words, and confidence after your interview ends.",
             },
             {
               title: "Voice-Powered Practice",
-              desc: "Practice naturally with real-time AI listening — just speak and get coached.",
+              desc: "Practice naturally through a conversational interview without interruptions.",
             },
           ].map((card) => (
             <div

@@ -14,57 +14,57 @@ export default function FAQsPage() {
     {
       question: "What is SpeakPrep AI?",
       answer:
-        "SpeakPrep AI is an AI-powered mock interview platform that simulates real interview scenarios. It helps you practice speaking, structure answers, improve communication, and build confidence through real-time coaching.",
+        "SpeakPrep AI is an AI-powered mock interview platform that simulates realistic interview conversations. You answer questions naturally, and after the session, you receive a detailed AI analysis to help improve structure, clarity, and communication.",
     },
     {
       question: "How does SpeakPrep AI generate interview questions?",
       answer:
-        "The system uses advanced LLMs that analyze your resume, job description, and interview style. Each question is tailored to your role, field, and previous responses — making every session personalized.",
+        "The system uses advanced language models to create interview questions relevant to your resume and job description. The goal is to give you a natural interview flow, similar to what you’d experience with a human interviewer.",
     },
     {
       question: "Do you use my data to train the AI?",
       answer:
-        "No. SpeakPrep AI does not use your interview data, voice, or transcripts to train any model. Your interactions are used only to generate responses during your session.",
+        "No. SpeakPrep AI does not use your interviews, transcripts, or voice data to train any model. Your data is only used during your session to generate responses.",
     },
     {
       question: "Are my recordings and data stored permanently?",
       answer:
-        "No. Your audio is ephemeral — it exists only during transcription and analysis. You may optionally choose to save session transcripts for later review.",
+        "No. Your audio exists temporarily during transcription and analysis. You can choose whether or not to save transcripts for reviewing later.",
     },
     {
       question: "Can I see my interview analysis afterwards?",
       answer:
-        "Yes. After each interview, you receive a detailed breakdown of your performance — including clarity, tone, structure, and answer quality. You can revisit your analysis anytime from your dashboard.",
+        "Yes. After each interview, you receive a detailed performance breakdown — including clarity, structure, tone, and delivery. Your past analyses are available anytime in your dashboard.",
     },
     {
       question: "Does SpeakPrep AI support both technical and HR interviews?",
       answer:
-        "Absolutely. You can select technical, HR, or mixed mode — the AI adjusts in real time to match the interview type.",
+        "Yes. You can select technical, HR, or mixed interviews. The AI conducts the session accordingly to match the type of interview you want to prepare for.",
     },
     {
       question: "Do I need a credit card to get started?",
       answer:
-        "No. SpeakPrep AI is completely free to use. You only need your Groq API key – nothing else.",
+        "No. SpeakPrep AI is free to use. You only need your Groq API key — nothing else.",
     },
     {
       question: "What personal data is sent with my audio?",
       answer:
-        "None. Audio is processed anonymously and is not tied to personal identifiers such as your name, email, or resume data.",
+        "None. Your audio is processed anonymously and is not linked to personal identifiers like your name, email, or resume details.",
     },
     {
       question: "Do you sell or share my data?",
       answer:
-        "Never. SpeakPrep AI does not sell, share, or distribute any user data to third-party vendors, advertisers, or external organizations.",
+        "Never. SpeakPrep AI does not sell, share, or send any of your data to external organizations, advertisers, or third-party vendors.",
     },
     {
       question: "How accurate is the AI feedback?",
       answer:
-        "The feedback system is designed to mimic real interviewer expectations — clarity, tone, structure, and relevance. While not a replacement for human coaching, it provides highly actionable insights.",
+        "The feedback highlights communication patterns such as clarity, tone, pacing, and structure. While not a replacement for a human coach, it provides highly actionable insights to help you improve.",
     },
     {
       question: "Which devices and browsers are supported?",
       answer:
-        "SpeakPrep AI works best on modern browsers like Chrome, Edge, Brave, and Firefox. Mobile devices are supported, but desktop provides the best experience.",
+        "SpeakPrep AI works best on modern browsers such as Chrome, Edge, Brave, and Firefox. You can use mobile devices, but desktop offers the most stable experience.",
     },
   ];
 

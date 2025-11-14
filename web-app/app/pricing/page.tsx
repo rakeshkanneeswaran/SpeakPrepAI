@@ -27,14 +27,14 @@ export default function PricingPage() {
             className="text-[#f43e02] font-semibold hover:underline ml-1"
           >
             Groq API key
-          </a>
+          </a>{" "}
           to power the interviews.
         </p>
 
-        {/* WHY API KEY (NEW SECTION) */}
+        {/* WHY API KEY */}
         <p className="text-sm text-black/60 mt-4 max-w-xl mx-auto px-4">
-          You use your own API key so SpeakPrep can stay free for everyone while
-          maintaining fast, high-quality AI responses.
+          Using your own API key keeps SpeakPrep fast, private, and free for
+          everyone during beta.
         </p>
 
         <div className="mt-6">
@@ -67,8 +67,8 @@ export default function PricingPage() {
             >
               Groq API key
             </a>
-            . Practice real interviews with resume-based questions and
-            AI-powered feedback.
+            . Practice full mock interviews and receive detailed AI analysis
+            after each session.
           </p>
 
           {/* FEATURE LIST */}
@@ -76,11 +76,11 @@ export default function PricingPage() {
             {[
               "Connect your own free Groq API key",
               "Daily usage resets every 24 hours",
-              "Instant voice analysis and feedback",
-              "Resume + job description tailored questions",
-              "Access to HR, behavioral, and technical interview types",
-              "Voice-based practice with real-time coaching",
-              "Session history and answer review",
+              "Post-interview AI analysis",
+              "Resume + job description tailored interview flow",
+              "Access HR, behavioral, and technical interview modes",
+              "Voice-based mock interview experience",
+              "Session history and post-interview review",
             ].map((item, index) => (
               <li
                 key={index}
@@ -99,7 +99,7 @@ export default function PricingPage() {
             ))}
           </ul>
 
-          {/* COMPARISON TABLE — NEW */}
+          {/* COMPARISON TABLE */}
           <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 mb-10">
             <h3 className="text-lg sm:text-xl font-semibold mb-4 text-center">
               What’s Included
@@ -109,16 +109,16 @@ export default function PricingPage() {
                 <Check color="#f43e02" size={18} /> AI Mock Interviews
               </p>
               <p className="flex items-center gap-2">
-                <Check color="#f43e02" size={18} /> Voice Feedback
+                <Check color="#f43e02" size={18} /> Post-Interview Insights
               </p>
               <p className="flex items-center gap-2">
-                <Check color="#f43e02" size={18} /> Resume-Based Questions
+                <Check color="#f43e02" size={18} /> Resume-Based Interview Flow
               </p>
               <p className="flex items-center gap-2">
-                <Check color="#f43e02" size={18} /> HR + Technical
+                <Check color="#f43e02" size={18} /> HR + Technical Modes
               </p>
               <p className="flex items-center gap-2">
-                <Check color="#f43e02" size={18} /> Daily Limits
+                <Check color="#f43e02" size={18} /> Daily Usage Limits
               </p>
               <p className="flex items-center gap-2">
                 <Check color="#f43e02" size={18} /> Free Forever (Beta)
@@ -170,7 +170,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* PRO FEATURES COMING SOON (NEW) */}
+      {/* PRO FEATURES COMING SOON */}
       <section className="px-4 sm:px-6 md:px-8 lg:px-20 py-16 text-center">
         <h2 className="text-2xl sm:text-3xl font-bold mb-6">Coming Soon</h2>
         <p className="text-black/70 max-w-2xl mx-auto mb-8">
