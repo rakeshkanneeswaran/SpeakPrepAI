@@ -25,14 +25,16 @@ export default function HomePage() {
         <div className="max-w-2xl space-y-6 md:pr-10">
           <h1 className="text-5xl md:text-6xl font-bold leading-tight">
             Master Every Interview <br />
-            <span style={{ color: "#f43e02" }}>With Real-Time AI Coaching</span>
+            <span style={{ color: "#f43e02" }}>
+              With AI-Powered Practice & Analysis
+            </span>
           </h1>
 
           {/* NEW – Sharper value prop */}
           <p className="text-lg text-gray-700">
             Practice real interviews using your resume and job description.
-            Speak naturally, get instant voice-based feedback, and improve your
-            clarity, structure, and confidence in minutes.
+            Speak naturally, then receive a detailed AI analysis after your
+            session to improve clarity, structure, and confidence.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-6">
