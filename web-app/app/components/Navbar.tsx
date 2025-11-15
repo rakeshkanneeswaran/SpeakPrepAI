@@ -114,6 +114,7 @@ export default function Navbar() {
                 >
                   Infrastructure
                 </Link>
+
                 <Link
                   href="/privacy"
                   className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors text-black"
@@ -121,12 +122,22 @@ export default function Navbar() {
                 >
                   Privacy & Security
                 </Link>
+
                 <Link
                   href="/faqs"
                   className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors text-black"
                   onClick={() => setIsMoreOpen(false)}
                 >
                   FAQs
+                </Link>
+
+                {/* ✅ Changelog Link */}
+                <Link
+                  href="/changelog"
+                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors text-black"
+                  onClick={() => setIsMoreOpen(false)}
+                >
+                  Changelog
                 </Link>
               </div>
             </div>
@@ -183,6 +194,7 @@ export default function Navbar() {
             >
               Founder
             </Link>
+
             <Link
               href="/"
               className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
@@ -229,6 +241,15 @@ export default function Navbar() {
               onClick={() => setIsMenuOpen(false)}
             >
               FAQs
+            </Link>
+
+            {/* ✅ Mobile Changelog */}
+            <Link
+              href="/changelog"
+              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Changelog
             </Link>
 
             <div className="pt-4 border-t border-gray-200">
