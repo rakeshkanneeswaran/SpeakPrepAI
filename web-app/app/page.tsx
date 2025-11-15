@@ -320,6 +320,22 @@ export default function HomePage() {
           © {year} SpeakPrep AI · All rights reserved.
         </div>
       </footer>
+
+      {/* 🚀 Floating Product Hunt Badge */}
+      <a
+        href="https://www.producthunt.com/products/speakprep-ai-mock-interviews?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-speakprep-ai-mock-interviews"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed right-4 bottom-4 z-50"
+      >
+        <img
+          src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1038356&theme=light&t=1763197476399"
+          alt="SpeakPrep AI – AI Mock Interviews"
+          width="200"
+          height="44"
+          className="rounded-lg shadow-xl hover:scale-105 transition-transform"
+        />
+      </a>
     </main>
   );
 }
