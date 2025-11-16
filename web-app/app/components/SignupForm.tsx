@@ -6,10 +6,10 @@ import { Eye, EyeOff, Check, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function SignupForm() {
-  const [step, setStep] = useState<"name" | "email" | "password">("name");
+  const [step, setStep] = useState<"name" | "username" | "password">("name");
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
+    username: "",
     password: "",
     confirmPassword: "",
   });
@@ -18,8 +18,10 @@ export default function SignupForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, startTransition] = useTransition();
   const [shake, setShake] = useState(false);
-  const [emailChecking, setEmailChecking] = useState(false);
-  const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
+  const [usernameChecking, setUsernameChecking] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(
+    null
+  );
   const router = useRouter();
 
   function triggerShake(message: string) {
@@ -28,27 +30,28 @@ export default function SignupForm() {
     setTimeout(() => setShake(false), 500);
   }
 
-  // Check email availability
-  const checkEmail = async (email: string) => {
-    if (!email) {
-      setEmailAvailable(null);
+  // Check username availability
+  const checkUsername = async (username: string) => {
+    if (!username) {
+      setUsernameAvailable(null);
       return;
     }
 
-    setEmailChecking(true);
+    setUsernameChecking(true);
     try {
       const response = await fetch("/api/check-email", {
+        // ❗ still called check-email but you're actually checking username
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: username }),
       });
 
       const data = await response.json();
-      setEmailAvailable(!data.exists);
+      setUsernameAvailable(!data.exists);
     } catch (err) {
-      console.error("Error checking email:", err);
+      console.error("Error checking username:", err);
     } finally {
-      setEmailChecking(false);
+      setUsernameChecking(false);
     }
   };
 
@@ -58,22 +61,28 @@ export default function SignupForm() {
       return;
     }
     setError("");
-    setStep("email");
+    setStep("username");
   }
 
-  async function handleNextFromEmail() {
-    if (!formData.email.trim()) {
+  async function handleNextFromUsername() {
+    if (!formData.username.trim()) {
       triggerShake("Username cannot be empty");
       return;
     }
 
-    if (emailAvailable === false) {
-      triggerShake("Username already exists. Please use a different username.");
+    // ❗ Block "@" anywhere
+    if (formData.username.includes("@")) {
+      triggerShake("Username cannot contain '@'");
       return;
     }
 
-    if (emailAvailable === null && !emailChecking) {
-      await checkEmail(formData.email);
+    if (usernameAvailable === false) {
+      triggerShake("Username already exists. Please choose another.");
+      return;
+    }
+
+    if (usernameAvailable === null && !usernameChecking) {
+      await checkUsername(formData.username);
       return;
     }
 
@@ -98,13 +107,14 @@ export default function SignupForm() {
     }
 
     setError("");
+
     startTransition(async () => {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.name,
-          email: formData.email,
+          email: formData.username,
           password: formData.password,
         }),
       });
@@ -114,23 +124,26 @@ export default function SignupForm() {
         router.push("/onboarding");
       } else {
         triggerShake(data.message || "Registration failed");
-        setStep("email");
+        setStep("username");
       }
     });
   }
 
   const updateFormData = (field: string, value: string) => {
+    // ❗ Prevent typing '@'
+    if (field === "username" && value.includes("@")) return;
+
     setFormData((prev) => ({ ...prev, [field]: value }));
 
-    // Check email availability when email changes
-    if (field === "email") {
-      setTimeout(() => checkEmail(value), 500);
+    if (field === "username") {
+      setTimeout(() => checkUsername(value), 500);
     }
   };
 
   return (
     <div className="space-y-6">
       <AnimatePresence mode="wait">
+        {/* STEP 1: NAME */}
         {step === "name" && (
           <motion.div
             key="name"
@@ -155,9 +168,10 @@ export default function SignupForm() {
           </motion.div>
         )}
 
-        {step === "email" && (
+        {/* STEP 2: USERNAME */}
+        {step === "username" && (
           <motion.div
-            key="email"
+            key="username"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -165,61 +179,64 @@ export default function SignupForm() {
           >
             <div className="relative">
               <input
-                type="email"
-                placeholder="Enter your prefered username"
-                value={formData.email}
-                onChange={(e) => updateFormData("email", e.target.value)}
+                type="text"
+                placeholder="Choose a username"
+                value={formData.username}
+                onChange={(e) => updateFormData("username", e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f43e02] pr-10"
               />
-              {emailChecking && (
+
+              {usernameChecking && (
                 <div className="absolute right-3 top-3">
                   <div className="w-5 h-5 border-2 border-[#f43e02] border-t-transparent rounded-full animate-spin" />
                 </div>
               )}
-              {emailAvailable === true && (
+
+              {usernameAvailable === true && (
                 <Check
                   className="absolute right-3 top-3 text-green-500"
                   size={20}
                 />
               )}
-              {emailAvailable === false && (
+              {usernameAvailable === false && (
                 <X className="absolute right-3 top-3 text-red-500" size={20} />
               )}
             </div>
 
-            {emailAvailable === true && (
+            {usernameAvailable === true && (
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="text-green-500 text-sm text-center"
               >
-                Email is available!
+                Username is available!
               </motion.p>
             )}
-            {emailAvailable === false && (
+            {usernameAvailable === false && (
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="text-red-500 text-sm text-center"
               >
-                Email already exists
+                Username already exists
               </motion.p>
             )}
 
             <button
-              onClick={handleNextFromEmail}
-              disabled={emailChecking}
+              onClick={handleNextFromUsername}
+              disabled={usernameChecking}
               className={`w-full text-white font-semibold py-3 rounded-lg transition-transform ${
-                emailChecking
+                usernameChecking
                   ? "bg-orange-300 cursor-not-allowed"
                   : "bg-[#f43e02] hover:scale-[1.02]"
               }`}
             >
-              {emailChecking ? "Checking..." : "Next →"}
+              {usernameChecking ? "Checking..." : "Next →"}
             </button>
           </motion.div>
         )}
 
+        {/* STEP 3: PASSWORD */}
         {step === "password" && (
           <motion.div
             key="password"
