@@ -1,18 +1,22 @@
-import { asyncWrapProviders } from "async_hooks";
-import { prisma } from "../database/index"
-import { on } from "events";
+import { prisma } from "../database/index";
 
 export class UserService {
-
-    static async createUserProfile(userId: string, apiChoice: string, apiKey: string, role: string, platformedManagedAPIKey: boolean) {
+    // Create onboarding profile (only used when user fills onboarding form)
+    static async createUserProfile(
+        userId: string,
+        apiChoice: string,
+        apiKey: string,
+        role: string,
+        platformedManagedAPIKey: boolean
+    ) {
         const userProfile = await prisma.$transaction(async (tx) => {
-            const userProfile = await tx.userSettings.create({
+            const settings = await tx.userSettings.create({
                 data: {
                     userId,
                     apiChoice,
                     apiKey,
                     role,
-                    platformedManagedAPIKey
+                    platformedManagedAPIKey,
                 },
             });
 
@@ -21,39 +25,36 @@ export class UserService {
                 data: { onboarded: true },
             });
 
-            return userProfile;
+            return settings;
+        });
 
-        })
-
-        return {
-            onboarded: true,
-        };
+        return { onboarded: true };
     }
 
+    // Onboarding status
     static async getUserOnboardingStatus(userId: string) {
         const user = await prisma.user.findUnique({
             where: { id: userId },
             select: { onboarded: true },
         });
 
-        if (!user) {
-            throw new Error("User not found");
-        }
+        if (!user) throw new Error("User not found");
 
         return { onboarded: user.onboarded };
     }
 
+    // Returns ONLY settings — used internally
     static async getUserSettings(userId: string) {
-        const userSettings = await prisma.userSettings.findUnique({
-            where: { userId: userId },
+        const settings = await prisma.userSettings.findUnique({
+            where: { userId },
         });
 
-        if (!userSettings) {
-            throw new Error("User settings not found");
-        }
+        if (!settings) throw new Error("User settings not found");
 
-        return userSettings;
+        return settings;
     }
+
+    // Main user profile for settings page
     static async getUserProfile(userId: string) {
         const user = await prisma.user.findUnique({
             where: { id: userId },
@@ -61,44 +62,43 @@ export class UserService {
                 id: true,
                 email: true,
                 name: true,
-                createdAt: true,
-                updatedAt: true
-            }
+                image: true,
+                onboarded: true,
+            },
         });
 
-        if (!user) {
-            throw new Error("User not found");
-        }
+        if (!user) throw new Error("User not found");
 
         const settings = await prisma.userSettings.findUnique({
-            where: { userId }
+            where: { userId },
         });
 
         return { user, settings };
     }
 
+    // Update profile + settings
     static async updateUserProfile(
         userId: string,
         updates: {
             name?: string;
-            email?: string;
             apiKey?: string;
             apiChoice?: string;
             role?: string;
         }
     ) {
         return await prisma.$transaction(async (tx) => {
-            // Update user
             const updatedUser = await tx.user.update({
                 where: { id: userId },
                 data: {
                     ...(updates.name && { name: updates.name }),
-                    ...(updates.email && { email: updates.email }),
                 },
-                select: { id: true, email: true, name: true, updatedAt: true }
+                select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                },
             });
 
-            // Update or create settings
             const updatedSettings = await tx.userSettings.upsert({
                 where: { userId },
                 update: {
@@ -111,12 +111,11 @@ export class UserService {
                     apiKey: updates.apiKey || "",
                     apiChoice: updates.apiChoice || "groq",
                     role: updates.role || "",
-                    platformedManagedAPIKey: false
+                    platformedManagedAPIKey: false,
                 },
             });
 
             return { user: updatedUser, settings: updatedSettings };
         });
     }
-
 }
