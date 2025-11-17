@@ -1,45 +1,37 @@
-import GroqService from "@/app/services/groq-service";
-import { AuthenticationService } from "@/app/services/authentication-service";
-import { InterviewService } from "@/app/services/interview-service";
-import { cookies } from "next/headers";
+import { auth } from "@/auth"
+import { InterviewService } from "@/app/services/interview-service"
 
-// POST /api/tts
-// Converts text to speech and returns the audio as a WAV stream.
+// GET /api/tts
+// Returns all interviews for the authenticated user
 export async function GET(req: Request) {
     try {
-        // Retrieve auth token from cookies
-        const token = (await cookies()).get("auth_token")?.value;
-        if (!token) {
-            return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
+        // 1️⃣ Auth — get session using NextAuth
+        const session = await auth()
+
+        if (!session || !session.user?.id) {
+            return Response.json({ message: "Unauthorized" }, { status: 401 })
         }
 
-        // Verify JWT and extract user ID
-        const userId = AuthenticationService.verifyJWTToken(token);
-        if (!userId) {
-            return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
-        }
+        const userId = session.user.id
 
-        const allInterviews = await InterviewService.getAllInterviewsForUser(userId);
+        // 2️⃣ Fetch interviews for this user
+        const allInterviews = await InterviewService.getAllInterviewsForUser(userId)
 
-        if (
-            allInterviews.length == 0
-        ) {
-            return new Response(JSON.stringify({ interviews: [] }), {
-                status: 200,
-            });
-        }
-        return new Response(JSON.stringify({ interviews: allInterviews }), {
-            status: 200,
-        });
+        return Response.json({ interviews: allInterviews })
+    }
+    catch (error: unknown) {
+        console.error("[GET Interviews Error]", error)
 
-
-    } catch (error: unknown) {
         const message =
-            error instanceof Error ? error.message : typeof error === "string" ? error : "Unknown error";
-        console.error("[TTS Error]", message);
-        return new Response(
-            JSON.stringify({ message: "Internal Server Error", error: message }),
+            error instanceof Error
+                ? error.message
+                : typeof error === "string"
+                    ? error
+                    : "Unknown error"
+
+        return Response.json(
+            { message: "Internal Server Error", error: message },
             { status: 500 }
-        );
+        )
     }
 }

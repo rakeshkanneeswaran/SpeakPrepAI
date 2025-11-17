@@ -1,42 +1,49 @@
-import GroqService from "@/app/services/groq-service";
-import { AuthenticationService } from "@/app/services/authentication-service";
-import { cookies } from "next/headers";
+import { auth } from "@/auth"
+import GroqService from "@/app/services/groq-service"
 
 // POST /api/tts
 // Converts text to speech and returns the audio as a WAV stream.
 export async function POST(req: Request) {
     try {
-        // Retrieve auth token from cookies
-        const token = (await cookies()).get("auth_token")?.value;
-        if (!token) {
-            return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
+        // 1️⃣ Get current session
+        const session = await auth()
+
+        if (!session || !session.user?.id) {
+            return new Response(JSON.stringify({ message: "Unauthorized" }), {
+                status: 401,
+            })
         }
 
-        // Verify JWT and extract user ID
-        const userId = AuthenticationService.verifyJWTToken(token);
-        if (!userId) {
-            return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
+        const userId = session.user.id
+
+        // 2️⃣ Parse incoming text
+        const { text } = await req.json()
+
+        if (!text) {
+            return new Response(
+                JSON.stringify({ message: "Text is required" }),
+                { status: 400 }
+            )
         }
 
-        // Parse incoming text from request body
-        const { text } = await req.json();
+        // 3️⃣ Generate audio buffer for this user
+        const audioBuffer = await GroqService.createAudioBufferFromText(text, userId)
 
-        // Generate audio buffer from text (TTS)
-        const audioBuffer = await GroqService.createAudioBufferFromText(text, userId);
-
-        // Send audio stream to the frontend
+        // 4️⃣ Return WAV audio stream
         return new Response(audioBuffer, {
             headers: {
                 "Content-Type": "audio/wav",
             },
-        });
-    } catch (error: unknown) {
-        const message =
-            error instanceof Error ? error.message : typeof error === "string" ? error : "Unknown error";
-        console.error("[TTS Error]", message);
+        })
+    } catch (error) {
+        console.error("TTS Error:", error)
+
         return new Response(
-            JSON.stringify({ message: "Internal Server Error", error: message }),
+            JSON.stringify({
+                message: "Internal Server Error",
+                error: error instanceof Error ? error.message : String(error)
+            }),
             { status: 500 }
-        );
+        )
     }
 }

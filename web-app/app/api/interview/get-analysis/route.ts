@@ -1,48 +1,59 @@
-import { AuthenticationService } from "@/app/services/authentication-service";
-import { cookies } from "next/headers";
+import { auth } from "@/auth";
 import { InterviewService } from "@/app/services/interview-service";
 
-
 export async function POST(req: Request) {
-
     try {
-        const token = (await cookies()).get("auth_token")?.value;
-        if (!token) {
-            return new Response(
-                JSON.stringify({ message: "Unauthorized" }),
-                { status: 401 }
-            );
-        }
-        const userId = AuthenticationService.verifyJWTToken(token);
-        if (!userId) {
-            return new Response(
-                JSON.stringify({ message: "Unauthorized" }),
-                { status: 401 }
-            );
-        }
-        const { interviewSessionId } = await req.json();
-        const interviewAnalysis = await InterviewService.getInterviewAnalysis(interviewSessionId);
+        // 1️⃣ Get logged-in user from NextAuth
+        const session = await auth();
 
+        if (!session || !session.user?.id) {
+            return new Response(
+                JSON.stringify({ message: "Unauthorized" }),
+                { status: 401 }
+            );
+        }
+
+        // 2️⃣ Parse request
+        const { interviewSessionId } = await req.json();
+
+        if (!interviewSessionId) {
+            return new Response(
+                JSON.stringify({ message: "Missing interviewSessionId" }),
+                { status: 400 }
+            );
+        }
+
+        // 3️⃣ Fetch analysis — ensure user owns the interview
+        const interviewAnalysis = await InterviewService.getInterviewAnalysis(
+            interviewSessionId,
+        );
+
+        if (!interviewAnalysis) {
+            return new Response(
+                JSON.stringify({ message: "Interview not found or unauthorized" }),
+                { status: 404 }
+            );
+        }
+
+        // 4️⃣ Success response
         return new Response(
             JSON.stringify({
                 message: "Analysis retrieved successfully",
                 analysis: interviewAnalysis.analysis,
-                createdAt: interviewAnalysis.createdAt
+                createdAt: interviewAnalysis.createdAt,
             }),
             { status: 200 }
         );
 
     } catch (err) {
-        if (err instanceof Error) {
-            return new Response(
-                JSON.stringify({ message: "Unable to register user" }),
-                { status: 400 }
-            );
-        }
+        console.error("Interview analysis error:", err);
 
         return new Response(
-            JSON.stringify({ error: "Unknown error" }),
-            { status: 400 }
+            JSON.stringify({
+                message: "Server error",
+                error: err instanceof Error ? err.message : "Unknown error"
+            }),
+            { status: 500 }
         );
     }
 }

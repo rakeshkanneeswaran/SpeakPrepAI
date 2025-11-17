@@ -157,7 +157,7 @@ export default function TeamPage() {
 
       {/* CTA */}
       <section className="py-16 text-center bg-[#0c0c0c]">
-        <Link href="/auth">
+        <Link href="/login">
           <button className="bg-[#E6DCAF] text-[#0c0c0c] font-semibold text-lg px-10 py-4 rounded-full hover:scale-105 transition-transform">
             Start Your Interview Practice
           </button>

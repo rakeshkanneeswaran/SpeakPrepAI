@@ -1,28 +1,25 @@
-import { AuthenticationService } from "@/app/services/authentication-service";
-import { UserService } from "@/app/services/user-service";
-import { cookies } from "next/headers";
+import { auth } from "@/auth";
 import { InterviewService } from "@/app/services/interview-service";
 
 export async function POST(req: Request) {
     try {
-        const token = (await cookies()).get("auth_token")?.value;
-        if (!token) {
+        // 1️⃣ Get authenticated user via NextAuth
+        const session = await auth();
+
+        if (!session || !session.user?.id) {
             return new Response(
                 JSON.stringify({ message: "Unauthorized" }),
                 { status: 401 }
             );
         }
-        const userId = AuthenticationService.verifyJWTToken(token);
-        if (!userId) {
-            return new Response(
-                JSON.stringify({ message: "Invalid token" }),
-                { status: 401 }
-            );
-        }
+        // 2️⃣ Parse request body
         const { interviewSessionId } = await req.json();
 
-        const firstHRQuestionResponse = await InterviewService.getFirstHRQuestionFromAI(interviewSessionId);
+        // 3️⃣ Fetch first HR question
+        const firstHRQuestionResponse =
+            await InterviewService.getFirstHRQuestionFromAI(interviewSessionId);
 
+        // 4️⃣ Respond
         return new Response(
             JSON.stringify(firstHRQuestionResponse),
             { status: 200 }
@@ -31,18 +28,11 @@ export async function POST(req: Request) {
     } catch (err) {
         console.error("Error in generate-first-hr-question:", err);
 
-        if (err instanceof Error) {
-            return new Response(
-                JSON.stringify({
-                    message: "Unable to generate HR question",
-                    error: err.message
-                }),
-                { status: 400 }
-            );
-        }
-
         return new Response(
-            JSON.stringify({ error: "Unknown error occurred" }),
+            JSON.stringify({
+                message: "Unable to generate HR question",
+                error: err instanceof Error ? err.message : "Unknown error",
+            }),
             { status: 500 }
         );
     }

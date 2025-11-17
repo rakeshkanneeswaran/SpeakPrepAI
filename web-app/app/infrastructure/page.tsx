@@ -150,7 +150,7 @@ export default function InfrastructurePage() {
             structure, and confidence — powered by world-class infrastructure.
           </p>
 
-          <Link href="/auth">
+          <Link href="/login">
             <button className="bg-[#E6DCAF] text-black text-lg px-16 py-4 rounded-xl font-bold hover:scale-105 transition-transform shadow-2xl hover:shadow-[#E6DCAF]/30">
               Start Your Journey
             </button>

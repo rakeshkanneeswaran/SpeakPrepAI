@@ -1,47 +1,44 @@
-import { AuthenticationService } from "@/app/services/authentication-service";
-import { cookies } from "next/headers";
+import { auth } from "@/auth";
 import { InterviewService } from "@/app/services/interview-service";
 
-
 export async function POST(req: Request) {
-
     try {
-        const token = (await cookies()).get("auth_token")?.value;
-        if (!token) {
-            return new Response(
-                JSON.stringify({ message: "Unauthorized" }),
-                { status: 401 }
-            );
-        }
-        const userId = AuthenticationService.verifyJWTToken(token);
-        if (!userId) {
-            return new Response(
-                JSON.stringify({ message: "Unauthorized" }),
-                { status: 401 }
-            );
-        }
-        const { interviewSessionId } = await req.json();
-        const interviewActive = await InterviewService.getInterviewStatus(interviewSessionId);
+        // 1️⃣ Validate authentication using NextAuth
+        const session = await auth();
 
+        if (!session || !session.user?.id) {
+            return new Response(
+                JSON.stringify({ message: "Unauthorized" }),
+                { status: 401 }
+            );
+        }
+
+
+        // 2️⃣ Extract inputs
+        const { interviewSessionId } = await req.json();
+
+        // 3️⃣ IMPORTANT: Validate user owns the session
+        const interviewActive = await InterviewService.getInterviewStatus(
+            interviewSessionId,
+        );
+
+        // 4️⃣ Return status
         return new Response(
             JSON.stringify({
-                message: "Analysis fetched successfully",
-                interviewActive: interviewActive,
+                message: "Interview status fetched successfully",
+                interviewActive
             }),
             { status: 200 }
         );
-
     } catch (err) {
-        if (err instanceof Error) {
-            return new Response(
-                JSON.stringify({ message: "Unable to register user" }),
-                { status: 400 }
-            );
-        }
+        console.error("Error in interview status API:", err);
 
         return new Response(
-            JSON.stringify({ error: "Unknown error" }),
-            { status: 400 }
+            JSON.stringify({
+                message: "Unable to fetch interview status",
+                error: err instanceof Error ? err.message : "Unknown error",
+            }),
+            { status: 500 }
         );
     }
 }

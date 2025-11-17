@@ -1,46 +1,41 @@
-import { AuthenticationService } from "@/app/services/authentication-service";
-import { cookies } from "next/headers";
+import { auth } from "@/auth";
 import { InterviewService } from "@/app/services/interview-service";
 
-
 export async function POST(req: Request) {
-
     try {
-        const token = (await cookies()).get("auth_token")?.value;
-        if (!token) {
-            return new Response(
-                JSON.stringify({ message: "Unauthorized" }),
-                { status: 401 }
-            );
-        }
-        const userId = AuthenticationService.verifyJWTToken(token);
-        if (!userId) {
-            return new Response(
-                JSON.stringify({ message: "Unauthorized" }),
-                { status: 401 }
-            );
-        }
-        const { interviewSessionId, analysis } = await req.json();
-        const status = await InterviewService.saveInterviewAnalysis(interviewSessionId, analysis);
+        // 1️⃣ Validate login using NextAuth session
+        const session = await auth();
 
+        if (!session || !session.user?.id) {
+            return new Response(
+                JSON.stringify({ message: "Unauthorized" }),
+                { status: 401 }
+            );
+        }
+        // 2️⃣ Read incoming data
+        const { interviewSessionId, analysis } = await req.json();
+
+        // 3️⃣ Save interview analysis (pass userId for ownership validation)
+        await InterviewService.saveInterviewAnalysis(
+            interviewSessionId,
+            analysis
+        );
+
+        // 4️⃣ Respond success
         return new Response(
-            JSON.stringify({
-                message: "Analysis saved successfully",
-            }),
+            JSON.stringify({ message: "Analysis saved successfully" }),
             { status: 200 }
         );
 
     } catch (err) {
-        if (err instanceof Error) {
-            return new Response(
-                JSON.stringify({ message: "Unable to register user" }),
-                { status: 400 }
-            );
-        }
+        console.error("Error saving analysis:", err);
 
         return new Response(
-            JSON.stringify({ error: "Unknown error" }),
-            { status: 400 }
+            JSON.stringify({
+                message: "Unable to save analysis",
+                error: err instanceof Error ? err.message : "Unknown error"
+            }),
+            { status: 500 }
         );
     }
 }

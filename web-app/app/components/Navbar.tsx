@@ -58,7 +58,7 @@ export default function Navbar() {
 
         {/* Mobile Login Button */}
         <Link
-          href="/auth"
+          href="/login"
           className="text-[15px] font-medium hover:text-[#f43e02] transition-colors text-black"
         >
           Login
@@ -162,13 +162,13 @@ export default function Navbar() {
       {/* Desktop Right Section */}
       <div className="hidden md:flex items-center justify-end gap-6">
         <Link
-          href="/auth"
+          href="/login"
           className="text-[15px] font-medium hover:text-[#f43e02] transition-colors whitespace-nowrap"
         >
           Login
         </Link>
 
-        <Link href="/auth">
+        <Link href="/login">
           <button
             className="text-white text-[15px] font-semibold px-5 py-2.5 rounded-full hover:scale-105 transition-transform whitespace-nowrap"
             style={{
@@ -253,7 +253,7 @@ export default function Navbar() {
             </Link>
 
             <div className="pt-4 border-t border-gray-200">
-              <Link href="/auth">
+              <Link href="/login">
                 <button
                   className="w-full text-white text-[15px] font-semibold px-5 py-3 rounded-full hover:scale-105 transition-transform"
                   style={{

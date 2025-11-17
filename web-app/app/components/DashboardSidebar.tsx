@@ -1,18 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Menu,
-  X,
-  Settings,
-  Download,
-  LogOut,
-  HelpCircle,
-  Trash2,
-  MoreVertical,
-} from "lucide-react";
+import { Menu, X, Settings, LogOut, HelpCircle, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import platformColors from "../utils/colors";
+import { signOut } from "next-auth/react";
 
 export default function DashboardSidebar({
   sidebarOpen,
@@ -32,125 +24,11 @@ export default function DashboardSidebar({
     null
   );
 
-  // ✅ PROPER LOGOUT - Wait for API but with safeguards
   const handleLogout = async () => {
-    setLoggingOut(true);
-
     try {
-      // Clear client-side storage first
-      localStorage.clear();
-      sessionStorage.clear();
-
-      // Make logout API call with timeout
-      const logoutPromise = fetch("/api/logout", {
-        method: "POST",
-        headers: {
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-        },
-        credentials: "include",
-      });
-
-      // Set a reasonable timeout (5 seconds)
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Logout timeout")), 5000)
-      );
-
-      // Wait for logout API but don't wait forever
-      await Promise.race([logoutPromise, timeoutPromise]);
-
-      // ✅ ONLY redirect after successful API call
-      console.log("Logout API completed, redirecting...");
-      window.location.href = "/auth";
-    } catch (error) {
-      console.error("Logout error:", error);
-
-      // Even if API fails, we should still try to redirect
-      // but inform the user there might be issues
-      if (error instanceof Error && error.message === "Logout timeout") {
-        console.log("Logout timed out, forcing redirect anyway");
-      }
-
-      // Force redirect after error with cache busting
-      window.location.href = "/auth?error=logout_timeout&t=" + Date.now();
-    }
-  };
-
-  // ✅ SIMPLER & MORE RELIABLE VERSION
-  const handleLogoutReliable = async () => {
-    setLoggingOut(true);
-
-    try {
-      // Clear client storage
-      localStorage.clear();
-      sessionStorage.clear();
-
-      // Make the logout request with a simple timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-      const response = await fetch("/api/logout", {
-        method: "POST",
-        headers: {
-          "Cache-Control": "no-cache",
-        },
-        credentials: "include",
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        console.log("Logout successful, redirecting...");
-        // Use replace to prevent back button issues
-        window.location.replace("/auth");
-      } else {
-        throw new Error("Logout failed");
-      }
-    } catch (error) {
-      console.error("Logout error:", error);
-      // If API fails, still redirect but with cache busting
-      window.location.replace("/auth?error=logout_failed&t=" + Date.now());
-    }
-  };
-
-  // ✅ ULTIMATE SAFE LOGOUT (Recommended)
-  const handleLogoutSafe = async () => {
-    setLoggingOut(true);
-
-    try {
-      // Step 1: Clear client-side data
-      localStorage.clear();
-      sessionStorage.clear();
-
-      // Step 2: Attempt logout API with short timeout
-      let logoutSuccess = false;
-
-      try {
-        const response = await fetch("/api/logout", {
-          method: "POST",
-          headers: { "Cache-Control": "no-cache" },
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          logoutSuccess = true;
-          console.log("Logout API succeeded");
-        }
-      } catch (apiError) {
-        console.log("Logout API failed, but continuing...", apiError);
-      }
-
-      // Step 3: Wait a brief moment to ensure cookie is cleared
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Step 4: Force redirect regardless of API result
-      console.log("Redirecting to auth page...");
-      window.location.href =
-        "/auth?logout=" + (logoutSuccess ? "success" : "forced");
-    } catch (error) {
-      console.error("Unexpected logout error:", error);
-      // Final fallback - always redirect
-      window.location.href = "/auth";
+      await signOut({ callbackUrl: "/" });
+    } catch (err) {
+      console.error("Logout error:", err);
     }
   };
 
@@ -351,7 +229,7 @@ export default function DashboardSidebar({
 
             {/* Logout - Use the SAFE version */}
             <button
-              onClick={handleLogoutSafe} // Use the safe version that waits for API
+              onClick={handleLogout} // Use the safe version that waits for API
               disabled={loggingOut}
               className="flex items-center gap-2 text-sm text-red-500 hover:text-red-600 transition mt-3 w-full"
             >

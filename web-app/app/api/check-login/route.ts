@@ -1,24 +1,29 @@
 // app/api/check-login/route.ts
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
-import { AuthenticationService } from "@/app/services/authentication-service";
+import { auth } from "@/auth"
+import { NextResponse } from "next/server"
 
 export async function GET() {
     try {
-        const token = (await cookies()).get("auth_token")?.value;
+        // 1️⃣ Get the session from NextAuth
+        const session = await auth()
 
-        if (!token) {
-            return NextResponse.json({ authenticated: false }, { status: 401 });
+        if (!session || !session.user?.id) {
+            return NextResponse.json(
+                { authenticated: false },
+                { status: 401 }
+            )
         }
 
-        const userId = AuthenticationService.verifyJWTToken(token);
-        if (!userId) {
-            return NextResponse.json({ authenticated: false }, { status: 401 });
-        }
-
-        return NextResponse.json({ authenticated: true, userId });
+        return NextResponse.json({
+            authenticated: true,
+            userId: session.user.id,
+        })
     } catch (error) {
-        console.error("Login check failed:", error);
-        return NextResponse.json({ authenticated: false }, { status: 500 });
+        console.error("Login check failed:", error)
+
+        return NextResponse.json(
+            { authenticated: false },
+            { status: 500 }
+        )
     }
 }

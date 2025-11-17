@@ -36,7 +36,7 @@ export default function HomePage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-6">
-            <Link href="/auth">
+            <Link href="/login">
               <button
                 style={{ backgroundColor: "#f43e02" }}
                 className="hover:opacity-90 text-white text-lg px-6 py-3 rounded-md shadow-md transition-transform transform hover:scale-105"
@@ -215,7 +215,7 @@ export default function HomePage() {
         </div>
 
         <div className="text-center mt-20">
-          <Link href="/auth">
+          <Link href="/login">
             <button
               style={{ backgroundColor: "#f43e02" }}
               className="hover:opacity-90 text-white text-lg px-8 py-3 rounded-md shadow-md transition-transform transform hover:scale-105"
@@ -308,7 +308,7 @@ export default function HomePage() {
         <p className="text-white/80 mb-8">
           SpeakPrep AI is currently completely free to use.
         </p>
-        <Link href="/auth">
+        <Link href="/login">
           <button
             style={{ backgroundColor: "#f43e02" }}
             className="hover:opacity-90 text-white text-lg px-6 py-3 rounded-md shadow-md transition-transform transform hover:scale-105"

@@ -1,49 +1,47 @@
-import { AuthenticationService } from "@/app/services/authentication-service";
-import { cookies } from "next/headers";
-import { InterviewService } from "@/app/services/interview-service";
+import { auth } from "@/auth"
+import { InterviewService } from "@/app/services/interview-service"
 
 export async function POST(req: Request) {
     try {
-        const token = (await cookies()).get("auth_token")?.value;
-        if (!token) {
+        // 1️⃣ Get authenticated user from NextAuth session
+        const session = await auth()
+
+        if (!session || !session.user?.id) {
             return new Response(
                 JSON.stringify({ message: "Unauthorized" }),
                 { status: 401 }
-            );
+            )
         }
-        const userId = AuthenticationService.verifyJWTToken(token);
-        if (!userId) {
+
+        const userId = session.user.id
+
+        // 2️⃣ Parse request data
+        const { interviewSessionId } = await req.json()
+
+        if (!interviewSessionId) {
             return new Response(
-                JSON.stringify({ message: "Invalid token" }),
-                { status: 401 }
-            );
+                JSON.stringify({ message: "Missing interviewSessionId" }),
+                { status: 400 }
+            )
         }
 
-        const { interviewSessionId } = await req.json();
+        // 3️⃣ Delete interview for this user
+        await InterviewService.deleteInterviewSession(interviewSessionId, userId)
 
-        await InterviewService.deleteInterviewSession(interviewSessionId, userId);
         return new Response(
             JSON.stringify({ message: "Interview session deleted successfully" }),
             { status: 200 }
-        );
-
+        )
 
     } catch (err) {
-        console.error("Error in interview deletion API:", err);
-
-        if (err instanceof Error) {
-            return new Response(
-                JSON.stringify({
-                    message: "Failed to delete interview session",
-                    error: err.message
-                }),
-                { status: 500 }
-            );
-        }
+        console.error("Error in interview deletion API:", err)
 
         return new Response(
-            JSON.stringify({ error: "Unknown error occurred" }),
+            JSON.stringify({
+                message: "Failed to delete interview session",
+                error: err instanceof Error ? err.message : "Unknown error"
+            }),
             { status: 500 }
-        );
+        )
     }
 }

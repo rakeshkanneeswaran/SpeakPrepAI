@@ -150,7 +150,7 @@ export default function PrivacyPage() {
           profiling, no hidden agendas — just secure, real-time interview
           preparation designed for you.
         </p>
-        <Link href="/auth">
+        <Link href="/login">
           <button className="bg-black text-[#E6DCAF] font-semibold text-lg px-8 py-4 rounded-full hover:scale-105 transition-transform">
             Start Practicing Securely
           </button>

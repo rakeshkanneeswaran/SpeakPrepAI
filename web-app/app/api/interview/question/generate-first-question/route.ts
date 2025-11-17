@@ -1,45 +1,40 @@
-import { AuthenticationService } from "@/app/services/authentication-service";
-import { UserService } from "@/app/services/user-service";
-import { cookies } from "next/headers";
+import { auth } from "@/auth";
 import { InterviewService } from "@/app/services/interview-service";
 
-
 export async function POST(req: Request) {
-
-
     try {
-        const token = (await cookies()).get("auth_token")?.value;
-        if (!token) {
+        // 1️⃣ Get NextAuth session
+        const session = await auth();
+
+        if (!session || !session.user?.id) {
             return new Response(
                 JSON.stringify({ message: "Unauthorized" }),
                 { status: 401 }
             );
         }
-        const userId = AuthenticationService.verifyJWTToken(token);
-        if (!userId) {
-            return new Response(
-                JSON.stringify({ message: "Invalid token" }),
-                { status: 401 }
-            );
-        }
+
+        // 2️⃣ Extract request body
         const { interviewSessionId } = await req.json();
-        const firstQuestionResponse = await InterviewService.getFirstQuestionFromAI(interviewSessionId);
+
+        // 3️⃣ Generate first question
+        const firstQuestionResponse =
+            await InterviewService.getFirstQuestionFromAI(interviewSessionId);
+
+        // 4️⃣ Send response
         return new Response(
             JSON.stringify(firstQuestionResponse),
             { status: 200 }
         );
 
     } catch (err) {
-        if (err instanceof Error) {
-            return new Response(
-                JSON.stringify({ message: "Unable to register user" }),
-                { status: 400 }
-            );
-        }
+        console.error("Error in generate-first-question:", err);
 
         return new Response(
-            JSON.stringify({ error: "Unknown error" }),
-            { status: 400 }
+            JSON.stringify({
+                message: "Failed to generate question",
+                error: err instanceof Error ? err.message : "Unknown error"
+            }),
+            { status: 500 }
         );
     }
 }

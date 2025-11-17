@@ -1,56 +1,55 @@
-import { AuthenticationService } from "@/app/services/authentication-service";
-import { UserService } from "@/app/services/user-service";
-import { cookies } from "next/headers";
+import { auth } from "@/auth";
 import { InterviewService } from "@/app/services/interview-service";
 
 export async function POST(req: Request) {
     try {
-        const token = (await cookies()).get("auth_token")?.value;
-        if (!token) {
+        // 1️⃣ Validate the user using NextAuth
+        const session = await auth();
+
+        if (!session || !session.user?.id) {
             return new Response(
                 JSON.stringify({ message: "Unauthorized" }),
                 { status: 401 }
             );
         }
-        const userId = AuthenticationService.verifyJWTToken(token);
-        if (!userId) {
-            return new Response(
-                JSON.stringify({ message: "Invalid token" }),
-                { status: 401 }
-            );
-        }
+
+        const userId = session.user.id;
+
+        // 2️⃣ Extract request body
         const { jobDescription, resumeData } = await req.json();
 
         if (!jobDescription || !resumeData) {
             return new Response(
-                JSON.stringify({ message: "Job description and resume data are required" }),
+                JSON.stringify({
+                    message: "Job description and resume data are required"
+                }),
                 { status: 400 }
             );
         }
 
-        const createInterviewSession = await InterviewService.createInterviewSession(userId, resumeData, jobDescription);
+        // 3️⃣ Create the interview session
+        const createInterviewSession =
+            await InterviewService.createInterviewSession(
+                userId,
+                resumeData,
+                jobDescription
+            );
+
         const interviewSessionId = createInterviewSession.interviewSessionId;
 
+        // 4️⃣ Respond to frontend
         return new Response(
-            JSON.stringify({ interviewSessionId: interviewSessionId }),
+            JSON.stringify({ interviewSessionId }),
             { status: 200 }
         );
-
     } catch (err) {
         console.error("Error in interview creation API:", err);
 
-        if (err instanceof Error) {
-            return new Response(
-                JSON.stringify({
-                    message: "Failed to create interview session",
-                    error: err.message
-                }),
-                { status: 500 }
-            );
-        }
-
         return new Response(
-            JSON.stringify({ error: "Unknown error occurred" }),
+            JSON.stringify({
+                message: "Failed to create interview session",
+                error: err instanceof Error ? err.message : "Unknown error",
+            }),
             { status: 500 }
         );
     }
