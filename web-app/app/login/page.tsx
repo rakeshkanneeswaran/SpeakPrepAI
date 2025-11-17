@@ -1,10 +1,50 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
 import Navbar from "../components/Navbar";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [checkingLogin, setCheckingLogin] = useState(true);
+
+  // 🔥 Check if user is already logged in
+  useEffect(() => {
+    async function checkLogin() {
+      try {
+        const res = await fetch("/api/check-login");
+        const data = await res.json();
+
+        if (res.ok && data.authenticated) {
+          router.push("/dashboard");
+        } else {
+          setCheckingLogin(false);
+        }
+      } catch (err) {
+        console.error("Login check failed:", err);
+        setCheckingLogin(false);
+      }
+    }
+
+    checkLogin();
+  }, [router]);
+
+  // ⏳ Show loading while checking login state
+  if (checkingLogin) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-orange-100">
+        <div className="text-center">
+          <div className="animate-spin h-10 w-10 border-4 border-orange-400 border-t-transparent rounded-full mx-auto"></div>
+          <p className="mt-4 text-gray-600 font-medium">
+            Checking your session...
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main
       className="min-h-screen flex flex-col bg-gradient-to-br from-orange-50 via-white to-orange-100 text-black"
