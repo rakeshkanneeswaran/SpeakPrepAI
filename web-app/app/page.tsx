@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Navbar from "./components/Navbar";
 import { Upload, Mic, BarChart3, Shield, Users, Sparkles } from "lucide-react";
+import Testimonials from "./components/Testimonials";
+import testimonialsList from "./utils/testimonial";
 
 export default function HomePage() {
   const year = new Date().getFullYear();
@@ -212,6 +214,10 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="mt-32">
+          <Testimonials list={testimonialsList} />
         </div>
 
         <div className="text-center mt-20">
