@@ -77,7 +77,7 @@ export default function Navbar() {
           href="/mission"
           className="hover:text-[#f43e02] transition-colors"
         >
-          About Us
+          About
         </Link>
 
         <Link href="/team" className="hover:text-[#f43e02] transition-colors">
