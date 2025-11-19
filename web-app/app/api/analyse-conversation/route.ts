@@ -1,26 +1,21 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { AuthenticationService } from "@/app/services/authentication-service";
+import { auth } from "@/auth";
 import AIService from "@/app/services/ai-service";
 import { InterviewService } from "@/app/services/interview-service";
 
 export async function POST(req: Request) {
     try {
+        // 1️⃣ Authenticate user using NextAuth
+        const session = await auth();
 
-        const token = (await cookies()).get("auth_token")?.value;
-        if (!token) {
-            return new Response(
-                JSON.stringify({ message: "Unauthorized" }),
+        if (!session || !session.user?.id) {
+            return NextResponse.json(
+                { message: "Not authenticated" },
                 { status: 401 }
             );
         }
-        const userId = AuthenticationService.verifyJWTToken(token);
-        if (!userId) {
-            return new Response(
-                JSON.stringify({ message: "Unauthorized" }),
-                { status: 401 }
-            );
-        }
+
+        const userId = session.user.id;
         const body = await req.json();
         const { conversation, sessionId } = body;
 

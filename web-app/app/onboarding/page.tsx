@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 
 export default function OnboardingPage() {
   const [step, setStep] = useState<
@@ -32,6 +32,29 @@ export default function OnboardingPage() {
   >("idle");
 
   const router = useRouter();
+
+  // ========================================================
+  // 🚀 NEW FEATURE: AUTO-REDIRECT IF USER ALREADY ONBOARDED
+  // ========================================================
+  useEffect(() => {
+    async function checkOnboarding() {
+      try {
+        const res = await fetch("/api/user/check-onboarding", {
+          method: "GET",
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.isOnboarded === true) {
+          router.replace("/dashboard");
+        }
+      } catch (e) {
+        console.error("Onboarding check failed:", e);
+      }
+    }
+
+    checkOnboarding();
+  }, [router]);
 
   // ===========================
   // VALIDATE API KEY
@@ -72,7 +95,7 @@ export default function OnboardingPage() {
   }
 
   // ===========================
-  // NEXT STEP LOGIC
+  // NEXT STEP
   // ===========================
   async function nextStep() {
     setError("");
@@ -87,19 +110,25 @@ export default function OnboardingPage() {
       if (!isValid) return;
 
       setStep("profession");
-    } else if (step === "profession") {
+    }
+
+    if (step === "profession") {
       if (!profession) {
         setError("Please select your profession");
         return;
       }
       setStep("role");
-    } else if (step === "role") {
+    }
+
+    if (step === "role") {
       if (!role.trim()) {
         setError("Please enter your role");
         return;
       }
       setStep("experience");
-    } else if (step === "experience") {
+    }
+
+    if (step === "experience") {
       if (!experience) {
         setError("Please select your experience level");
         return;
@@ -120,7 +149,7 @@ export default function OnboardingPage() {
   }
 
   // ===========================
-  // BACK BUTTON LOGIC
+  // GO BACK
   // ===========================
   function goBack() {
     if (step === "profession") setStep("apiKey");
@@ -212,6 +241,17 @@ export default function OnboardingPage() {
               <p className="text-gray-500 text-center mb-2">
                 Enter your free Groq API key to continue
               </p>
+              <p className="text-center text-sm text-gray-600">
+                Don’t have one?{" "}
+                <a
+                  href="https://console.groq.com/keys"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#f43e02] font-medium hover:underline"
+                >
+                  Get your Groq API key here →
+                </a>
+              </p>
 
               {/* Input */}
               <input
@@ -222,7 +262,7 @@ export default function OnboardingPage() {
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f43e02]"
               />
 
-              {/* Validation UI */}
+              {/* Validation Status */}
               {apiKey && (
                 <div className="flex items-center gap-2 text-sm">
                   {validatingApi && (
@@ -245,32 +285,71 @@ export default function OnboardingPage() {
                       <span className="text-red-600">Invalid key</span>
                     </>
                   )}
+
+                  {apiStatus === "terms_required" && (
+                    <>
+                      <AlertTriangle className="text-orange-500" size={16} />
+                      <span className="text-orange-600">
+                        TTS terms required
+                      </span>
+                    </>
+                  )}
                 </div>
               )}
 
+              {/* TTS TERMS REQUIRED */}
+              {apiStatus === "terms_required" && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="bg-orange-50 border border-orange-200 rounded-lg p-4"
+                >
+                  <h4 className="font-semibold text-orange-800 mb-1">
+                    Voice Feature Setup Required
+                  </h4>
+
+                  <p className="text-orange-700 text-sm">
+                    You must accept the TTS terms in your Groq account before
+                    continuing.
+                  </p>
+
+                  <a
+                    href="https://console.groq.com/playground?model=playai-tts"
+                    target="_blank"
+                    className="inline-block mt-3 bg-orange-500 text-white px-4 py-2 rounded text-sm hover:bg-orange-600"
+                  >
+                    Accept TTS Terms
+                  </a>
+
+                  <p className="text-orange-600 text-xs mt-2">
+                    After accepting, return here and press Continue.
+                  </p>
+                </motion.div>
+              )}
+
+              {/* 🔥 Continue Button — RESTORED */}
               <button
                 onClick={nextStep}
                 disabled={validatingApi || apiStatus === "invalid"}
-                className={`w-full text-white font-semibold py-3 rounded-lg transition ${
+                className={`w-full text-white font-semibold py-3 rounded-lg transition-transform ${
                   validatingApi || apiStatus === "invalid"
                     ? "bg-orange-300 cursor-not-allowed"
                     : "bg-[#f43e02] hover:scale-[1.02]"
                 }`}
               >
-                Continue →
+                {validatingApi ? "Validating..." : "Continue →"}
               </button>
             </motion.div>
           )}
-
           {/* ======================= */}
           {/* STEP 2 — PROFESSION */}
           {/* ======================= */}
           {step === "profession" && (
             <motion.div
               key="profession"
-              initial={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 30 }}
+              exit={{ opacity: 0, x: -30 }}
               className="space-y-6"
             >
               <p className="text-gray-600 text-center">
@@ -298,7 +377,7 @@ export default function OnboardingPage() {
                 ))}
               </div>
 
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-3">
                 <button
                   onClick={goBack}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800"
@@ -322,9 +401,9 @@ export default function OnboardingPage() {
           {step === "role" && (
             <motion.div
               key="role"
-              initial={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 30 }}
+              exit={{ opacity: 0, x: -30 }}
               className="space-y-6"
             >
               <p className="text-gray-600 text-center">
@@ -339,7 +418,7 @@ export default function OnboardingPage() {
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f43e02]"
               />
 
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-3">
                 <button
                   onClick={goBack}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800"
@@ -355,16 +434,15 @@ export default function OnboardingPage() {
               </div>
             </motion.div>
           )}
-
           {/* ======================= */}
           {/* STEP 4 — EXPERIENCE */}
           {/* ======================= */}
           {step === "experience" && (
             <motion.div
               key="experience"
-              initial={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 30 }}
+              exit={{ opacity: 0, x: -30 }}
               className="space-y-6"
             >
               <p className="text-gray-600 text-center">Your experience level</p>
@@ -394,7 +472,7 @@ export default function OnboardingPage() {
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f43e02]"
               />
 
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-3">
                 <button
                   onClick={goBack}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800"
@@ -410,58 +488,50 @@ export default function OnboardingPage() {
               </div>
             </motion.div>
           )}
-
-          {/* ======================= */}
-          {/* STEP 5 — PRIVACY & TERMS */}
-          {/* ======================= */}
+          {/* STEP 5 — PRIVACY */}
           {step === "privacy" && (
             <motion.div
               key="privacy"
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 30 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
               className="space-y-6"
             >
-              <p className="text-gray-600 text-center">
-                Please review and accept the terms
+              <p className="text-gray-600 leading-relaxed text-sm">
+                We respect your privacy. Your data will only be used to generate
+                personalized interview questions.
               </p>
 
-              <div className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  checked={agreedToTerms}
-                  onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="mt-1 w-5 h-5"
-                />
-                <p className="text-sm text-gray-600">
-                  I agree that my data will be used only for improving interview
-                  experiences. No audio or private information is stored.
-                </p>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <label className="flex items-start space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    className="mt-1 text-[#f43e02]"
+                  />
+                  <span className="text-sm text-gray-700">
+                    I agree to the terms and privacy policy.
+                  </span>
+                </label>
               </div>
 
               <button
                 onClick={handleSubmit}
                 disabled={!agreedToTerms || loading}
-                className={`w-full text-white font-semibold py-3 rounded-lg mt-2 transition ${
+                className={`w-full text-white font-semibold py-3 rounded-lg transition ${
                   !agreedToTerms
                     ? "bg-orange-300 cursor-not-allowed"
                     : "bg-[#f43e02] hover:scale-[1.02]"
                 }`}
               >
-                Finish Onboarding →
-              </button>
-
-              <button
-                onClick={goBack}
-                className="text-sm text-gray-600 hover:text-gray-800"
-              >
-                ← Back
+                Complete Setup →
               </button>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* ERROR */}
+        {/* ERROR MESSAGE */}
         {error && (
           <motion.p
             key="errorMsg"

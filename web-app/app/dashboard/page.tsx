@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardSidebar from "../components/DashboardSidebar";
 import ErrorModal from "../components/ErrorModal";
 import ResumeUploadModal from "../components/ResumeUploadModal";
@@ -23,6 +23,8 @@ export default function Dashboard() {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
+  type UserProfile = { name?: string; image?: string } | null;
+  const [user, setUser] = useState<UserProfile>(null);
 
   // Map card titles to interview types
   const getInterviewType = (cardTitle: string): string => {
@@ -37,6 +39,21 @@ export default function Dashboard() {
         return "technical";
     }
   };
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const res = await fetch("/api/user/settings");
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+        }
+      } catch (err) {
+        console.error("User load failed:", err);
+      }
+    }
+    loadUser();
+  }, []);
 
   const handleLaunchInterview = async (
     resumeFile: File,
@@ -173,12 +190,28 @@ export default function Dashboard() {
             AI-powered insights.
           </p>
         </div>
-        <button
-          onClick={() => setShowResumeModal(true)}
-          className="px-4 py-2 bg-orange-500 text-white rounded-md font-semibold hover:bg-orange-600 transition"
-        >
-          Start Interview
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setShowResumeModal(true)}
+            className="px-4 py-2 bg-orange-500 text-white rounded-md font-semibold hover:bg-orange-600 transition"
+          >
+            Start Interview
+          </button>
+
+          {/* USER AVATAR */}
+          {user && (
+            <Link href="/settings">
+              {/* Next.js Image for better optimization */}
+              <Image
+                src={user.image || "/default-avatar.png"}
+                alt="profile"
+                width={40}
+                height={40}
+                className="rounded-full border cursor-pointer object-cover hover:opacity-80"
+              />
+            </Link>
+          )}
+        </div>
       </header>
 
       {/* Body */}
@@ -191,9 +224,11 @@ export default function Dashboard() {
         <main className="flex-1 flex flex-col">
           <div className="flex-1 p-8 space-y-8 flex flex-col items-center justify-center">
             <div className="text-center mb-8 w-full max-w-4xl">
-              <h2 className="text-4xl font-semibold text-gray-800 mb-3">
+              <h3 className="text-3xl font-semibold text-gray-800 mb-3">
+                {user?.name ? `Hello ${user.name.split(" ")[0]}` : "Welcome"},
                 What would you like to do today?
-              </h2>
+              </h3>
+
               <p className="text-gray-500 text-lg">
                 Choose how you want to prepare or research with SpeakPrep AI.
               </p>

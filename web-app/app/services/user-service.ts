@@ -118,4 +118,36 @@ export class UserService {
             return { user: updatedUser, settings: updatedSettings };
         });
     }
+
+    static async deleteAccount(userId: string) {
+        return await prisma.$transaction(async (tx) => {
+            // Delete all interviews
+            await tx.interview.deleteMany({
+                where: { userId },
+            });
+
+            // Delete user settings
+            await tx.userSettings.deleteMany({
+                where: { userId },
+            });
+
+            // Delete OAuth accounts
+            await tx.account.deleteMany({
+                where: { userId },
+            });
+
+            // Delete sessions
+            await tx.session.deleteMany({
+                where: { userId },
+            });
+
+            // Finally delete user
+            await tx.user.delete({
+                where: { id: userId },
+            });
+
+            return true;
+        });
+    }
+
 }
