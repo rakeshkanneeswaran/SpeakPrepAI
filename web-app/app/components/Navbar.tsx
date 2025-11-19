@@ -10,7 +10,6 @@ export default function Navbar() {
   const menuRef = useRef<HTMLDivElement>(null);
   const moreRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -20,11 +19,9 @@ export default function Navbar() {
         setIsMoreOpen(false);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
@@ -35,7 +32,7 @@ export default function Navbar() {
         fontFamily: "Montserrat, sans-serif",
       }}
     >
-      {/* Mobile Menu Button */}
+      {/* MOBILE HEADER */}
       <div className="flex md:hidden w-full justify-between items-center">
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -44,7 +41,6 @@ export default function Navbar() {
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
 
-        {/* Mobile Logo */}
         <Link
           href="/"
           className="text-2xl font-extrabold tracking-tight text-center"
@@ -56,7 +52,6 @@ export default function Navbar() {
           SpeakPrep<span style={{ color: "#f43e02" }}>AI</span>
         </Link>
 
-        {/* Mobile Login Button */}
         <Link
           href="/login"
           className="text-[15px] font-medium hover:text-[#f43e02] transition-colors text-black"
@@ -65,37 +60,31 @@ export default function Navbar() {
         </Link>
       </div>
 
-      {/* Desktop Left Section */}
+      {/* DESKTOP LEFT MENU */}
       <div className="hidden md:flex items-center gap-8 text-[15px] font-medium text-black flex-wrap">
-        <Link
-          href="/"
-          className="hover:text-[#f43e02] transition-colors whitespace-nowrap"
-        >
+        <Link href="/" className="hover:text-[#f43e02] transition-colors">
           Home
         </Link>
 
         <Link
           href="/pricing"
-          className="hover:text-[#f43e02] transition-colors whitespace-nowrap"
+          className="hover:text-[#f43e02] transition-colors"
         >
           Pricing
         </Link>
 
         <Link
           href="/mission"
-          className="hover:text-[#f43e02] transition-colors whitespace-nowrap"
+          className="hover:text-[#f43e02] transition-colors"
         >
           About
         </Link>
 
-        <Link
-          href="/team"
-          className="hover:text-[#f43e02] transition-colors whitespace-nowrap"
-        >
+        <Link href="/team" className="hover:text-[#f43e02] transition-colors">
           Founder
         </Link>
 
-        {/* More Dropdown for Desktop */}
+        {/* MORE DROPDOWN */}
         <div className="relative" ref={moreRef}>
           <button
             onClick={() => setIsMoreOpen(!isMoreOpen)}
@@ -105,11 +94,12 @@ export default function Navbar() {
           </button>
 
           {isMoreOpen && (
-            <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-              <div className="py-2">
+            <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+              <div className="py-2 text-black">
+                {/* Product section */}
                 <Link
                   href="/infrastructure"
-                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors text-black"
+                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
                   onClick={() => setIsMoreOpen(false)}
                 >
                   Infrastructure
@@ -117,7 +107,7 @@ export default function Navbar() {
 
                 <Link
                   href="/privacy"
-                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors text-black"
+                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
                   onClick={() => setIsMoreOpen(false)}
                 >
                   Privacy & Security
@@ -125,19 +115,62 @@ export default function Navbar() {
 
                 <Link
                   href="/faqs"
-                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors text-black"
+                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
                   onClick={() => setIsMoreOpen(false)}
                 >
                   FAQs
                 </Link>
 
-                {/* ✅ Changelog Link */}
                 <Link
                   href="/changelog"
-                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors text-black"
+                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
                   onClick={() => setIsMoreOpen(false)}
                 >
                   Changelog
+                </Link>
+
+                {/* Divider */}
+                <div className="my-2 border-t border-gray-200" />
+
+                {/* LEGAL SECTION */}
+                <Link
+                  href="/privacy-policy"
+                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
+                  onClick={() => setIsMoreOpen(false)}
+                >
+                  Privacy Policy
+                </Link>
+
+                <Link
+                  href="/terms-and-conditions"
+                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
+                  onClick={() => setIsMoreOpen(false)}
+                >
+                  Terms & Conditions
+                </Link>
+
+                <Link
+                  href="/refund-policy"
+                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
+                  onClick={() => setIsMoreOpen(false)}
+                >
+                  Refund Policy
+                </Link>
+
+                <Link
+                  href="/shipping-policy"
+                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
+                  onClick={() => setIsMoreOpen(false)}
+                >
+                  Shipping Policy
+                </Link>
+
+                <Link
+                  href="/contact-us"
+                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
+                  onClick={() => setIsMoreOpen(false)}
+                >
+                  Contact Us
                 </Link>
               </div>
             </div>
@@ -145,120 +178,151 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Desktop Center Logo */}
+      {/* DESKTOP CENTER LOGO */}
       <div className="hidden md:flex justify-center">
         <Link
           href="/"
-          className="text-3xl font-extrabold tracking-tight text-center whitespace-nowrap"
-          style={{
-            color: "#000",
-            fontFamily: "Montserrat, sans-serif",
-          }}
+          className="text-3xl font-extrabold tracking-tight"
+          style={{ color: "#000", fontFamily: "Montserrat, sans-serif" }}
         >
           SpeakPrep<span style={{ color: "#f43e02" }}>AI</span>
         </Link>
       </div>
 
-      {/* Desktop Right Section */}
+      {/* DESKTOP RIGHT SIDE */}
       <div className="hidden md:flex items-center justify-end gap-6">
         <Link
           href="/login"
-          className="text-[15px] font-medium hover:text-[#f43e02] transition-colors whitespace-nowrap"
+          className="text-[15px] hover:text-[#f43e02] transition-colors"
         >
           Login
         </Link>
 
         <Link href="/login">
           <button
-            className="text-white text-[15px] font-semibold px-5 py-2.5 rounded-full hover:scale-105 transition-transform whitespace-nowrap"
-            style={{
-              backgroundColor: "#f43e02",
-            }}
+            className="text-white text-[15px] font-semibold px-5 py-2.5 rounded-full hover:scale-105 transition-transform"
+            style={{ backgroundColor: "#f43e02" }}
           >
             Create Account
           </button>
         </Link>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* MOBILE MENU */}
       {isMenuOpen && (
         <div
-          className="md:hidden w-full bg-white border-t border-gray-200 mt-4 py-4 rounded-lg shadow-lg z-50 relative"
+          className="md:hidden w-full bg-white border-t border-gray-200 mt-4 py-4 rounded-lg shadow-lg z-50"
           ref={menuRef}
         >
-          <div className="flex flex-col space-y-4 px-4">
+          <div className="flex flex-col space-y-4 px-4 text-black font-medium">
             <Link
               href="/team"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
+              className="py-2 border-b hover:text-[#f43e02]"
             >
               Founder
             </Link>
 
             <Link
               href="/"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
+              className="py-2 border-b hover:text-[#f43e02]"
             >
               Home
             </Link>
 
             <Link
               href="/pricing"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
+              className="py-2 border-b hover:text-[#f43e02]"
             >
               Pricing
             </Link>
 
             <Link
               href="/mission"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
+              className="py-2 border-b hover:text-[#f43e02]"
             >
               About
             </Link>
 
             <Link
               href="/infrastructure"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
+              className="py-2 border-b hover:text-[#f43e02]"
             >
               Infrastructure
             </Link>
 
             <Link
               href="/privacy"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
+              className="py-2 border-b hover:text-[#f43e02]"
             >
               Privacy & Security
             </Link>
 
             <Link
               href="/faqs"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
+              className="py-2 border-b hover:text-[#f43e02]"
             >
               FAQs
             </Link>
 
-            {/* ✅ Mobile Changelog */}
             <Link
               href="/changelog"
-              className="hover:text-[#f43e02] transition-colors py-2 border-b border-gray-100 text-black font-medium"
               onClick={() => setIsMenuOpen(false)}
+              className="py-2 border-b hover:text-[#f43e02]"
             >
               Changelog
             </Link>
 
-            <div className="pt-4 border-t border-gray-200">
+            {/* LEGAL SECTION MOBILE */}
+            <div className="border-t pt-4">
+              <Link
+                href="/privacy-policy"
+                onClick={() => setIsMenuOpen(false)}
+                className="py-2 hover:text-[#f43e02]"
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                href="/terms-and-conditions"
+                onClick={() => setIsMenuOpen(false)}
+                className="py-2 hover:text-[#f43e02]"
+              >
+                Terms & Conditions
+              </Link>
+              <Link
+                href="/refund-policy"
+                onClick={() => setIsMenuOpen(false)}
+                className="py-2 hover:text-[#f43e02]"
+              >
+                Refund Policy
+              </Link>
+              <Link
+                href="/shipping-policy"
+                onClick={() => setIsMenuOpen(false)}
+                className="py-2 hover:text-[#f43e02]"
+              >
+                Shipping Policy
+              </Link>
+              <Link
+                href="/contact-us"
+                onClick={() => setIsMenuOpen(false)}
+                className="py-2 hover:text-[#f43e02]"
+              >
+                Contact Us
+              </Link>
+            </div>
+
+            <div className="pt-4 border-t">
               <Link href="/login">
                 <button
                   className="w-full text-white text-[15px] font-semibold px-5 py-3 rounded-full hover:scale-105 transition-transform"
-                  style={{
-                    backgroundColor: "#f43e02",
-                  }}
+                  style={{ backgroundColor: "#f43e02" }}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Create Account
