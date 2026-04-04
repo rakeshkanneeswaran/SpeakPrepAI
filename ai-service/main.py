@@ -26,6 +26,7 @@ from services.question_generator.hr_question_generator.continued_question import
 from fastapi.responses import JSONResponse
 
 dotenv.load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
 
 # Set up logging
 logging.basicConfig(level=logging.ERROR)
@@ -47,38 +48,6 @@ app.add_middleware(
 )
 
 
-# Middleware to enforce AI authorization token
-@app.middleware("http")
-async def ai_authorization_middleware(request: Request, call_next):
-    try:
-        if request.url.path in ("/", "/health"):
-            return await call_next(request)
-
-        expected_token = os.getenv("AI_AUTHORIZATION_TOKEN")
-        if not expected_token:
-            logger.warning("AI authorization token not set. Skipping enforcement.")
-            return await call_next(request)
-
-        header_token = request.headers.get("x-ai-authorization") or request.headers.get(
-            "ai-authorization"
-        )
-        if not header_token or header_token != expected_token:
-            logger.error(
-                f"Invalid or missing AI authorization token for path {request.url.path}."
-            )
-            return JSONResponse(
-                status_code=401,
-                content={"detail": "Invalid or missing AI authorization token"},
-            )
-
-        return await call_next(request)
-    except Exception as e:
-        logger.error(f"Error in AI authorization middleware: {e}")
-        return JSONResponse(
-            status_code=500, content={"detail": "Internal server error"}
-        )
-
-
 # ----------- Request Schemas -----------
 class GenerateQuestionsRequest(BaseModel):
     resume: str
@@ -96,34 +65,9 @@ class RegisterSessionRequest(BaseModel):
     job_description: str
 
 
-# Dependency to extract API key from headers
-async def get_api_key(authorization: Optional[str] = Header(None)):
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Authorization header is required")
-    try:
-        if not authorization.startswith("Bearer "):
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid authorization format. Expected 'Bearer <token>'",
-            )
-        api_key = authorization.replace("Bearer ", "").strip()
-        if not api_key:
-            raise HTTPException(status_code=401, detail="API key is empty")
-        if not api_key.startswith("gsk_"):
-            raise HTTPException(status_code=401, detail="Invalid API key format")
-        return api_key
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error extracting API key: {str(e)}")
-        raise HTTPException(status_code=401, detail="Invalid authorization header")
-
-
 # ✅ FIXED: Run blocking LLM calls in background threads
 @app.post("/analyze-responses")
-async def analyze_responses(
-    request: AnalysisRequest, api_key: str = Depends(get_api_key)
-):
+async def analyze_responses(request: AnalysisRequest):
     try:
         print("Received analyze responses request:")
         print(f"API Key: {api_key[:10]}...")
@@ -148,9 +92,7 @@ async def analyze_responses(
 
 
 @app.post("/register-session")
-async def register_session(
-    request: RegisterSessionRequest, api_key: str = Depends(get_api_key)
-):
+async def register_session(request: RegisterSessionRequest):
     try:
         print("Received register session request:")
         print(f"API Key: {api_key[:10]}...")
@@ -197,7 +139,7 @@ async def register_session(
 
 
 @app.post("/get-session/{session_id}")
-async def get_session_data(session_id: str, api_key: str = Depends(get_api_key)):
+async def get_session_data(session_id: str):
     try:
         print("Received get session request:")
         print(f"API Key: {api_key[:10]}...")
@@ -220,9 +162,7 @@ async def get_session_data(session_id: str, api_key: str = Depends(get_api_key))
 
 # ✅ FIXED: Run question generation in background threads
 @app.post("/generate-first-question/{session_id}")
-async def generate_first_question_endpoint(
-    session_id: str, api_key: str = Depends(get_api_key)
-):
+async def generate_first_question_endpoint(session_id: str):
     try:
         print("Received generate first question request:")
         print(f"API Key: {api_key[:10]}...")
@@ -243,9 +183,7 @@ async def generate_first_question_endpoint(
 
 
 @app.post("/generate-continued-question/{session_id}")
-async def generate_continued_question_endpoint(
-    session_id: str, request: Request, api_key: str = Depends(get_api_key)
-):
+async def generate_continued_question_endpoint(session_id: str, request: Request):
     try:
         body = await request.json()
         user_answer = body.get("user_answer", "")
@@ -284,9 +222,7 @@ async def health_check():
 
 # ✅ FIXED: HR question endpoints with background threads
 @app.post("/generate-first-hr-question/{session_id}")
-async def generate_first_hr_question_endpoint(
-    session_id: str, api_key: str = Depends(get_api_key)
-):
+async def generate_first_hr_question_endpoint(session_id: str):
     try:
         print("Received generate first HR question request:")
         print(f"API Key: {api_key[:10]}...")
@@ -308,7 +244,8 @@ async def generate_first_hr_question_endpoint(
 
 @app.post("/generate-continued-hr-question/{session_id}")
 async def generate_continued_hr_question_endpoint(
-    session_id: str, request: Request, api_key: str = Depends(get_api_key)
+    session_id: str,
+    request: Request,
 ):
     try:
         body = await request.json()

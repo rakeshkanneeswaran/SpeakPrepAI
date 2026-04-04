@@ -1,17 +1,17 @@
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 import logging
 import time
 
 logger = logging.getLogger(__name__)
 
-model_config = {"name": "llama-3.1-8b-instant", "temperature": 0.5}
+model_config = {"name": "gpt-4.1-mini", "temperature": 0.5}
 
 
-def generate_llm_for_question_from_api_key(api_key: str) -> ChatGroq:
+def generate_llm_for_question_from_api_key(api_key: str) -> ChatOpenAI:
     """
-    Generates a ChatGroq LLM instance for generating questions.
+    Generates a ChatOpenAI LLM instance for generating questions.
     """
-    llm_instance = ChatGroq(
+    llm_instance = ChatOpenAI(
         model=model_config["name"],
         temperature=model_config["temperature"],
         max_tokens=50,  # Short questions
@@ -21,11 +21,11 @@ def generate_llm_for_question_from_api_key(api_key: str) -> ChatGroq:
     return llm_instance
 
 
-def generate_llm_from_api_key(api_key: str) -> ChatGroq:
+def generate_llm_from_api_key(api_key: str) -> ChatOpenAI:
     """
-    Generates a ChatGroq LLM instance for normal responses.
+    Generates a ChatOpenAI LLM instance for normal responses.
     """
-    llm_instance = ChatGroq(
+    llm_instance = ChatOpenAI(
         model=model_config["name"],
         temperature=model_config["temperature"],
         max_tokens=None,  # No token limit (controlled by prompt template)
@@ -35,7 +35,7 @@ def generate_llm_from_api_key(api_key: str) -> ChatGroq:
     return llm_instance
 
 
-def invoke_llm_with_retry(llm: ChatGroq, prompt: str, max_retries: int = 2):
+def invoke_llm_with_retry(llm: ChatOpenAI, prompt: str, max_retries: int = 2):
     """
     Invoke LLM with automatic retry on failure
     """
