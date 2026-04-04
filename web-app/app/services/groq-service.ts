@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "dotenv/config";
 import Groq from "groq-sdk";
-import { UserService } from "./user-service";
+import OpenAI from "openai";
+const apiKey = process.env.GROQ_API_KEY || "";
+
 
 export interface ServiceResponse {
     success: boolean;
@@ -13,11 +15,9 @@ export interface ServiceResponse {
 export default class GroqService {
 
     static async createGroqClient(userId: string): Promise<Groq> {
-        const userSettings = await UserService.getUserSettings(userId);
-
-        if (userSettings && userSettings.apiKey) {
+        if (apiKey !== "") {
             return new Groq({
-                apiKey: userSettings.apiKey,
+                apiKey: apiKey
             });
         }
         else {
@@ -25,7 +25,9 @@ export default class GroqService {
         }
     }
 
-    static async transcribeAudio(file: File, userId: string): Promise<ServiceResponse> {
+    static async transcribeAudio(
+        file: File,
+    ): Promise<ServiceResponse> {
         console.log("[Transcription] Start...");
 
         try {
@@ -38,15 +40,18 @@ export default class GroqService {
                 };
             }
 
-            const groq = await this.createGroqClient(userId);
+            const openai = new OpenAI({
+                apiKey: process.env.OPENAI_API_KEY,
+            });
 
-            // Directly send the File (Blob) to Groq
-            const transcription = await groq.audio.transcriptions.create({
-                file, // 👈 No need for fs.createReadStream anymore
-                model: "whisper-large-v3-turbo",
-                response_format: "verbose_json",
-                language: "en",
-                temperature: 0.0,
+            // ✅ Convert File → Buffer → File (OpenAI compatible)
+            const arrayBuffer = await file.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            const transcription = await openai.audio.transcriptions.create({
+                file: new File([buffer], file.name, { type: file.type }),
+                model: "gpt-4o-transcribe", // 🔥 or gpt-4o-mini-transcribe
+                // response_format: "text", // optional
             });
 
             console.log("[Transcription ✅]");
@@ -57,6 +62,7 @@ export default class GroqService {
                 error: "",
                 data: transcription.text || "",
             };
+
         } catch (err: any) {
             console.error("[Transcription ❌]", err.message);
 
@@ -69,32 +75,39 @@ export default class GroqService {
         }
     }
 
-    static async createAudioBufferFromText(text: string, userId: string): Promise<Buffer<ArrayBuffer>> {
+    static async createAudioBufferFromText(
+        text: string,
+    ): Promise<Buffer> {
         console.log("[TTS] Start...");
 
         try {
             if (!text.trim()) {
                 throw new Error("Input text is empty");
             }
-            const groq = await this.createGroqClient(userId);
-            const response = await groq.audio.speech.create({
-                model: "playai-tts",
-                voice: "Mitch-PlayAI",
+
+            const openai = new OpenAI({
+                apiKey: process.env.OPENAI_API_KEY,
+            });
+
+            const response = await openai.audio.speech.create({
+                model: "gpt-4o-mini-tts", // ✅ latest model
+                voice: "coral",           // 🔥 try "marin" or "cedar" later
                 input: text,
-                response_format: "wav",
+                response_format: "wav",   // keep wav for browser playback
+                instructions: "Speak clearly and professionally.",
             });
 
             const buffer = Buffer.from(await response.arrayBuffer());
 
-            return buffer
+            console.log("[TTS ✅] Audio generated");
+
+            return buffer;
 
         } catch (err: any) {
             console.error("[TTS ❌]", err.message);
-
             throw new Error(`TTS failed: ${err.message}`);
         }
     }
-
     static async validateApiKey(apiKey: string): Promise<{ valid: boolean; error?: string; code?: string }> {
         try {
             const groq = new Groq({

@@ -22,16 +22,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           router.push("/login");
           return;
         }
-
-        const data = await res.json();
-
-        if (!data.isOnboarded) {
-          // User logged in but not onboarded
-          router.push("/onboarding");
-          return;
-        }
-
-        // User authenticated + onboarded
         setOnboarded(true);
       } catch (err) {
         console.error("Error checking onboarding:", err);

@@ -55,7 +55,7 @@ export const useInterviewSession = () => {
 
     // Timer state
     const [recordingTimeRemaining, setRecordingTimeRemaining] = useState(0);
-    const [maxRecordingTime, setMaxRecordingTime] = useState(60);
+    const [maxRecordingTime, setMaxRecordingTime] = useState(10);
     const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<BlobPart[]>([]);
@@ -87,6 +87,7 @@ export const useInterviewSession = () => {
             const res = await fetch("/api/transcribe-audio", { method: "POST", body: formData });
             const data = await res.json();
             const answerText = data.data;
+            console.log("🔊 Transcription result:", answerText);
 
             // Save answer and get next question
             setUserAnswers((prev) => [...prev, answerText]);

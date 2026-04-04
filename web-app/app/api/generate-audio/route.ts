@@ -14,7 +14,6 @@ export async function POST(req: Request) {
             })
         }
 
-        const userId = session.user.id
 
         // 2️⃣ Parse incoming text
         const { text } = await req.json()
@@ -27,14 +26,14 @@ export async function POST(req: Request) {
         }
 
         // 3️⃣ Generate audio buffer for this user
-        const audioBuffer = await GroqService.createAudioBufferFromText(text, userId)
+        const audioBuffer = await GroqService.createAudioBufferFromText(text)
 
         // 4️⃣ Return WAV audio stream
-        return new Response(audioBuffer, {
+        return new Response(new Uint8Array(audioBuffer), {
             headers: {
                 "Content-Type": "audio/wav",
             },
-        })
+        });
     } catch (error) {
         console.error("TTS Error:", error)
 

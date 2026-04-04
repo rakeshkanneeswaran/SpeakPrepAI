@@ -1,10 +1,12 @@
 import axios from "axios";
+import "dotenv/config";
 
 interface InterviewQuestionsResponse {
     questions: string[];
 }
 
 import { UserService } from "./user-service";
+
 
 // Attach AI authorization token from environment to requests to AI service.
 // This token should be set in your environment (.env) as AI_AUTHORIZATION_TOKEN.
@@ -16,11 +18,8 @@ export default class AIService {
     static async getInterviewQuestions({ jobDescription, resumeData, userId }: { jobDescription: string, resumeData: string, userId: string }): Promise<InterviewQuestionsResponse> {
         try {
             // Fetch user settings to get API key
-            const userSettings = await UserService.getUserSettings(userId);
 
-            if (!userSettings || !userSettings.apiKey) {
-                throw new Error("User API key not found");
-            }
+
             const AI_BASE_URL = process.env.AI_BASE_URL
             const response = await axios.post(`${AI_BASE_URL}/generate-questions`, {
                 job_description: jobDescription,
@@ -28,7 +27,7 @@ export default class AIService {
             }, {
                 headers: {
                     ...aiAuthHeader,
-                    'Authorization': `Bearer ${userSettings.apiKey}`,
+
                     'Content-Type': 'application/json'
                 }
             });
@@ -42,18 +41,14 @@ export default class AIService {
 
     static async analyzeConversation({ conversation, userId }: { conversation: string[][], userId: string }): Promise<string> {
         try {
-            const userSettings = await UserService.getUserSettings(userId);
 
-            if (!userSettings || !userSettings.apiKey) {
-                throw new Error("User API key not found");
-            }
+
             const AI_BASE_URL = process.env.AI_BASE_URL
             const response = await axios.post(`${AI_BASE_URL}/analyze-responses`, {
                 conversation: conversation
             }, {
                 headers: {
                     ...aiAuthHeader,
-                    'Authorization': `Bearer ${userSettings.apiKey}`,
                     'Content-Type': 'application/json'
                 }
             });
@@ -77,11 +72,7 @@ export default class AIService {
         userId: string
     }): Promise<{ sessionId: string }> {
         try {
-            const userSettings = await UserService.getUserSettings(userId);
 
-            if (!userSettings || !userSettings.apiKey) {
-                throw new Error("User API key not found");
-            }
             const AI_BASE_URL = process.env.AI_BASE_URL;
 
             if (!AI_BASE_URL) {
@@ -97,7 +88,6 @@ export default class AIService {
             }, {
                 headers: {
                     ...aiAuthHeader,
-                    'Authorization': `Bearer ${userSettings.apiKey}`,
                     'Content-Type': 'application/json'
                 }
             });
@@ -119,13 +109,11 @@ export default class AIService {
     }
 
     static async getFirstQuestion(sessionId: string, userId: string): Promise<{ status: string; question: string; interview_end: boolean }> {
-        const userSettings = await UserService.getUserSettings(userId);
         const AI_BASE_URL = process.env.AI_BASE_URL;
 
         const response = await axios.post(`${AI_BASE_URL}/generate-first-question/${sessionId}`, {}, {
             headers: {
                 ...aiAuthHeader,
-                'Authorization': `Bearer ${userSettings.apiKey}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -136,7 +124,6 @@ export default class AIService {
     }
 
     static async getContinuedQuestion(sessionId: string, userAnswer: string, userId: string): Promise<{ status: string; question: string; interview_end: boolean }> {
-        const userSettings = await UserService.getUserSettings(userId);
         const AI_BASE_URL = process.env.AI_BASE_URL;
 
         const response = await axios.post(`${AI_BASE_URL}/generate-continued-question/${sessionId}`, {
@@ -144,7 +131,6 @@ export default class AIService {
         }, {
             headers: {
                 ...aiAuthHeader,
-                'Authorization': `Bearer ${userSettings.apiKey}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -154,13 +140,11 @@ export default class AIService {
     }
 
     static async getFirstHRQuestion(sessionId: string, userId: string): Promise<{ status: string; question: string; interview_end: boolean }> {
-        const userSettings = await UserService.getUserSettings(userId);
         const AI_BASE_URL = process.env.AI_BASE_URL;
 
         const response = await axios.post(`${AI_BASE_URL}/generate-first-hr-question/${sessionId}`, {}, {
             headers: {
                 ...aiAuthHeader,
-                'Authorization': `Bearer ${userSettings.apiKey}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -171,7 +155,6 @@ export default class AIService {
     }
 
     static async getContinuedHRQuestion(sessionId: string, userAnswer: string, userId: string): Promise<{ status: string; question: string; interview_end: boolean }> {
-        const userSettings = await UserService.getUserSettings(userId);
         const AI_BASE_URL = process.env.AI_BASE_URL;
 
         const response = await axios.post(`${AI_BASE_URL}/generate-continued-hr-question/${sessionId}`, {
@@ -179,7 +162,6 @@ export default class AIService {
         }, {
             headers: {
                 ...aiAuthHeader,
-                'Authorization': `Bearer ${userSettings.apiKey}`,
                 'Content-Type': 'application/json'
             }
         });

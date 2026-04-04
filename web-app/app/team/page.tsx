@@ -108,62 +108,6 @@ export default function TeamPage() {
         </div>
       </section>
 
-      {/* Philosophy */}
-      <section className="py-24 px-6 md:px-20 bg-[#141414] border-t border-[#E6DCAF]/10">
-        <div className="max-w-4xl mx-auto text-center space-y-10">
-          <h2 className="text-4xl font-semibold text-[#E6DCAF]">
-            Our Philosophy
-          </h2>
-          <p className="text-white/80 max-w-3xl mx-auto text-[15px] leading-relaxed">
-            We believe meaningful confidence is built, not wished for. Every
-            feature we design focuses on helping users communicate better, think
-            clearly under pressure, and become the strongest version of
-            themselves — whether it’s their first interview or their fiftieth.
-          </p>
-          <p className="text-white/70 text-[14px] italic">
-            Real conversations build real confidence — and that drives us every
-            day.
-          </p>
-        </div>
-      </section>
-
-      {/* Our Approach */}
-      <section className="py-24 px-6 md:px-20 bg-[#0f0f0f] border-t border-[#E6DCAF]/10">
-        <div className="max-w-4xl mx-auto text-center space-y-10">
-          <h2 className="text-4xl font-semibold text-[#E6DCAF]">
-            Our Approach
-          </h2>
-
-          <div className="space-y-6 text-white/80 text-[15px] leading-relaxed max-w-3xl mx-auto">
-            <p>
-              • AI meets human communication science — every feature is built to
-              reflect how real conversations actually work.
-            </p>
-            <p>
-              • Fast iterations, constant refinement — we ship improvements
-              weekly based on how real candidates use the platform.
-            </p>
-            <p>
-              • Accessibility first — interview skills shouldn’t be a privilege
-              only some people can afford.
-            </p>
-            <p>
-              • Built with empathy — because behind every interview is a person
-              chasing an opportunity that could change their life.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-16 text-center bg-[#0c0c0c]">
-        <Link href="/login">
-          <button className="bg-[#E6DCAF] text-[#0c0c0c] font-semibold text-lg px-10 py-4 rounded-full hover:scale-105 transition-transform">
-            Start Your Interview Practice
-          </button>
-        </Link>
-      </section>
-
       {/* Footer */}
       <footer className="text-center text-sm text-white/60 py-10 bg-[#0c0c0c] border-t border-white/10">
         © {year} SpeakPrep AI. All rights reserved.

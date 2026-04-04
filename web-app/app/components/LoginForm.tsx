@@ -56,8 +56,7 @@ export default function LoginForm() {
 
       if (data.status === "success") {
         // ✅ Force hard redirect with cache busting
-        const target = data.onboarded === false ? "/onboarding" : "/dashboard";
-        window.location.href = target + "?t=" + Date.now(); // Cache bust
+        window.location.href = "/dashboard" + "?t=" + Date.now(); // Cache bust
       } else {
         triggerShake("Login failed. Please try again.");
         setStep("email");

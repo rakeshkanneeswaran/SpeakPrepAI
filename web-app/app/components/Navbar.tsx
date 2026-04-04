@@ -73,13 +73,6 @@ export default function Navbar() {
           Pricing
         </Link>
 
-        <Link
-          href="/mission"
-          className="hover:text-[#f43e02] transition-colors"
-        >
-          About
-        </Link>
-
         <Link href="/team" className="hover:text-[#f43e02] transition-colors">
           Founder
         </Link>
@@ -97,13 +90,6 @@ export default function Navbar() {
             <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
               <div className="py-2 text-black">
                 {/* Product section */}
-                <Link
-                  href="/infrastructure"
-                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
-                  onClick={() => setIsMoreOpen(false)}
-                >
-                  Infrastructure
-                </Link>
 
                 <Link
                   href="/privacy"
@@ -119,14 +105,6 @@ export default function Navbar() {
                   onClick={() => setIsMoreOpen(false)}
                 >
                   FAQs
-                </Link>
-
-                <Link
-                  href="/changelog"
-                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
-                  onClick={() => setIsMoreOpen(false)}
-                >
-                  Changelog
                 </Link>
 
                 {/* Divider */}
@@ -155,14 +133,6 @@ export default function Navbar() {
                   onClick={() => setIsMoreOpen(false)}
                 >
                   Refund Policy
-                </Link>
-
-                <Link
-                  href="/shipping-policy"
-                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
-                  onClick={() => setIsMoreOpen(false)}
-                >
-                  Shipping Policy
                 </Link>
 
                 <Link
@@ -240,22 +210,6 @@ export default function Navbar() {
             </Link>
 
             <Link
-              href="/mission"
-              onClick={() => setIsMenuOpen(false)}
-              className="py-2 border-b hover:text-[#f43e02]"
-            >
-              About
-            </Link>
-
-            <Link
-              href="/infrastructure"
-              onClick={() => setIsMenuOpen(false)}
-              className="py-2 border-b hover:text-[#f43e02]"
-            >
-              Infrastructure
-            </Link>
-
-            <Link
               href="/privacy"
               onClick={() => setIsMenuOpen(false)}
               className="py-2 border-b hover:text-[#f43e02]"
@@ -269,14 +223,6 @@ export default function Navbar() {
               className="py-2 border-b hover:text-[#f43e02]"
             >
               FAQs
-            </Link>
-
-            <Link
-              href="/changelog"
-              onClick={() => setIsMenuOpen(false)}
-              className="py-2 border-b hover:text-[#f43e02]"
-            >
-              Changelog
             </Link>
 
             {/* LEGAL SECTION MOBILE */}
@@ -301,13 +247,6 @@ export default function Navbar() {
                 className="py-2 hover:text-[#f43e02]"
               >
                 Refund Policy
-              </Link>
-              <Link
-                href="/shipping-policy"
-                onClick={() => setIsMenuOpen(false)}
-                className="py-2 hover:text-[#f43e02]"
-              >
-                Shipping Policy
               </Link>
               <Link
                 href="/contact-us"

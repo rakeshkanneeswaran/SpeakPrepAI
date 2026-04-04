@@ -150,20 +150,6 @@ function LoginInner() {
             <span>Continue with Google</span>
           </motion.button>
 
-          {/* LinkedIn */}
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={() => signIn("linkedin", { callbackUrl: "/dashboard" })}
-            className="w-full flex items-center justify-center gap-3 border border-gray-300 py-3 px-4 mt-3 rounded-lg hover:bg-gray-100 transition font-medium"
-          >
-            <img
-              src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linkedin/linkedin-original.svg"
-              alt="LinkedIn"
-              className="w-5 h-5"
-            />
-            <span>Continue with LinkedIn</span>
-          </motion.button>
-
           {/* Divider */}
           <div className="relative my-6">
             <div className="border-t border-gray-200"></div>
