@@ -110,15 +110,6 @@ export default function Navbar() {
                 {/* Divider */}
                 <div className="my-2 border-t border-gray-200" />
 
-                {/* LEGAL SECTION */}
-                <Link
-                  href="/privacy-policy"
-                  className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"
-                  onClick={() => setIsMoreOpen(false)}
-                >
-                  Privacy Policy
-                </Link>
-
                 <Link
                   href="/terms-and-conditions"
                   className="block px-4 py-2 text-sm hover:text-[#f43e02] hover:bg-orange-50 transition-colors"

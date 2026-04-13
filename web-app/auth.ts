@@ -18,4 +18,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     pages: {
         signIn: "/login",
     },
+    events: {
+        async createUser({ user }) {
+            if (!user.id) return;
+
+            console.log("New user created:", user.id);
+
+            const existing = await prisma.userSettings.findUnique({
+                where: { userId: user.id },
+            });
+
+            if (!existing) {
+                await prisma.userSettings.create({
+                    data: {
+                        userId: user.id,
+                        credits: 5,
+                    },
+                });
+                await prisma.transaction.create({
+                    data: {
+                        userId: user.id,
+                        type: "FREE",
+                        credits: 5,
+                        status: "SUCCESS",
+                    },
+                });
+            }
+        },
+    }
 })

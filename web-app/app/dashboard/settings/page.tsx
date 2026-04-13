@@ -128,7 +128,7 @@ export default function SettingsPage() {
 
             <div className="flex items-center gap-4">
               <Image
-                src={userData?.image || "/default-avatar.png"}
+                src={userData?.user.image || "/default-avatar.png"}
                 alt="profile"
                 width={64}
                 height={64}
@@ -144,7 +144,7 @@ export default function SettingsPage() {
             <div>
               <label className="text-sm text-gray-600">Full Name</label>
               <input
-                value={userData?.name || ""}
+                value={userData?.user.name || ""}
                 disabled
                 className="w-full p-3 bg-gray-100 rounded-lg"
               />

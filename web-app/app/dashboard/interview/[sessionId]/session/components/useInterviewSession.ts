@@ -55,7 +55,7 @@ export const useInterviewSession = () => {
 
     // Timer state
     const [recordingTimeRemaining, setRecordingTimeRemaining] = useState(0);
-    const [maxRecordingTime, setMaxRecordingTime] = useState(10);
+    const maxRecordingTime = 30;
     const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<BlobPart[]>([]);
@@ -91,7 +91,7 @@ export const useInterviewSession = () => {
 
             // Save answer and get next question
             setUserAnswers((prev) => [...prev, answerText]);
-            await getNextQuestion(answerText);
+            await runInterview(answerText);
         } catch (err) {
             console.error("[Transcription Error]", err);
         }
@@ -109,6 +109,12 @@ export const useInterviewSession = () => {
         }
         stopCountdownTimer();
     }, [stopCountdownTimer, setIsAudioRecording]);
+
+    const moveToNextQuestion = useCallback(() => {
+        if (isAudioRecording && !interviewEnded && !concludingMessagePlayed) {
+            stopRecording();
+        }
+    }, [isAudioRecording, interviewEnded, concludingMessagePlayed, stopRecording]);
 
     const startCountdownTimer = useCallback(() => {
         // Clear any existing timer first
@@ -234,68 +240,35 @@ export const useInterviewSession = () => {
         }
     };
 
-    const initializeInterview = async () => {
+    const runInterview = async (userAnswer?: string) => {
         try {
-            const endpoint = interviewType === "hr"
-                ? "/api/interview/question/generate-first-hr-question"
-                : "/api/interview/question/generate-first-question";
-
-            const response = await fetch(endpoint, {
+            const response = await fetch("/api/interview/run", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ interviewSessionId: sessionId }),
+                body: JSON.stringify({
+                    sessionId,        // ✅ pass sessionId in body
+                    userAnswer: userAnswer || null,
+                }),
             });
 
-            if (!response.ok) throw new Error("Failed to initialize interview");
+            if (!response.ok) throw new Error("Failed to run interview");
+
             const data = await response.json();
 
-            if (data.status === "success") {
+            if (data.interview_end) {
+                setInterviewEnded(true);
                 setCurrentQuestion(data.question);
-                setSessionInitialized(true);
+                setShouldPlayQuestion(true);
+                setShouldRecordAnswer(false);
+            } else {
+                setCurrentQuestion(data.question);
                 setShouldPlayQuestion(true);
             }
         } catch (error) {
-            console.error("Failed to initialize interview:", error);
-            setAnalysisError("Failed to start interview. Please try again.");
+            console.error("Interview error:", error);
+            setAnalysisError("Failed to continue interview.");
         }
     };
-
-    const getNextQuestion = async (userAnswer: string) => {
-        try {
-            const endpoint = interviewType === "hr"
-                ? "/api/interview/question/generate-continued-hr-question"
-                : "/api/interview/question/generate-continued-question";
-
-            const response = await fetch(endpoint, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ user_answer: userAnswer, interviewSessionId: sessionId }),
-            });
-
-            if (!response.ok) throw new Error("Failed to get next question");
-            const data = await response.json();
-
-            if (data.status === "success") {
-                if (data.interview_end) {
-                    // 🎯 INTERVIEW ENDED - Set states to prevent recording
-                    setInterviewEnded(true);
-                    setCurrentQuestion(data.question);
-                    setShouldPlayQuestion(true);
-
-                    // 🚫 CRITICAL: Prevent recording after concluding message
-                    setShouldRecordAnswer(false);
-                } else {
-                    // Interview continues
-                    setCurrentQuestion(data.question);
-                    setShouldPlayQuestion(true);
-                }
-            }
-        } catch (error) {
-            console.error("Failed to get next question:", error);
-            setAnalysisError("Failed to get next question. Please try again.");
-        }
-    };
-
     const analyzeConversation = async () => {
         try {
             setIsAnalyzing(true);
@@ -307,7 +280,6 @@ export const useInterviewSession = () => {
                     answer || "No answer recorded",
                 ]),
                 sessionId,
-                interviewType,
             };
 
             const response = await fetch("/api/analyse-conversation", {
@@ -359,7 +331,7 @@ export const useInterviewSession = () => {
     useEffect(() => {
         if (isInterviewStarted && !sessionInitialized && !interviewCompleted) {
             console.log("🚀 Initializing interview...");
-            initializeInterview();
+            runInterview(undefined);
         }
     }, [isInterviewStarted, sessionInitialized, interviewCompleted, interviewType, sessionId]);
 
@@ -418,9 +390,9 @@ export const useInterviewSession = () => {
         startCamera,
         stopCamera,
         formatTime,
-        getNextQuestion,
         analyzeConversation,
         stopRecording,
+        moveToNextQuestion,
         processAudio,
         stopCountdownTimer, // ADD THIS
     };

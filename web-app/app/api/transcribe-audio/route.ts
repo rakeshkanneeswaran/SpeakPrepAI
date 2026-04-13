@@ -1,4 +1,4 @@
-import GroqService from "@/app/services/groq-service";
+import OpenAIService from "@/app/services/groq-service";
 
 export async function POST(req: Request) {
     try {
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
             );
         }
 
-        const result = await GroqService.transcribeAudio(file);
+        const result = await OpenAIService.transcribeAudio(file);
         console.log("[Transcription API Result]", result);
 
         return new Response(JSON.stringify(result), {

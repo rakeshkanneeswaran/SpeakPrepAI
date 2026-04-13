@@ -11,22 +11,70 @@ import platformColors from "../utils/colors";
 import Link from "next/link";
 import Image from "next/image";
 
+type UserProfile = { name?: string; image?: string } | null;
+
+type InterviewCard = {
+  title: "Technical Interview" | "HR Interview" | "Company Insights";
+  desc: string;
+  image: string;
+  available: boolean;
+};
+
+const INTERVIEW_CARDS: InterviewCard[] = [
+  {
+    title: "Technical Interview",
+    desc: "Sharpen technical skills with AI-guided mock sessions.",
+    image: "/images/technical-interview.png",
+    available: true,
+  },
+  {
+    title: "HR Interview",
+    desc: "Improve clarity, confidence, and behavioral responses.",
+    image: "/images/hr-interview.png",
+    available: true,
+  },
+  {
+    title: "Company Insights",
+    desc: "Get AI-researched summaries about your target company.",
+    image: "/images/company-insights.png",
+    available: false,
+  },
+];
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const fileToBase64 = async (file: File): Promise<string> => {
+  const arrayBuffer = await file.arrayBuffer();
+  return btoa(
+    new Uint8Array(arrayBuffer).reduce(
+      (data, byte) => data + String.fromCharCode(byte),
+      "",
+    ),
+  );
+};
+
 export default function Dashboard() {
+  // Layout and modal UI state
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedType, setSelectedType] = useState<string | null>(
-    "Technical Interview"
-  ); // Set default here
+    "Technical Interview",
+  );
   const [showResumeModal, setShowResumeModal] = useState(false);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
+
+  // Async flow and error state
   const [uploading, setUploading] = useState(false);
   const [loadingStage, setLoadingStage] = useState<string | null>(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const router = useRouter();
-  type UserProfile = { name?: string; image?: string } | null;
-  const [user, setUser] = useState<UserProfile>(null);
 
-  // Map card titles to interview types
+  // User profile and credit state
+  const [user, setUser] = useState<UserProfile>(null);
+  const [credits, setCredits] = useState<number | null>(null);
+
+  const router = useRouter();
+
+  // Map UI card titles to API interview type values
   const getInterviewType = (cardTitle: string): string => {
     switch (cardTitle) {
       case "Technical Interview":
@@ -40,49 +88,45 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => {
-    async function loadUser() {
-      try {
-        const res = await fetch("/api/user/settings");
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-        }
-      } catch (err) {
-        console.error("User load failed:", err);
+  // Load the signed-in user details for header/profile and credit display.
+  async function loadUser() {
+    try {
+      const res = await fetch("/api/user/me");
+      if (res.ok) {
+        const data = await res.json();
+        setUser({ name: data.name, image: data.image });
+        setCredits(data.credits ?? 0);
       }
+    } catch (err) {
+      console.error("User load failed:", err);
     }
-    loadUser();
+  }
+
+  useEffect(() => {
+    void loadUser();
   }, []);
 
   const handleLaunchInterview = async (
     resumeFile: File,
-    jobDescription: string
+    jobDescription: string,
   ) => {
     setUploading(true);
     setLoadingStage("Scanning your resume...");
 
     try {
-      await new Promise((r) => setTimeout(r, 1000));
+      await wait(1000);
 
-      const arrayBuffer = await resumeFile.arrayBuffer();
-      const base64 = btoa(
-        new Uint8Array(arrayBuffer).reduce(
-          (data, byte) => data + String.fromCharCode(byte),
-          ""
-        )
-      );
+      const base64 = await fileToBase64(resumeFile);
 
       setLoadingStage("Extracting resume details...");
-      await new Promise((r) => setTimeout(r, 1000));
+      await wait(1000);
       const resumeData = await getPdfContent(base64);
-      console.log("Resume Data:", resumeData);
 
       setLoadingStage("Generating AI interview questions...");
-      await new Promise((r) => setTimeout(r, 1000));
+      await wait(1000);
 
       const interviewType = getInterviewType(
-        selectedType || "Technical Interview"
+        selectedType || "Technical Interview",
       );
 
       const response = await fetch("/api/interview", {
@@ -98,7 +142,7 @@ export default function Dashboard() {
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          errorData.detail || `HTTP error! status: ${response.status}`
+          errorData.detail || `HTTP error! status: ${response.status}`,
         );
       }
 
@@ -114,9 +158,9 @@ export default function Dashboard() {
       setLoadingStage(null);
       setShowResumeModal(false);
 
-      // ✅ Add interview type as URL parameter
+      // Preserve selected interview type in URL for the session route.
       router.push(
-        `/dashboard/interview/${interviewSessionId}/session?type=${interviewType}`
+        `/dashboard/interview/${interviewSessionId}/session?type=${interviewType}`,
       );
     } catch (err) {
       console.error("Interview generation error:", err);
@@ -126,7 +170,7 @@ export default function Dashboard() {
       setErrorMessage(
         err instanceof Error
           ? err.message
-          : "Failed to generate interview session. Please try again."
+          : "Failed to generate interview session. Please try again.",
       );
       setShowErrorModal(true);
     }
@@ -136,8 +180,8 @@ export default function Dashboard() {
     setShowCompanyModal(false);
     router.push(
       `/dashboard/company-insight?name=${encodeURIComponent(
-        companyName
-      )}&website=${encodeURIComponent(companyWebsite)}`
+        companyName,
+      )}&website=${encodeURIComponent(companyWebsite)}`,
     );
   };
 
@@ -191,17 +235,39 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <button
-            onClick={() => setShowResumeModal(true)}
-            className="px-4 py-2 bg-orange-500 text-white rounded-md font-semibold hover:bg-orange-600 transition"
-          >
-            Start Interview
-          </button>
+          <div className="flex items-center gap-4">
+            {/* Credits display */}
+            <div className="px-3 py-1 rounded-lg bg-gray-100 text-sm font-medium">
+              Available Credits: {credits ?? "..."}
+            </div>
 
-          {/* USER AVATAR */}
+            {/* Start button */}
+            <button
+              onClick={() => credits && credits > 0 && setShowResumeModal(true)}
+              disabled={!credits || credits <= 0}
+              className={`px-4 py-2 rounded-md font-semibold transition ${
+                credits && credits > 0
+                  ? "bg-orange-500 text-white hover:bg-orange-600"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
+            >
+              Start Interview
+            </button>
+
+            {/* No-credits CTA */}
+            {credits === 0 && (
+              <Link
+                href="/pricing"
+                className="text-sm text-red-500 underline"
+              >
+                Buy Credits
+              </Link>
+            )}
+          </div>
+
+          {/* User avatar */}
           {user && (
             <Link href="/settings">
-              {/* Next.js Image for better optimization */}
               <Image
                 src={user.image || "/default-avatar.png"}
                 alt="profile"
@@ -234,28 +300,9 @@ export default function Dashboard() {
               </p>
             </div>
 
-            {/* Option Cards - Centered and larger */}
+            {/* Interview option cards */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-6xl px-4">
-              {[
-                {
-                  title: "Technical Interview",
-                  desc: "Sharpen technical skills with AI-guided mock sessions.",
-                  image: "/images/technical-interview.png",
-                  available: true,
-                },
-                {
-                  title: "HR Interview",
-                  desc: "Improve clarity, confidence, and behavioral responses.",
-                  image: "/images/hr-interview.png",
-                  available: true,
-                },
-                {
-                  title: "Company Insights",
-                  desc: "Get AI-researched summaries about your target company.",
-                  image: "/images/company-insights.png",
-                  available: false,
-                },
-              ].map((card) => (
+              {INTERVIEW_CARDS.map((card) => (
                 <div
                   key={card.title}
                   onClick={() => card.available && handleCardClick(card.title)}
@@ -275,7 +322,7 @@ export default function Dashboard() {
                         : platformColors.borderColor,
                   }}
                 >
-                  {/* Coming Soon Overlay - Only for Company Insights */}
+                  {/* Coming soon overlay for disabled cards */}
                   {!card.available && (
                     <div className="absolute inset-0 bg-white bg-opacity-80 rounded-2xl flex items-center justify-center z-10 backdrop-blur-sm">
                       <div className="text-center">
@@ -290,7 +337,6 @@ export default function Dashboard() {
                   )}
 
                   <div className="flex flex-col items-center">
-                    {/* Title and Description First */}
                     <h3 className="font-bold text-xl mb-4 text-center text-gray-800">
                       {card.title}
                     </h3>
@@ -298,7 +344,6 @@ export default function Dashboard() {
                       {card.desc}
                     </p>
 
-                    {/* Larger Image Container Below Description */}
                     <div className="w-full h-40 mb-4 flex items-center justify-center rounded-xl p-4">
                       <Image
                         src={card.image}
@@ -310,7 +355,6 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Action Text */}
                   <div className="text-center mt-4">
                     <span className="text-orange-500 font-semibold text-sm">
                       Get Started →

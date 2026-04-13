@@ -1,5 +1,5 @@
 import { auth } from "@/auth"
-import GroqService from "@/app/services/groq-service"
+import OpenAIService from "@/app/services/groq-service"
 
 // POST /api/tts
 // Converts text to speech and returns the audio as a WAV stream.
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
         }
 
         // 3️⃣ Generate audio buffer for this user
-        const audioBuffer = await GroqService.createAudioBufferFromText(text)
+        const audioBuffer = await OpenAIService.createAudioBufferFromText(text)
 
         // 4️⃣ Return WAV audio stream
         return new Response(new Uint8Array(audioBuffer), {

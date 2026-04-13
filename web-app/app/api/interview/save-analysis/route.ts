@@ -1,40 +1,58 @@
 import { auth } from "@/auth";
-import { InterviewService } from "@/app/services/interview-service";
+import { prisma } from "@/app/database/index";
 
 export async function POST(req: Request) {
     try {
-        // 1️⃣ Validate login using NextAuth session
+        // 1️⃣ Auth
         const session = await auth();
 
         if (!session || !session.user?.id) {
-            return new Response(
-                JSON.stringify({ message: "Unauthorized" }),
-                { status: 401 }
-            );
+            return Response.json({ message: "Unauthorized" }, { status: 401 });
         }
-        // 2️⃣ Read incoming data
+
+        const userId = session.user.id;
+
+        // 2️⃣ Parse request
         const { interviewSessionId, analysis } = await req.json();
 
-        // 3️⃣ Save interview analysis (pass userId for ownership validation)
-        await InterviewService.saveInterviewAnalysis(
-            interviewSessionId,
-            analysis
-        );
+        if (!interviewSessionId || !analysis) {
+            return Response.json(
+                { message: "Missing interviewSessionId or analysis" },
+                { status: 400 }
+            );
+        }
 
-        // 4️⃣ Respond success
-        return new Response(
-            JSON.stringify({ message: "Analysis saved successfully" }),
-            { status: 200 }
-        );
+        // 3️⃣ Verify ownership
+        const interview = await prisma.interview.findFirst({
+            where: { sessionId: interviewSessionId, userId },
+        });
+
+        if (!interview) {
+            return Response.json(
+                { message: "Interview session not found or unauthorized" },
+                { status: 404 }
+            );
+        }
+
+        // 4️⃣ Save analysis
+        await prisma.interview.update({
+            where: { id: interview.id },
+            data: {
+                analysis,
+                interviewOpen: false,
+            },
+        });
+
+        return Response.json({ message: "Analysis saved successfully" });
 
     } catch (err) {
         console.error("Error saving analysis:", err);
 
-        return new Response(
-            JSON.stringify({
+        return Response.json(
+            {
                 message: "Unable to save analysis",
-                error: err instanceof Error ? err.message : "Unknown error"
-            }),
+                error: err instanceof Error ? err.message : "Unknown error",
+            },
             { status: 500 }
         );
     }

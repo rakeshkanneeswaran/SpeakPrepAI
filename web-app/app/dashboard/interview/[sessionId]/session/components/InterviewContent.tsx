@@ -23,6 +23,7 @@ interface InterviewContentProps {
   getAccentColor: (
     type?: "primary" | "success" | "warning" | "error"
   ) => string;
+  moveToNextQuestion: () => void;
 }
 
 export default function InterviewContent({
@@ -39,6 +40,7 @@ export default function InterviewContent({
   getTimerColor,
   formatTime,
   getAccentColor,
+  moveToNextQuestion,
 }: InterviewContentProps) {
   if (!isInterviewStarted) {
     return (
@@ -91,6 +93,15 @@ export default function InterviewContent({
             formatTime={formatTime}
             getAccentColor={getAccentColor}
           />
+
+          {isAudioRecording && !interviewEnded && (
+            <button
+              onClick={moveToNextQuestion}
+              className="px-5 py-2 rounded-md font-medium text-white bg-orange-500 hover:bg-orange-600 shadow-md transition-all"
+            >
+              Next Question
+            </button>
+          )}
         </div>
       </div>
     );

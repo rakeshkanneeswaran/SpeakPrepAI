@@ -38,7 +38,7 @@ export default function AIEditorPlain({
     editor.commands.clearContent();
 
     // 🔹 Convert Markdown to simple HTML before typing
-    let formattedText = text
+    const formattedText = text
       .replace(/\r\n/g, "\n") // normalize newlines
       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // bold
       .replace(/\n{2,}/g, "<br/><br/>") // paragraph breaks

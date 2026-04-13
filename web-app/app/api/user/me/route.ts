@@ -9,13 +9,14 @@ export async function GET() {
             status: 401,
         });
     }
-
     try {
-        const profile = await UserService.getUserProfile(session.user.id);
+        const me = await UserService.getUserProfile(session.user.id);
 
         return new Response(
             JSON.stringify({
-                user: profile,
+                image: me.user.image,
+                name: me.user.name,
+                credits: me.settings?.credits
             }),
             { status: 200 }
         );

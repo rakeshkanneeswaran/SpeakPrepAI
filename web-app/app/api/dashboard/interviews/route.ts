@@ -1,11 +1,8 @@
 import { auth } from "@/auth"
-import { InterviewService } from "@/app/services/interview-service"
+import { prisma } from "@/app/database/index"
 
-// GET /api/tts
-// Returns all interviews for the authenticated user
 export async function GET(req: Request) {
     try {
-        // 1️⃣ Auth — get session using NextAuth
         const session = await auth()
 
         if (!session || !session.user?.id) {
@@ -14,12 +11,18 @@ export async function GET(req: Request) {
 
         const userId = session.user.id
 
-        // 2️⃣ Fetch interviews for this user
-        const allInterviews = await InterviewService.getAllInterviewsForUser(userId)
+        const allInterviews = await prisma.interview.findMany({
+            where: { userId },
+            orderBy: { createdAt: "desc" },
+            select: {
+                sessionId: true,
+                createdAt: true,
+            },
+        })
 
         return Response.json({ interviews: allInterviews })
-    }
-    catch (error: unknown) {
+
+    } catch (error: unknown) {
         console.error("[GET Interviews Error]", error)
 
         const message =

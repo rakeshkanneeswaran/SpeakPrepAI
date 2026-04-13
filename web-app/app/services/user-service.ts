@@ -21,16 +21,13 @@ export class UserService {
     static async getUserProfile(userId: string) {
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                image: true,
-                onboarded: true,
+            include: {
+                settings: true,
             },
         });
 
         if (!user) throw new Error("User not found");
+
 
         const settings = await prisma.userSettings.findUnique({
             where: { userId },
@@ -39,7 +36,18 @@ export class UserService {
         return { user, settings };
     }
 
+    static async getAvailableCredits(userId: string): Promise<number> {
+        const settings = await prisma.userSettings.findUnique({
+            where: { userId },
+            select: { credits: true },
+        });
 
+        if (!settings) {
+            throw new Error("User settings not found");
+        }
+        return settings.credits;
+
+    }
 
 
 

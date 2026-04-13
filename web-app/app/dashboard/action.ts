@@ -1,5 +1,6 @@
 "use server";
 import { PdfReader } from "pdfreader";
+import { UserService } from "../services/user-service";
 
 export async function getPdfContent(base64: string): Promise<string> {
     const fileBuffer = Buffer.from(base64, "base64");
@@ -25,4 +26,9 @@ export async function getPdfContent(base64: string): Promise<string> {
     console.log("🧠 Extracted & Cleaned PDF Content (first 500 chars):\n", cleaned.slice(0, 500));
 
     return cleaned;
+}
+
+export async function getAvailableCredits(params: { userId: string }) {
+    const availableCredits = await UserService.getAvailableCredits(params.userId);
+    return availableCredits;
 }

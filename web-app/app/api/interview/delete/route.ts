@@ -1,16 +1,13 @@
 import { auth } from "@/auth"
-import { InterviewService } from "@/app/services/interview-service"
+import { prisma } from "@/app/database/index"
 
 export async function POST(req: Request) {
     try {
-        // 1️⃣ Get authenticated user from NextAuth session
+        // 1️⃣ Auth
         const session = await auth()
 
         if (!session || !session.user?.id) {
-            return new Response(
-                JSON.stringify({ message: "Unauthorized" }),
-                { status: 401 }
-            )
+            return Response.json({ message: "Unauthorized" }, { status: 401 })
         }
 
         const userId = session.user.id
@@ -19,28 +16,35 @@ export async function POST(req: Request) {
         const { interviewSessionId } = await req.json()
 
         if (!interviewSessionId) {
-            return new Response(
-                JSON.stringify({ message: "Missing interviewSessionId" }),
-                { status: 400 }
+            return Response.json({ message: "Missing interviewSessionId" }, { status: 400 })
+        }
+
+        // 3️⃣ Verify ownership then delete
+        const interview = await prisma.interview.findFirst({
+            where: { sessionId: interviewSessionId, userId },
+        })
+
+        if (!interview) {
+            return Response.json(
+                { message: "Interview session not found or unauthorized" },
+                { status: 404 }
             )
         }
 
-        // 3️⃣ Delete interview for this user
-        await InterviewService.deleteInterviewSession(interviewSessionId, userId)
+        await prisma.interview.delete({
+            where: { id: interview.id },
+        })
 
-        return new Response(
-            JSON.stringify({ message: "Interview session deleted successfully" }),
-            { status: 200 }
-        )
+        return Response.json({ message: "Interview session deleted successfully" })
 
     } catch (err) {
         console.error("Error in interview deletion API:", err)
 
-        return new Response(
-            JSON.stringify({
+        return Response.json(
+            {
                 message: "Failed to delete interview session",
-                error: err instanceof Error ? err.message : "Unknown error"
-            }),
+                error: err instanceof Error ? err.message : "Unknown error",
+            },
             { status: 500 }
         )
     }

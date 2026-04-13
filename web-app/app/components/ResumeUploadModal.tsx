@@ -50,7 +50,7 @@ const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({
   const handleJobDescChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
 
-    // ✅ FIX: Allow pasting but trim to max characters
+    // FIX: Allow pasting but trim to max characters
     if (value.length <= MAX_CHARACTERS) {
       setJobDesc(value);
     } else {
@@ -67,14 +67,14 @@ const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({
 
     if (isOverCharacterLimit) {
       triggerShake(
-        `Job description exceeds ${MAX_CHARACTERS} characters. Please shorten it.`
+        `Job description exceeds ${MAX_CHARACTERS} characters. Please shorten it.`,
       );
       return;
     }
 
     if (!allConsentsGiven) {
       triggerShake(
-        "Please agree to all privacy and terms conditions to proceed."
+        "Please agree to all privacy and terms conditions to proceed.",
       );
       return;
     }
@@ -172,8 +172,8 @@ const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({
                         charactersRemaining < 100
                           ? "text-orange-500"
                           : charactersRemaining < 50
-                          ? "text-red-500"
-                          : "text-gray-500"
+                            ? "text-red-500"
+                            : "text-gray-500"
                       }`}
                     >
                       {currentCharacters}/{MAX_CHARACTERS} characters
@@ -191,8 +191,8 @@ const ResumeUploadModal: React.FC<ResumeUploadModalProps> = ({
                       isOverCharacterLimit
                         ? "border-red-300 focus:ring-red-500 bg-red-50"
                         : jobDesc.trim() === ""
-                        ? "border-orange-300 focus:ring-orange-500 bg-orange-50"
-                        : "border-gray-300 focus:ring-orange-500"
+                          ? "border-orange-300 focus:ring-orange-500 bg-orange-50"
+                          : "border-gray-300 focus:ring-orange-500"
                     }`}
                     disabled={uploading}
                   ></motion.textarea>

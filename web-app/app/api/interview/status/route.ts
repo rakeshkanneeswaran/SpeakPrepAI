@@ -1,43 +1,46 @@
 import { auth } from "@/auth";
-import { InterviewService } from "@/app/services/interview-service";
+import { prisma } from "@/app/database/index";
 
 export async function POST(req: Request) {
     try {
-        // 1️⃣ Validate authentication using NextAuth
+        // 1️⃣ Auth
         const session = await auth();
 
         if (!session || !session.user?.id) {
-            return new Response(
-                JSON.stringify({ message: "Unauthorized" }),
-                { status: 401 }
-            );
+            return Response.json({ message: "Unauthorized" }, { status: 401 });
         }
-
 
         // 2️⃣ Extract inputs
         const { interviewSessionId } = await req.json();
 
-        // 3️⃣ IMPORTANT: Validate user owns the session
-        const interviewActive = await InterviewService.getInterviewStatus(
-            interviewSessionId,
-        );
+        if (!interviewSessionId) {
+            return Response.json({ message: "Missing interviewSessionId" }, { status: 400 });
+        }
+
+        // 3️⃣ Fetch status directly from DB
+        const interview = await prisma.interview.findFirst({
+            where: { sessionId: interviewSessionId },
+            select: { interviewOpen: true },
+        });
+
+        if (!interview) {
+            return Response.json({ message: "Interview session not found" }, { status: 404 });
+        }
 
         // 4️⃣ Return status
-        return new Response(
-            JSON.stringify({
-                message: "Interview status fetched successfully",
-                interviewActive
-            }),
-            { status: 200 }
-        );
+        return Response.json({
+            message: "Interview status fetched successfully",
+            interviewActive: { interviewOpen: interview.interviewOpen },
+        });
+
     } catch (err) {
         console.error("Error in interview status API:", err);
 
-        return new Response(
-            JSON.stringify({
+        return Response.json(
+            {
                 message: "Unable to fetch interview status",
                 error: err instanceof Error ? err.message : "Unknown error",
-            }),
+            },
             { status: 500 }
         );
     }

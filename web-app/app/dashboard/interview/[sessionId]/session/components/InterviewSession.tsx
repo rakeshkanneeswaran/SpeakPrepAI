@@ -1,6 +1,5 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import platformColors from "@/app/utils/colors";
 import { useInterviewSession } from "./useInterviewSession";
 import InterviewHeader from "../components/InterviewHeader";
@@ -36,7 +35,6 @@ export default function InterviewSession() {
     interviewTypeInfo,
     audioError,
     clearAudioError,
-    stopCountdownTimer,
 
     // Refs
     videoRef,
@@ -45,15 +43,13 @@ export default function InterviewSession() {
     startCamera,
     stopCamera,
     formatTime,
-    getNextQuestion,
     analyzeConversation,
-    stopRecording,
-    processAudio,
+    moveToNextQuestion,
   } = useInterviewSession();
 
   // Helper functions for styling
   const getAccentColor = (
-    type: "primary" | "success" | "warning" | "error" = "primary"
+    type: "primary" | "success" | "warning" | "error" = "primary",
   ) => {
     const baseColor = platformColors.borderColor;
     switch (type) {
@@ -100,26 +96,6 @@ export default function InterviewSession() {
       alert("Something went wrong while saving analysis.");
     }
   };
-
-  // In your InterviewSession component
-  useEffect(() => {
-    if (!interviewCompleted) {
-      console.log("📷 Starting camera...");
-      startCamera();
-    }
-    return () => {
-      console.log("🧹 Cleaning up interview session...");
-      stopRecording();
-      stopCamera(); // Ensure this is called
-      stopCountdownTimer();
-    };
-  }, [
-    interviewCompleted,
-    startCamera,
-    stopCamera,
-    stopRecording,
-    stopCountdownTimer,
-  ]);
 
   // Show loading while checking status
   if (isCheckingStatus) {
@@ -187,6 +163,7 @@ export default function InterviewSession() {
               getTimerColor={getTimerColor}
               formatTime={formatTime}
               getAccentColor={getAccentColor}
+              moveToNextQuestion={moveToNextQuestion}
             />
           ) : (
             <AnalysisView
