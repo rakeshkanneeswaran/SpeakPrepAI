@@ -1,38 +1,35 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 
-function LoginInner() {
+function RegisterInner() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [checkingLogin, setCheckingLogin] = useState(true);
   const [loading, setLoading] = useState(false);
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [error, setError] = useState("");
 
-  const [showProviderAlert, setShowProviderAlert] = useState(
-    searchParams?.get("error") === "OAuthAccountNotLinked"
-  );
-
-  // Check whether user is already logged in
+  // Check whether the user is already logged in
   useEffect(() => {
     let mounted = true;
 
     async function checkLogin() {
       try {
-        const res = await fetch("/api/check-login");
+        const response = await fetch("/api/check-login");
 
         if (!mounted) return;
 
-        if (res.ok) {
-          const data = await res.json();
+        if (response.ok) {
+          const data = await response.json();
 
           if (data.authenticated) {
             router.push("/dashboard");
@@ -41,8 +38,8 @@ function LoginInner() {
         }
 
         setCheckingLogin(false);
-      } catch (err) {
-        console.error("Login check failed:", err);
+      } catch (error) {
+        console.error("Login check failed:", error);
 
         if (mounted) {
           setCheckingLogin(false);
@@ -57,20 +54,36 @@ function LoginInner() {
     };
   }, [router]);
 
-  // Handle login
-  async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
+  // Handle registration
+  async function handleRegister(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault();
 
     setError("");
+
+    // Check password confirmation
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    // Basic password validation
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          name,
           email,
           password,
         }),
@@ -79,15 +92,15 @@ function LoginInner() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.message || "Login failed");
+        setError(data.message || "Registration failed");
         return;
       }
 
-      // Authentication cookie has already been
-      // created by the API.
+      // The API has already created the HttpOnly JWT cookie.
+      // Send the newly registered user to the dashboard.
       router.push("/dashboard");
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Registration error:", error);
 
       setError(
         "Unable to connect to the server. Please try again."
@@ -115,62 +128,58 @@ function LoginInner() {
       <Navbar />
 
       <div className="flex flex-col items-center justify-center flex-1 mt-24 mb-16 px-4">
-        {/* Old OAuth warning removed */}
-        {showProviderAlert && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-4 w-full max-w-lg shadow"
-          >
-            <div className="flex items-start gap-3">
-              <div className="flex-1">
-                <h3 className="font-semibold text-red-800 mb-1">
-                  Login method changed
-                </h3>
-
-                <p className="text-sm">
-                  SpeakPrepAI now uses email and password
-                  authentication.
-                </p>
-              </div>
-
-              <button
-                onClick={() => setShowProviderAlert(false)}
-                className="text-sm px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
-              >
-                Dismiss
-              </button>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Login Card */}
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.4 }}
-          className="bg-white shadow-xl rounded-3xl p-10 md:p-12 w-[400px] md:w-[460px] text-center border border-orange-100"
+          className="bg-white shadow-xl rounded-3xl p-10 md:p-12 w-[400px] md:w-[460px] border border-orange-100"
         >
-          <h2 className="text-3xl font-bold text-[#f43e02] mb-3">
-            Welcome to SpeakPrepAI
-          </h2>
+          {/* Heading */}
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-[#f43e02] mb-3">
+              Create your account
+            </h2>
 
-          <p className="text-gray-500 mb-8 text-[15px]">
-            Sign in to access your dashboard
-          </p>
+            <p className="text-gray-500 mb-8 text-[15px]">
+              Get started with SpeakPrepAI
+            </p>
+          </div>
 
           {/* Error */}
           {error && (
-            <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 text-left">
+            <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}
             </div>
           )}
 
-          {/* Login Form */}
+          {/* Registration Form */}
           <form
-            onSubmit={handleLogin}
-            className="space-y-4 text-left"
+            onSubmit={handleRegister}
+            className="space-y-4"
           >
+            {/* Name */}
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Name
+              </label>
+
+              <input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(event) =>
+                  setName(event.target.value)
+                }
+                placeholder="Enter your name"
+                autoComplete="name"
+                required
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#f43e02] focus:ring-1 focus:ring-[#f43e02] transition"
+              />
+            </div>
+
             {/* Email */}
             <div>
               <label
@@ -210,42 +219,74 @@ function LoginInner() {
                 onChange={(event) =>
                   setPassword(event.target.value)
                 }
-                placeholder="Enter your password"
-                autoComplete="current-password"
+                placeholder="Create a password"
+                autoComplete="new-password"
                 required
+                minLength={8}
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#f43e02] focus:ring-1 focus:ring-[#f43e02] transition"
+              />
+
+              <p className="text-xs text-gray-400 mt-1">
+                Must be at least 8 characters
+              </p>
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Confirm Password
+              </label>
+
+              <input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(event) =>
+                  setConfirmPassword(event.target.value)
+                }
+                placeholder="Confirm your password"
+                autoComplete="new-password"
+                required
+                minLength={8}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#f43e02] focus:ring-1 focus:ring-[#f43e02] transition"
               />
             </div>
 
-            {/* Login button */}
+            {/* Register button */}
             <motion.button
               type="submit"
               whileTap={{ scale: 0.97 }}
               disabled={loading}
               className="w-full bg-[#f43e02] text-white py-3 px-4 rounded-lg hover:bg-[#d93602] transition font-medium disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {loading
+                ? "Creating account..."
+                : "Create account"}
             </motion.button>
           </form>
 
-          {/* Register */}
-          <div className="mt-6 text-sm text-gray-500">
-            Don't have an account?{" "}
+          {/* Login link */}
+          <div className="mt-6 text-center text-sm text-gray-500">
+            Already have an account?{" "}
             <button
               type="button"
-              onClick={() => router.push("/register")}
+              onClick={() => router.push("/login")}
               className="text-[#f43e02] font-medium hover:underline"
             >
-              Create an account
+              Sign in
             </button>
           </div>
 
+          {/* Privacy */}
           <div className="relative my-6">
             <div className="border-t border-gray-200"></div>
           </div>
 
-          <p className="text-xs text-gray-500">
-            By continuing, you agree to our{" "}
+          <p className="text-xs text-gray-500 text-center">
+            By creating an account, you agree to our{" "}
             <a
               href="/privacy"
               className="text-[#f43e02] underline"
@@ -259,7 +300,7 @@ function LoginInner() {
   );
 }
 
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <Suspense
       fallback={
@@ -270,7 +311,7 @@ export default function LoginPage() {
         </div>
       }
     >
-      <LoginInner />
+      <RegisterInner />
     </Suspense>
   );
 }

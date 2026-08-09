@@ -11,7 +11,9 @@ import platformColors from "../utils/colors";
 import Link from "next/link";
 import Image from "next/image";
 
-type UserProfile = { name?: string; image?: string } | null;
+type UserProfile = {
+  name?: string;
+} | null;
 
 type InterviewCard = {
   title: "Technical Interview" | "HR Interview" | "Company Insights";
@@ -70,7 +72,6 @@ export default function Dashboard() {
 
   // User profile and credit state
   const [user, setUser] = useState<UserProfile>(null);
-  const [credits, setCredits] = useState<number | null>(null);
 
   const router = useRouter();
 
@@ -87,24 +88,6 @@ export default function Dashboard() {
         return "technical";
     }
   };
-
-  // Load the signed-in user details for header/profile and credit display.
-  async function loadUser() {
-    try {
-      const res = await fetch("/api/user/me");
-      if (res.ok) {
-        const data = await res.json();
-        setUser({ name: data.name, image: data.image });
-        setCredits(data.credits ?? 0);
-      }
-    } catch (err) {
-      console.error("User load failed:", err);
-    }
-  }
-
-  useEffect(() => {
-    void loadUser();
-  }, []);
 
   const handleLaunchInterview = async (
     resumeFile: File,
@@ -235,48 +218,14 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-4">
-            {/* Credits display */}
-            <div className="px-3 py-1 rounded-lg bg-gray-100 text-sm font-medium">
-              Available Credits: {credits ?? "..."}
-            </div>
+      <button
+  onClick={() => setShowResumeModal(true)}
+  className="px-4 py-2 rounded-md font-semibold bg-orange-500 text-white hover:bg-orange-600 transition"
+>
+  Start Interview
+</button>
 
-            {/* Start button */}
-            <button
-              onClick={() => credits && credits > 0 && setShowResumeModal(true)}
-              disabled={!credits || credits <= 0}
-              className={`px-4 py-2 rounded-md font-semibold transition ${
-                credits && credits > 0
-                  ? "bg-orange-500 text-white hover:bg-orange-600"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
-            >
-              Start Interview
-            </button>
-
-            {/* No-credits CTA */}
-            {credits === 0 && (
-              <Link
-                href="/pricing"
-                className="text-sm text-red-500 underline"
-              >
-                Buy Credits
-              </Link>
-            )}
-          </div>
-
-          {/* User avatar */}
-          {user && (
-            <Link href="/settings">
-              <Image
-                src={user.image || "/default-avatar.png"}
-                alt="profile"
-                width={40}
-                height={40}
-                className="rounded-full border cursor-pointer object-cover hover:opacity-80"
-              />
-            </Link>
-          )}
+     
         </div>
       </header>
 

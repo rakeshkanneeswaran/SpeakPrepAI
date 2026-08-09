@@ -1,29 +1,41 @@
-// app/api/check-login/route.ts
-import { auth } from "@/auth"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server";
+import { AuthenticationService } from "@/app/services/authentication-service";
 
-export async function GET() {
-    try {
-        // 1️⃣ Get the session from NextAuth
-        const session = await auth()
+export async function GET(request: NextRequest) {
+  try {
+    // Get the JWT from the HttpOnly cookie
+    const token = request.cookies.get("auth_token")?.value;
 
-        if (!session || !session.user?.id) {
-            return NextResponse.json(
-                { authenticated: false },
-                { status: 401 }
-            )
-        }
-
-        return NextResponse.json({
-            authenticated: true,
-            userId: session.user.id,
-        })
-    } catch (error) {
-        console.error("Login check failed:", error)
-
-        return NextResponse.json(
-            { authenticated: false },
-            { status: 500 }
-        )
+    // User is not logged in
+    if (!token) {
+      return NextResponse.json(
+        {
+          authenticated: false,
+        },
+        { status: 401 }
+      );
     }
+
+    // Verify JWT and retrieve the user
+    const user = await AuthenticationService.getUserFromToken(token);
+
+    return NextResponse.json({
+      authenticated: true,
+      userId: user.id,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error("Login check failed:", error);
+
+    return NextResponse.json(
+      {
+        authenticated: false,
+      },
+      { status: 401 }
+    );
+  }
 }

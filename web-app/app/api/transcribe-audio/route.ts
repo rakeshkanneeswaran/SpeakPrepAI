@@ -1,4 +1,4 @@
-import OpenAIService from "@/app/services/groq-service";
+import OpenAIService from "@/app/services/openai-service";
 
 export async function POST(req: Request) {
     try {

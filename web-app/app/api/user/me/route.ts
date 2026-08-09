@@ -1,29 +1,41 @@
-import { auth } from "@/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { AuthenticationService } from "@/app/services/authentication-service";
 import { UserService } from "@/app/services/user-service";
 
-export async function GET() {
-    const session = await auth();
+export async function GET(request: NextRequest) {
+  try {
+    const token = request.cookies.get("auth_token")?.value;
 
-    if (!session?.user?.id) {
-        return new Response(JSON.stringify({ message: "Unauthorized" }), {
-            status: 401,
-        });
+    if (!token) {
+      return NextResponse.json(
+        { message: "Unauthorized" },
+        { status: 401 }
+      );
     }
-    try {
-        const me = await UserService.getUserProfile(session.user.id);
 
-        return new Response(
-            JSON.stringify({
-                image: me.user.image,
-                name: me.user.name,
-                credits: me.settings?.credits
-            }),
-            { status: 200 }
-        );
-    } catch (err: unknown) {
-        return new Response(
-            JSON.stringify({ message: err instanceof Error ? err.message : "An error occurred" }),
-            { status: 400 }
-        );
-    }
+    const user = await AuthenticationService.getUserFromToken(token);
+
+    const me = await UserService.getUserProfile(user.id);
+
+    return NextResponse.json(
+      {
+        name: me.user.name,
+        email: me.user.email,
+        credits: me.settings?.credits ?? 0,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Failed to get current user:", error);
+
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error
+            ? error.message
+            : "An error occurred",
+      },
+      { status: 401 }
+    );
+  }
 }

@@ -12,27 +12,34 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [loading, setLoading] = useState(true);
   const [onboarded, setOnboarded] = useState(false);
 
-  useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const res = await fetch("/api/user/check-onboarding");
+useEffect(() => {
+  const checkAuthentication = async () => {
+    try {
+      const res = await fetch("/api/check-login");
 
-        if (res.status === 401) {
-          // User is NOT authenticated → redirect to login
-          router.push("/login");
-          return;
-        }
-        setOnboarded(true);
-      } catch (err) {
-        console.error("Error checking onboarding:", err);
+      if (!res.ok) {
         router.push("/login");
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
 
-    checkStatus();
-  }, [router]);
+      const data = await res.json();
+
+      if (!data.authenticated) {
+        router.push("/login");
+        return;
+      }
+
+      setOnboarded(true);
+    } catch (err) {
+      console.error("Authentication check failed:", err);
+      router.push("/login");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  checkAuthentication();
+}, [router]);
 
   // ⏳ Loading UI
   if (loading) {

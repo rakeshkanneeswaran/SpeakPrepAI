@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Menu, X, Settings, LogOut, HelpCircle, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import platformColors from "../utils/colors";
-import { signOut } from "next-auth/react";
+
 
 export default function DashboardSidebar({
   sidebarOpen,
@@ -25,13 +25,24 @@ export default function DashboardSidebar({
   );
 
   const handleLogout = async () => {
-    try {
-      await signOut({ callbackUrl: "/" });
-    } catch (err) {
-      console.error("Logout error:", err);
-    }
-  };
+  try {
+    setLoggingOut(true);
 
+    const response = await fetch("/api/auth/logout", {
+      method: "POST",
+    });
+
+    if (!response.ok) {
+      throw new Error("Logout failed");
+    }
+
+    router.push("/login");
+    router.refresh();
+  } catch (err) {
+    console.error("Logout error:", err);
+    setLoggingOut(false);
+  }
+};
   // ✅ Fetch past interviews
   useEffect(() => {
     async function fetchInterviews() {
