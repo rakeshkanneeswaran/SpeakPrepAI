@@ -61,3 +61,9 @@ build/
 .DS_Store
 *.log
 EOF
+
+terraform.tfvars
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*

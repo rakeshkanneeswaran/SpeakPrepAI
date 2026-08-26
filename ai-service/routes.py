@@ -13,17 +13,22 @@ from schemas import (
 from config import api_key, logger, interview_engine
 
 from services.analysis_service import AnalysisService
-from services.context_store.redis_context_store import redis_context_store_manager
+from services.context_store.redis_context_store import (
+    redis_context_store_manager,
+)
 from services.parsers.parse_job_description import summarize_job_description
 from services.parsers.parse_resume_details import extract_candidate_details
 
-router = APIRouter(dependencies=[Depends(verify_token)])
+
+router = APIRouter()
 
 
-# ---------------- ANALYSIS ---------------- #
+# ---------------- ANALYSIS ----------------
 
-
-@router.post("/analyze-responses")
+@router.post(
+    "/analyze-responses",
+    dependencies=[Depends(verify_token)],
+)
 async def analyze_responses(request: AnalysisRequest):
     try:
         loop = asyncio.get_event_loop()
@@ -31,7 +36,8 @@ async def analyze_responses(request: AnalysisRequest):
         result = await loop.run_in_executor(
             None,
             lambda: AnalysisService.analyze_conversation_history(
-                request.conversation, api_key
+                request.conversation,
+                api_key,
             ),
         )
 
@@ -39,27 +45,41 @@ async def analyze_responses(request: AnalysisRequest):
 
     except Exception as e:
         logger.error(traceback.format_exc())
-        raise HTTPException(500, f"Analysis failed: {str(e)}")
+        raise HTTPException(
+            500,
+            f"Analysis failed: {str(e)}",
+        )
 
 
-# ---------------- SESSION ---------------- #
+# ---------------- SESSION ----------------
 
-
-@router.post("/register-session")
+@router.post(
+    "/register-session",
+    dependencies=[Depends(verify_token)],
+)
 async def register_session(request: RegisterSessionRequest):
     try:
         loop = asyncio.get_event_loop()
 
         job_task = loop.run_in_executor(
-            None, lambda: summarize_job_description(request.job_description, api_key)
+            None,
+            lambda: summarize_job_description(
+                request.job_description,
+                api_key,
+            ),
         )
 
         candidate_task = loop.run_in_executor(
-            None, lambda: extract_candidate_details(request.candidate_details, api_key)
+            None,
+            lambda: extract_candidate_details(
+                request.candidate_details,
+                api_key,
+            ),
         )
 
         job_description, candidate_details = await asyncio.gather(
-            job_task, candidate_task
+            job_task,
+            candidate_task,
         )
 
         redis_context_store_manager.create_session(
@@ -69,38 +89,66 @@ async def register_session(request: RegisterSessionRequest):
             job_description,
         )
 
-        return {"status": "success", "session_id": request.session_id}
+        return {
+            "status": "success",
+            "session_id": request.session_id,
+        }
 
     except Exception as e:
         logger.error(traceback.format_exc())
-        raise HTTPException(500, f"Session creation failed: {str(e)}")
+        raise HTTPException(
+            500,
+            f"Session creation failed: {str(e)}",
+        )
 
 
-@router.get("/get-session/{session_id}")
+# ---------------- GET SESSION ----------------
+
+@router.get(
+    "/get-session/{session_id}",
+    dependencies=[Depends(verify_token)],
+)
 async def get_session(session_id: str):
     try:
-        session = redis_context_store_manager.get_session(session_id)
+        session = redis_context_store_manager.get_session(
+            session_id
+        )
 
         if not session:
-            return {"status": "error", "message": "Session not found"}
+            return {
+                "status": "error",
+                "message": "Session not found",
+            }
 
-        return {"status": "success", "data": session}
+        return {
+            "status": "success",
+            "data": session,
+        }
 
     except Exception as e:
         logger.error(traceback.format_exc())
         raise HTTPException(500, str(e))
 
 
-# ---------------- INTERVIEW ---------------- #
+# ---------------- INTERVIEW ----------------
 
-
-@router.post("/interview/run/{session_id}")
-async def run_interview(session_id: str, request: InterviewRunRequest):
+@router.post(
+    "/interview/run/{session_id}",
+    dependencies=[Depends(verify_token)],
+)
+async def run_interview(
+    session_id: str,
+    request: InterviewRunRequest,
+):
     try:
         loop = asyncio.get_event_loop()
 
         result = await loop.run_in_executor(
-            None, lambda: interview_engine.run(session_id, request.userAnswer)
+            None,
+            lambda: interview_engine.run(
+                session_id,
+                request.userAnswer,
+            ),
         )
 
         return {
@@ -111,17 +159,23 @@ async def run_interview(session_id: str, request: InterviewRunRequest):
 
     except Exception as e:
         logger.error(traceback.format_exc())
-        raise HTTPException(500, f"Interview failed: {str(e)}")
+        raise HTTPException(
+            500,
+            f"Interview failed: {str(e)}",
+        )
 
 
-# ---------------- HEALTH ---------------- #
-
+# ---------------- HEALTH ----------------
 
 @router.get("/health")
 async def health():
     return {"status": "ok"}
 
 
+# ---------------- ROOT ----------------
+
 @router.get("/")
 async def root():
-    return {"message": "Interview AI Engine running 🚀"}
+    return {
+        "message": "Interview AI Engine running 🚀"
+    }
